@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { authAPI } from '../lib/api'
 import { Loader2, Mail, Lock, LogIn } from 'lucide-react'
 
 export default function LoginPage() {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -25,8 +24,8 @@ export default function LoginPage() {
       localStorage.setItem('refresh_token', response.data.refresh_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
 
-      // Redirect to home or intended page
-      navigate('/')
+      // Redirect to home and force refresh
+      window.location.href = '/'
     } catch (error: any) {
       setError(error.response?.data?.error || 'Login failed. Please try again.')
     } finally {

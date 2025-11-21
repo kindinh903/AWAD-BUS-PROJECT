@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { authAPI } from '../lib/api'
 import { Loader2, Mail, Lock, User, Phone, UserPlus } from 'lucide-react'
 
 export default function RegisterPage() {
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -34,7 +33,7 @@ export default function RegisterPage() {
     try {
       setLoading(true)
       const response = await authAPI.register({
-        full_name: formData.name,
+        name: formData.name,
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
@@ -45,8 +44,8 @@ export default function RegisterPage() {
       localStorage.setItem('refresh_token', response.data.refresh_token)
       localStorage.setItem('user', JSON.stringify(response.data.user))
 
-      // Redirect to home
-      navigate('/')
+      // Redirect to home and force refresh
+      window.location.href = '/'
     } catch (error: any) {
       setError(error.response?.data?.error || 'Registration failed. Please try again.')
     } finally {

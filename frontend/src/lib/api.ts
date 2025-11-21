@@ -145,7 +145,7 @@ export interface Booking {
 
 // Auth
 export const authAPI = {
-  register: (data: { email: string; password: string; full_name: string; phone: string }) =>
+  register: (data: { email: string; password: string; name: string; phone: string }) =>
     api.post('/auth/register', data),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   refreshToken: (refresh_token: string) => api.post('/auth/refresh', { refresh_token }),
