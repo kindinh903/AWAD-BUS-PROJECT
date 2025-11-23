@@ -4,6 +4,17 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
 import './index.css';
+import { tokenManager } from './lib/tokenManager';
+
+// Declare global type for window
+declare global {
+  interface Window {
+    tokenManager: typeof tokenManager;
+  }
+}
+
+// Expose tokenManager to window for DevTools console
+window.tokenManager = tokenManager;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
