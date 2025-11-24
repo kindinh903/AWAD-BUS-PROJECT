@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,12 +25,20 @@ func (r *refreshTokenRepository) Create(ctx context.Context, token *entities.Ref
 
 func (r *refreshTokenRepository) GetByToken(ctx context.Context, token string) (*entities.RefreshToken, error) {
 	var refreshToken entities.RefreshToken
+	now := time.Now()
+	log.Printf("[RefreshTokenRepo] Looking for token, current time: %v", now)
+	
 	err := r.db.WithContext(ctx).
-		Where("token = ? AND is_revoked = false AND expires_at > ?", token, time.Now()).
+		Where("token = ? AND is_revoked = false AND expires_at > ?", token, now).
 		First(&refreshToken).Error
+	
 	if err != nil {
+		log.Printf("[RefreshTokenRepo] Token not found or expired: %v", err)
 		return nil, err
 	}
+	
+	log.Printf("[RefreshTokenRepo] Token found, expires_at: %v, remaining: %v", 
+		refreshToken.ExpiresAt, refreshToken.ExpiresAt.Sub(now))
 	return &refreshToken, nil
 }
 

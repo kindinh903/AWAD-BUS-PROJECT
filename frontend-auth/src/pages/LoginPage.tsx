@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { authAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
 import { Loader2, Mail, Lock, LogIn } from 'lucide-react';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -25,8 +26,8 @@ export default function LoginPage() {
       tokenManager.setTokens(response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      // Redirect to home and force refresh
-      window.location.href = '/';
+      // Navigate to home without page reload (preserves memory tokens)
+      navigate('/');
     } catch (error) {
       const axiosError = error as AxiosError<{ error: string }>;
       setError(

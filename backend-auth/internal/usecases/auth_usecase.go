@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -214,20 +215,37 @@ func (uc *AuthUsecase) RefreshAccessToken(ctx context.Context, refreshToken stri
 		return nil, errors.New("account is inactive")
 	}
 
-	// Generate new tokens
+	// Generate new access token (always)
 	newAccessToken, err := uc.generateAccessToken(user)
 	if err != nil {
 		return nil, err
 	}
 
-	newRefreshToken, err := uc.generateRefreshToken(user)
-	if err != nil {
-		return nil, err
-	}
+	// Only generate new refresh token if current one is expiring soon (< 1 minute)
+	// This prevents duplicate token errors when multiple refresh calls happen at once
+	timeUntilExpiry := storedToken.ExpiresAt.Sub(time.Now())
+	shouldRotateRefreshToken := timeUntilExpiry < 1*time.Minute
+	
+	log.Printf("[Auth] RefreshAccessToken for user %s, refresh token expires in %v, should rotate: %v", 
+		userID, timeUntilExpiry, shouldRotateRefreshToken)
 
-	// Store new refresh token in database
-	if err := uc.storeRefreshToken(ctx, user.ID, newRefreshToken); err != nil {
-		return nil, fmt.Errorf("failed to store new refresh token: %w", err)
+	var newRefreshToken string
+	if shouldRotateRefreshToken {
+		// Token is expiring soon, generate a new one
+		newRefreshToken, err = uc.generateRefreshToken(user)
+		if err != nil {
+			return nil, err
+		}
+
+		// Store new refresh token in database
+		if err := uc.storeRefreshToken(ctx, user.ID, newRefreshToken); err != nil {
+			return nil, fmt.Errorf("failed to store new refresh token: %w", err)
+		}
+	} else {
+		// Token still has plenty of time, reuse the existing one
+		// But don't include it in the response - client will keep using the cookie
+		log.Printf("[Auth] Reusing existing refresh token (expires in %v)", timeUntilExpiry)
+		newRefreshToken = refreshToken
 	}
 
 	// Remove password from response
@@ -268,11 +286,15 @@ func (uc *AuthUsecase) generateRefreshToken(user *entities.User) (string, error)
 
 // storeRefreshToken saves a refresh token to the database
 func (uc *AuthUsecase) storeRefreshToken(ctx context.Context, userID uuid.UUID, tokenString string) error {
+	expiresAt := time.Now().Add(uc.refreshTokenExpiry)
+	log.Printf("[Auth] Storing refresh token for user %s, expires_at: %v (now: %v, expiry duration: %v)", 
+		userID, expiresAt, time.Now(), uc.refreshTokenExpiry)
+	
 	refreshToken := &entities.RefreshToken{
 		ID:        uuid.New(),
 		UserID:    userID,
 		Token:     tokenString,
-		ExpiresAt: time.Now().Add(uc.refreshTokenExpiry),
+		ExpiresAt: expiresAt,
 		IsRevoked: false,
 		CreatedAt: time.Now(),
 	}

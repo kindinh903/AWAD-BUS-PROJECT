@@ -160,8 +160,20 @@ func initDependencies(db *gorm.DB) *Container {
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
-	accessTokenExpiry, _ := time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "15m"))
-	refreshTokenExpiry, _ := time.ParseDuration(getEnv("JWT_REFRESH_EXPIRY", "7d"))
+	
+	accessTokenExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "15m"))
+	if err != nil {
+		log.Printf("Failed to parse JWT_ACCESS_EXPIRY, using default 15m: %v", err)
+		accessTokenExpiry = 15 * time.Minute
+	}
+	
+	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_EXPIRY", "7d"))
+	if err != nil {
+		log.Printf("Failed to parse JWT_REFRESH_EXPIRY, using default 7d: %v", err)
+		refreshTokenExpiry = 7 * 24 * time.Hour
+	}
+
+	log.Printf("Token expiry times - Access: %v, Refresh: %v", accessTokenExpiry, refreshTokenExpiry)
 
 	// Usecases
 	authUsecase := usecases.NewAuthUsecase(userRepo, refreshTokenRepo, jwtSecret, accessTokenExpiry, refreshTokenExpiry)

@@ -30,17 +30,16 @@ type LoginRequest struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string `json:"refresh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token"` // Optional - can be from cookie
 }
 
 type LogoutRequest struct {
-	RefreshToken string `json:"refresh_token"`
+	RefreshToken string `json:"refresh_token"` // Optional - can be from body or cookie
 }
 
 type AuthResponse struct {
-	AccessToken  string      `json:"access_token"`
-	RefreshToken string      `json:"refresh_token"`
-	User         interface{} `json:"user"`
+	AccessToken string      `json:"access_token"`
+	User        interface{} `json:"user"`
 }
 
 // Register godoc
@@ -71,10 +70,21 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
+	// Set refresh token as HttpOnly cookie
+	c.SetCookie(
+		"refresh_token",           // name
+		tokens.RefreshToken,       // value
+		7*24*60*60,                // maxAge (7 days)
+		"/",                       // path
+		"",                        // domain
+		false,                     // secure (set to true in production with HTTPS)
+		true,                      // httpOnly
+	)
+
+	// Return access token in response (don't include refresh token)
 	c.JSON(http.StatusCreated, AuthResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
-		User:         tokens.User,
+		AccessToken: tokens.AccessToken,
+		User:        tokens.User,
 	})
 }
 
@@ -104,40 +114,73 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
+	// Set refresh token as HttpOnly cookie
+	c.SetCookie(
+		"refresh_token",           // name
+		tokens.RefreshToken,       // value
+		7*24*60*60,                // maxAge (7 days)
+		"/",                       // path
+		"",                        // domain
+		false,                     // secure (set to true in production with HTTPS)
+		true,                      // httpOnly
+	)
+
+	// Return access token in response (don't include refresh token)
 	c.JSON(http.StatusOK, AuthResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
-		User:         tokens.User,
+		AccessToken: tokens.AccessToken,
+		User:        tokens.User,
 	})
 }
 
 // RefreshToken godoc
 // @Summary Refresh access token
-// @Description Get a new access token using refresh token
+// @Description Get a new access token using refresh token from cookie or body
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body RefreshTokenRequest true "Refresh token"
+// @Param request body RefreshTokenRequest false "Refresh token (optional, can be from HttpOnly cookie)"
 // @Success 200 {object} AuthResponse
 // @Failure 401 {object} ErrorResponse
 // @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshTokenRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
+	// Don't fail if body is empty - refresh token might be in cookie
+	c.ShouldBindJSON(&req)
+
+	// Get refresh token from body or cookie
+	refreshToken := req.RefreshToken
+	if refreshToken == "" {
+		// Try to get from HttpOnly cookie
+		var err error
+		refreshToken, err = c.Cookie("refresh_token")
+		if err != nil || refreshToken == "" {
+			// No refresh token found
+			c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "No refresh token provided"})
+			return
+		}
 	}
 
-	tokens, err := h.authUsecase.RefreshAccessToken(c.Request.Context(), req.RefreshToken)
+	tokens, err := h.authUsecase.RefreshAccessToken(c.Request.Context(), refreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: err.Error()})
 		return
 	}
 
+	// Set refresh token as HttpOnly cookie (update it)
+	c.SetCookie(
+		"refresh_token",           // name
+		tokens.RefreshToken,       // value
+		7*24*60*60,                // maxAge (7 days)
+		"/",                       // path
+		"",                        // domain
+		false,                     // secure (set to true in production with HTTPS)
+		true,                      // httpOnly
+	)
+
+	// Return access token in response (don't include refresh token)
 	c.JSON(http.StatusOK, AuthResponse{
-		AccessToken:  tokens.AccessToken,
-		RefreshToken: tokens.RefreshToken,
-		User:         tokens.User,
+		AccessToken: tokens.AccessToken,
+		User:        tokens.User,
 	})
 }
 
@@ -147,23 +190,57 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param request body LogoutRequest true "Refresh token to revoke"
+// @Param request body LogoutRequest true "Refresh token to revoke (optional, can be from cookie)"
 // @Success 200 {object} SuccessResponse
 // @Failure 400 {object} ErrorResponse
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
 	var req LogoutRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
+	// Don't fail if body is empty - refresh token might be in cookie
+	c.ShouldBindJSON(&req)
+
+	// Get refresh token from body or cookie
+	refreshToken := req.RefreshToken
+	if refreshToken == "" {
+		// Try to get from HttpOnly cookie
+		var err error
+		refreshToken, err = c.Cookie("refresh_token")
+		if err != nil && refreshToken == "" {
+			// No token to revoke, just clear cookie
+			c.SetCookie(
+				"refresh_token",
+				"",
+				-1,
+				"/",
+				"",
+				false,
+				true,
+			)
+			c.JSON(http.StatusOK, SuccessResponse{
+				Message: "Logout successful",
+			})
+			return
+		}
 	}
 
-	if req.RefreshToken != "" {
-		if err := h.authUsecase.RevokeToken(c.Request.Context(), req.RefreshToken); err != nil {
+	// Revoke the refresh token
+	if refreshToken != "" {
+		if err := h.authUsecase.RevokeToken(c.Request.Context(), refreshToken); err != nil {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			return
 		}
 	}
+
+	// Clear refresh token cookie
+	c.SetCookie(
+		"refresh_token",  // name
+		"",               // value (empty to clear)
+		-1,               // maxAge (negative to delete)
+		"/",              // path
+		"",               // domain
+		false,            // secure
+		true,             // httpOnly
+	)
 
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: "Logout successful",
