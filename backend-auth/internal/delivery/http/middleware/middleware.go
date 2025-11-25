@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -84,23 +85,36 @@ func AdminMiddleware() gin.HandlerFunc {
 
 // CORS middleware
 func CORS() gin.HandlerFunc {
+	// Read allowed origins from env var CORS_ALLOWED_ORIGINS (comma-separated)
+	allowed := os.Getenv("CORS_ALLOWED_ORIGINS")
+	// default origins for local development if not set
+	if strings.TrimSpace(allowed) == "" {
+		allowed = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000"
+	}
+
+	// Build a lookup map
+	allowedMap := make(map[string]bool)
+	for _, o := range strings.Split(allowed, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			allowedMap[o] = true
+		}
+	}
+
+	// If wildcard provided, mark it
+	wildcard := allowedMap["*"]
+
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
-		
-		// List of allowed origins for development
-		allowedOrigins := map[string]bool{
-			"http://localhost:5173":  true, // Vite default port
-			"http://localhost:3000":  true, // Alternative port
-			"http://127.0.0.1:5173":  true,
-			"http://127.0.0.1:3000":  true,
-		}
-		
-		// Check if origin is allowed
-		if allowedOrigins[origin] {
+
+		if wildcard {
+			// Allow any origin, but don't set Allow-Credentials to true when using '*'
+			c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		} else if allowedMap[origin] {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		}
-		
+
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE, PATCH")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
