@@ -53,6 +53,10 @@ func main() {
 		log.Println("No .env file found, using system environment variables")
 	}
 
+	// Debug: check if Google Client ID is loaded
+	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
+	log.Printf("Loaded GOOGLE_CLIENT_ID: %s", googleClientID)
+
 	// Initialize database
 	db, err := initDatabase()
 	if err != nil {
@@ -221,7 +225,7 @@ func setupRouter(container *Container) *gin.Engine {
 			auth.POST("/refresh", authHandler.RefreshToken)
 			auth.POST("/logout", authHandler.Logout)
 			auth.GET("/google", authHandler.GoogleLogin)
-			auth.GET("/google/callback", authHandler.GoogleCallback)
+			auth.POST("/google/callback", authHandler.GoogleCallback)
 			auth.GET("/github", authHandler.GitHubLogin)
 			auth.GET("/github/callback", authHandler.GitHubCallback)
 		}

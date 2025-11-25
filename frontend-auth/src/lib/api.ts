@@ -103,6 +103,7 @@ export const authAPI = {
     api.post('/auth/login', data),
   refreshToken: () => api.post('/auth/refresh', {}),
   logout: () => api.post('/auth/logout', {}),
+  googleAuth: (idToken: string) => api.post('/auth/google/callback', { id_token: idToken }),
 };
 
 export default api;

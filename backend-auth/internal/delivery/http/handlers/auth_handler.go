@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +36,10 @@ type RefreshTokenRequest struct {
 
 type LogoutRequest struct {
 	RefreshToken string `json:"refresh_token"` // Optional - can be from body or cookie
+}
+
+type GoogleAuthRequest struct {
+	IDToken string `json:"id_token" binding:"required"`
 }
 
 type AuthResponse struct {
@@ -259,14 +264,78 @@ func (h *AuthHandler) GoogleLogin(c *gin.Context) {
 }
 
 // GoogleCallback godoc
-// @Summary Google OAuth callback
-// @Description Handle Google OAuth callback
+// @Summary Google OAuth callback  
+// @Description Handle Google OAuth callback with ID token
 // @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body GoogleAuthRequest true "Google ID Token"
 // @Success 200 {object} AuthResponse
-// @Router /auth/google/callback [get]
+// @Failure 400 {object} ErrorResponse
+// @Router /auth/google/callback [post]
 func (h *AuthHandler) GoogleCallback(c *gin.Context) {
-	// TODO: Implement callback
-	c.JSON(http.StatusOK, gin.H{"message": "Google auth successful"})
+	var req GoogleAuthRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	// Verify Google ID token
+	googleUser, err := h.VerifyGoogleIDToken(c.Request.Context(), req.IDToken)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: fmt.Sprintf("Invalid Google token: %v", err)})
+		return
+	}
+
+	// Check if email domain is allowed (optional)
+	if !h.IsValidGoogleDomain(googleUser.Email) {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Email domain not allowed"})
+		return
+	}
+
+	// Check if user exists
+	email := googleUser.Email
+	existingUser, err := h.authUsecase.GetUserByEmail(c.Request.Context(), email)
+	
+	var user interface{}
+	if err != nil || existingUser == nil {
+		// Create new user
+		tokens, createErr := h.authUsecase.RegisterOAuth(c.Request.Context(), usecases.OAuthUserInput{
+			Email:    email,
+			Name:     googleUser.Name,
+			Provider: "google",
+			Avatar:   googleUser.Picture,
+		})
+		if createErr != nil {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: createErr.Error()})
+			return
+		}
+		user = tokens.User
+		
+		// Set refresh token cookie
+		c.SetCookie("refresh_token", tokens.RefreshToken, 7*24*60*60, "/", "", false, true)
+		
+		c.JSON(http.StatusOK, AuthResponse{
+			AccessToken: tokens.AccessToken,
+			User:        user,
+		})
+		return
+	}
+
+	// User exists, login
+	tokens, loginErr := h.authUsecase.LoginOAuth(c.Request.Context(), existingUser.ID)
+	if loginErr != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: loginErr.Error()})
+		return
+	}
+
+	// Set refresh token cookie
+	c.SetCookie("refresh_token", tokens.RefreshToken, 7*24*60*60, "/", "", false, true)
+
+	c.JSON(http.StatusOK, AuthResponse{
+		AccessToken: tokens.AccessToken,
+		User:        tokens.User,
+	})
 }
 
 // GitHubLogin godoc

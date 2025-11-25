@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { authAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
+import { GoogleLoginButton } from '../components/GoogleLoginButton';
 import { Loader2, Mail, Lock, LogIn } from 'lucide-react';
 
 export default function LoginPage() {
@@ -36,6 +37,38 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = async (idToken: string) => {
+    setError('');
+    
+    try {
+      setLoading(true);
+      console.log('Google login with token:', idToken);
+      
+      const response = await authAPI.googleAuth(idToken);
+      
+      // Store tokens - access token in memory, refresh token in httpOnly cookie (set by server)
+      tokenManager.setTokens(response.data.access_token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+
+      console.log('Google login successful, user:', response.data.user);
+      
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Google login error:', error);
+      const axiosError = error as AxiosError<{ error: string }>;
+      setError(
+        axiosError.response?.data?.error || 'Google login failed. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google login was cancelled or failed.');
   };
 
   return (
@@ -167,6 +200,24 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+          </div>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          {/* Google Login Button */}
+          <div>
+            <GoogleLoginButton
+              onSuccess={handleGoogleLogin}
+              onError={handleGoogleError}
+            />
           </div>
         </form>
       </div>

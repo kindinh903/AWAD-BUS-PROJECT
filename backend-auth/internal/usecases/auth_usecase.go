@@ -50,6 +50,13 @@ type LoginInput struct {
 	Password string
 }
 
+type OAuthUserInput struct {
+	Email    string
+	Name     string
+	Provider string
+	Avatar   string
+}
+
 type AuthTokens struct {
 	AccessToken  string
 	RefreshToken string
@@ -300,4 +307,98 @@ func (uc *AuthUsecase) storeRefreshToken(ctx context.Context, userID uuid.UUID, 
 	}
 
 	return uc.refreshTokenRepo.Create(ctx, refreshToken)
+}
+
+// GetUserByEmail gets user by email
+func (uc *AuthUsecase) GetUserByEmail(ctx context.Context, email string) (*entities.User, error) {
+	return uc.userRepo.GetByEmail(ctx, email)
+}
+
+// RegisterOAuth creates a new user from OAuth provider
+func (uc *AuthUsecase) RegisterOAuth(ctx context.Context, input OAuthUserInput) (*AuthTokens, error) {
+	// Check if user already exists
+	existing, _ := uc.userRepo.GetByEmail(ctx, input.Email)
+	if existing != nil {
+		return nil, errors.New("user with this email already exists")
+	}
+
+	// Create user from OAuth
+	user := &entities.User{
+		ID:            uuid.New(),
+		Name:          input.Name,
+		Email:         input.Email,
+		Role:          entities.RolePassenger,
+		OAuthProvider: &input.Provider,
+		Avatar:        &input.Avatar,
+		IsActive:      true,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	if err := uc.userRepo.Create(ctx, user); err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	// Generate tokens
+	accessToken, err := uc.generateAccessToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := uc.generateRefreshToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Store refresh token in database
+	if err := uc.storeRefreshToken(ctx, user.ID, refreshToken); err != nil {
+		return nil, fmt.Errorf("failed to store refresh token: %w", err)
+	}
+
+	// Remove password from response
+	user.PasswordHash = ""
+
+	return &AuthTokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         user,
+	}, nil
+}
+
+// LoginOAuth logs in an existing OAuth user
+func (uc *AuthUsecase) LoginOAuth(ctx context.Context, userID uuid.UUID) (*AuthTokens, error) {
+	// Get user by ID
+	user, err := uc.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	if !user.IsActive {
+		return nil, errors.New("account is inactive")
+	}
+
+	// Generate tokens
+	accessToken, err := uc.generateAccessToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := uc.generateRefreshToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Store refresh token in database
+	if err := uc.storeRefreshToken(ctx, user.ID, refreshToken); err != nil {
+		return nil, fmt.Errorf("failed to store refresh token: %w", err)
+	}
+
+	// Remove password from response
+	user.PasswordHash = ""
+
+	return &AuthTokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         user,
+	}, nil
 }
