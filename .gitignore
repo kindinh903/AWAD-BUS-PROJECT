@@ -3,6 +3,7 @@ backend/uploads/
 backend/*.log
 backend/tmp/
 backend/.env
+backend-auth/.env
 
 # Frontend
 frontend/node_modules/
