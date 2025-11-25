@@ -43,13 +43,19 @@ export const useAuthInit = () => {
             );
 
             console.log('[Auth Init] Refresh successful, setting new access token');
-            const { access_token } = response.data;
+            const { access_token, user } = response.data;
             tokenManager.setAccessToken(access_token);
             
-            // Also restore user info from localStorage if available
-            const userInfo = localStorage.getItem('user');
-            if (userInfo) {
-              console.log('[Auth Init] Restored user info from localStorage');
+            // Store user info in localStorage
+            if (user) {
+              localStorage.setItem('user', JSON.stringify(user));
+              console.log('[Auth Init] Stored user info with role:', user.role);
+            }
+            
+            // Also get user info from token
+            const userFromToken = tokenManager.getUserInfo();
+            if (userFromToken) {
+              console.log('[Auth Init] User role from token:', userFromToken.role);
             }
 
             console.log('[Auth Init] Authentication initialized successfully ✓');

@@ -1,7 +1,16 @@
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 // Store access token in memory variable
 let accessToken: string | null = null;
+
+interface JWTPayload {
+  user_id: string;
+  email: string;
+  role: string;
+  exp: number;
+  iat: number;
+}
 
 export const tokenManager = {
   /**
@@ -51,5 +60,53 @@ export const tokenManager = {
    */
   setAccessToken: (token: string) => {
     accessToken = token;
+  },
+
+  /**
+   * Get user role from access token
+   */
+  getUserRole: (): string | null => {
+    if (!accessToken) return null;
+    
+    try {
+      const decoded = jwtDecode<JWTPayload>(accessToken);
+      return decoded.role;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Get user info from access token
+   */
+  getUserInfo: (): { userId: string; email: string; role: string } | null => {
+    if (!accessToken) return null;
+    
+    try {
+      const decoded = jwtDecode<JWTPayload>(accessToken);
+      return {
+        userId: decoded.user_id,
+        email: decoded.email,
+        role: decoded.role
+      };
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Check if token is expired
+   */
+  isTokenExpired: (): boolean => {
+    if (!accessToken) return true;
+    
+    try {
+      const decoded = jwtDecode<JWTPayload>(accessToken);
+      return decoded.exp * 1000 < Date.now();
+    } catch (error) {
+      return true;
+    }
   },
 };

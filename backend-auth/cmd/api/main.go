@@ -64,6 +64,11 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
+	// Run seed data
+	if err := postgres.SeedData(db); err != nil {
+		log.Printf("Failed to seed data: %v", err)
+	}
+
 	// Initialize dependencies
 	container := initDependencies(db)
 

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Shield, Zap } from 'lucide-react';
 import { tokenManager } from '../lib/tokenManager';
+import { DemoAccounts } from '../components/DemoAccounts';
 
 export default function HomePage() {
   const isAuthenticated = !!tokenManager.getAccessToken();
@@ -56,6 +57,15 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Demo Accounts Section - Show only when not authenticated */}
+      {!isAuthenticated && (
+        <section className="py-16 bg-gray-50">
+          <div className="container-custom">
+            <DemoAccounts />
+          </div>
+        </section>
+      )}
 
       {/* Features */}
       <section className="py-16">
