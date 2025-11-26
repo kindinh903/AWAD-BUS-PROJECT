@@ -11,7 +11,7 @@ export default function DashboardPage() {
     // Get user info from token or localStorage
     const userInfo = tokenManager.getUserInfo();
     const storedUser = localStorage.getItem('user');
-    
+
     if (userInfo) {
       setUser(userInfo);
       setUserRole(userInfo.role);

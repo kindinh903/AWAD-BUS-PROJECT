@@ -161,10 +161,15 @@ export default function StatisticChart({ role }: StatisticChartProps) {
         return (
           <div className="space-y-3 h-80 overflow-y-auto">
             {systemStatusData.map(status => (
-              <div key={status.name} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div
+                key={status.name}
+                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+              >
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">{status.name}</p>
-                  <p className="text-sm text-gray-500">Uptime: {status.uptime}%</p>
+                  <p className="text-sm text-gray-500">
+                    Uptime: {status.uptime}%
+                  </p>
                 </div>
                 <div className="text-right">
                   <span className="inline-block px-3 py-1 text-sm font-semibold text-green-800 bg-green-100 rounded-full">
@@ -192,7 +197,8 @@ export default function StatisticChart({ role }: StatisticChartProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-900">
-          {availableCharts.find(c => c.value === chartType)?.label || 'Statistics'}
+          {availableCharts.find(c => c.value === chartType)?.label ||
+            'Statistics'}
         </h2>
 
         {/* Chart Type Selector */}
@@ -218,9 +224,7 @@ export default function StatisticChart({ role }: StatisticChartProps) {
       </div>
 
       {/* Chart */}
-      <div className="w-full">
-        {renderChart()}
-      </div>
+      <div className="w-full">{renderChart()}</div>
 
       {/* Footer Info */}
       <div className="mt-6 pt-4 border-t border-gray-200">

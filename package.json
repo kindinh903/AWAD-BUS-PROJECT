@@ -1,0 +1,12 @@
+{
+  "name": "awad-bus-project-root",
+  "private": true,
+  "scripts": {
+    "prepare": "husky install",
+    "lint:frontend": "cd frontend-auth && npm run lint",
+    "format:frontend": "cd frontend-auth && npm run prettier",
+    "gofmt": "gofmt -l -w backend-auth",
+    "govet": "cd backend-auth && go vet ./...",
+    "check": "npm run gofmt && npm run govet && npm run lint:frontend"
+  }
+}

@@ -13,7 +13,11 @@ function App() {
 
   // Show nothing while initializing auth
   if (!isInitialized) {
-    return <div className="min-h-screen flex items-center justify-center">Initializing...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Initializing...
+      </div>
+    );
   }
 
   return (
@@ -21,7 +25,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         {/* Public pages */}
         <Route index element={<HomePage />} />
-        
+
         {/* Auth pages - redirect to home if already authenticated */}
         <Route
           path="login"
@@ -39,7 +43,7 @@ function App() {
             </PublicAuthRoute>
           }
         />
-        
+
         {/* Protected pages - redirect to login if not authenticated */}
         <Route
           path="dashboard"

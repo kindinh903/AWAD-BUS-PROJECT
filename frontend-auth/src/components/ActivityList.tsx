@@ -10,7 +10,10 @@ interface ActivityListProps {
 type SortField = 'timestamp' | 'type' | 'status';
 type SortOrder = 'asc' | 'desc';
 
-export default function ActivityList({ activities, onRefresh }: ActivityListProps) {
+export default function ActivityList({
+  activities,
+  onRefresh,
+}: ActivityListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -19,12 +22,13 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const filteredAndSortedActivities = useMemo(() => {
-    let filtered = activities.filter(activity => {
+    const filtered = activities.filter(activity => {
       const matchesSearch =
         activity.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         activity.user.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = filterType === 'all' || activity.type === filterType;
-      const matchesStatus = filterStatus === 'all' || activity.status === filterStatus;
+      const matchesStatus =
+        filterStatus === 'all' || activity.status === filterStatus;
 
       return matchesSearch && matchesType && matchesStatus;
     });
@@ -91,13 +95,18 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
       {/* Header */}
       <div className="border-b border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Recent Activity
+          </h2>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
-            <RotateCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            <RotateCw
+              size={16}
+              className={isRefreshing ? 'animate-spin' : ''}
+            />
             Refresh
           </button>
         </div>
@@ -107,7 +116,10 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
           {/* Search */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 placeholder="Search by description or user..."
@@ -131,7 +143,10 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
               <option value="cancellation">Cancellation</option>
               <option value="registration">Registration</option>
             </select>
-            <ChevronDown size={18} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown
+              size={18}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
           </div>
 
           {/* Status Filter */}
@@ -146,7 +161,10 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
             </select>
-            <ChevronDown size={18} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown
+              size={18}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
           </div>
         </div>
       </div>
@@ -154,7 +172,11 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
       {/* Sort */}
       <div className="px-6 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
         <span className="text-sm text-gray-600">
-          Showing <span className="font-semibold">{filteredAndSortedActivities.length}</span> activities
+          Showing{' '}
+          <span className="font-semibold">
+            {filteredAndSortedActivities.length}
+          </span>{' '}
+          activities
         </span>
         <div className="flex gap-2">
           <select
@@ -196,8 +218,11 @@ export default function ActivityList({ activities, onRefresh }: ActivityListProp
                       <p className="font-medium text-gray-900 truncate">
                         {activity.description}
                       </p>
-                      <span className={`inline-block px-2 py-1 text-xs font-semibold rounded ${getStatusBadgeColor(activity.status)}`}>
-                        {activity.status.charAt(0).toUpperCase() + activity.status.slice(1)}
+                      <span
+                        className={`inline-block px-2 py-1 text-xs font-semibold rounded ${getStatusBadgeColor(activity.status)}`}
+                      >
+                        {activity.status.charAt(0).toUpperCase() +
+                          activity.status.slice(1)}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">

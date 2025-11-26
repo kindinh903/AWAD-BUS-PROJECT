@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+frontend-auth/node_modules
+**/vendor
+backend-auth/bin
+**/*.log
+*.lock

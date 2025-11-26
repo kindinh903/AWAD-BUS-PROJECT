@@ -5,14 +5,14 @@ import { tokenManager } from './tokenManager';
 // Event emitter for auth events
 export const authEvents = {
   listeners: [] as ((event: { type: string; data?: any }) => void)[],
-  
+
   on(callback: (event: { type: string; data?: any }) => void) {
     this.listeners.push(callback);
     return () => {
       this.listeners = this.listeners.filter(l => l !== callback);
     };
   },
-  
+
   emit(type: string, data?: any) {
     this.listeners.forEach(callback => callback({ type, data }));
   },
@@ -31,8 +31,7 @@ api.interceptors.request.use(
   config => {
     const token = tokenManager.getAccessToken();
     if (token) {
-      config.headers.Authorization =
-       `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -53,7 +52,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       const hasToken = tokenManager.getAccessToken();
-      
+
       // Don't retry if:
       // 1. This is already a refresh request
       // 2. No token exists (means login/register failed, not token expired)
@@ -103,7 +102,8 @@ export const authAPI = {
     api.post('/auth/login', data),
   refreshToken: () => api.post('/auth/refresh', {}),
   logout: () => api.post('/auth/logout', {}),
-  googleAuth: (idToken: string) => api.post('/auth/google/callback', { id_token: idToken }),
+  googleAuth: (idToken: string) =>
+    api.post('/auth/google/callback', { id_token: idToken }),
 };
 
 export default api;

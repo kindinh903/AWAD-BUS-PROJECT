@@ -45,14 +45,18 @@ export default function SummaryCards({ cards }: SummaryCardsProps) {
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-gray-600">{card.title}</h3>
-            <div className={`text-2xl ${getIconBgColor(card.color)} p-2 rounded-lg`}>
+            <div
+              className={`text-2xl ${getIconBgColor(card.color)} p-2 rounded-lg`}
+            >
               {card.icon}
             </div>
           </div>
 
           <div className="flex items-baseline justify-between">
             <div>
-              <p className={`text-2xl md:text-3xl font-bold ${getTextColorClasses(card.color)}`}>
+              <p
+                className={`text-2xl md:text-3xl font-bold ${getTextColorClasses(card.color)}`}
+              >
                 {card.value}
               </p>
               {card.unit && (
@@ -61,9 +65,11 @@ export default function SummaryCards({ cards }: SummaryCardsProps) {
             </div>
 
             {card.change !== undefined && (
-              <div className={`flex items-center gap-1 text-sm font-semibold ${
-                card.change >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <div
+                className={`flex items-center gap-1 text-sm font-semibold ${
+                  card.change >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
                 {card.change >= 0 ? (
                   <TrendingUp size={16} />
                 ) : (

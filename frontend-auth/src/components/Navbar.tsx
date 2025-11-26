@@ -6,7 +6,7 @@ import { authAPI, authEvents } from '../lib/api';
 export default function Navbar() {
   const navigate = useNavigate();
   const isAuthenticated = !!tokenManager.getAccessToken();
-  
+
   // Get user info from localStorage or token
   const userInfo = localStorage.getItem('user');
   const user = userInfo ? JSON.parse(userInfo) : null;
@@ -47,12 +47,19 @@ export default function Navbar() {
               <>
                 <div className="flex items-center gap-2 text-gray-700">
                   <User className="h-4 w-4" />
-                  <span>Welcome, <span className="font-semibold">{username.split(' ')[0]}</span></span>
-                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    userRole === 'admin' 
-                      ? 'bg-red-100 text-red-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
+                  <span>
+                    Welcome,{' '}
+                    <span className="font-semibold">
+                      {username.split(' ')[0]}
+                    </span>
+                  </span>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      userRole === 'admin'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
                     {userRole.toUpperCase()}
                   </span>
                 </div>

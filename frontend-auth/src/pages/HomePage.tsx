@@ -5,7 +5,7 @@ import { DemoAccounts } from '../components/DemoAccounts';
 
 export default function HomePage() {
   const isAuthenticated = !!tokenManager.getAccessToken();
-  
+
   // Get user info from localStorage
   const userInfo = localStorage.getItem('user');
   const user = userInfo ? JSON.parse(userInfo) : null;
@@ -20,7 +20,8 @@ export default function HomePage() {
             {isAuthenticated ? (
               <>
                 <h1 className="text-5xl font-bold mb-6">
-                  Welcome back, <span className="text-primary-200">{username}!</span>
+                  Welcome back,{' '}
+                  <span className="text-primary-200">{username}!</span>
                 </h1>
                 <p className="text-xl mb-8 text-primary-100">
                   Ready to book your next bus trip?
@@ -34,7 +35,9 @@ export default function HomePage() {
               </>
             ) : (
               <>
-                <h1 className="text-5xl font-bold mb-6">Welcome to Bus Booking</h1>
+                <h1 className="text-5xl font-bold mb-6">
+                  Welcome to Bus Booking
+                </h1>
                 <p className="text-xl mb-8 text-primary-100">
                   Fast, secure, and convenient bus booking platform
                 </p>

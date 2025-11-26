@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  Users, 
-  DollarSign, 
+import {
+  Users,
+  DollarSign,
   Shield,
   Database,
   Activity,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { adminSummaryCards, mockActivities } from '../lib/mockData';
 
@@ -23,16 +23,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const refreshData = async () => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     // Update some values randomly
     const updatedData = summaryData.map(card => ({
       ...card,
-      value: typeof card.value === 'number' 
-        ? Math.floor(card.value + Math.random() * 100 - 50)
-        : card.value,
-      change: card.change ? Math.random() * 20 - 10 : undefined
+      value:
+        typeof card.value === 'number'
+          ? Math.floor(card.value + Math.random() * 100 - 50)
+          : card.value,
+      change: card.change ? Math.random() * 20 - 10 : undefined,
     }));
-    
+
     setSummaryData(updatedData);
     setIsLoading(false);
   };
@@ -48,7 +49,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               Admin Dashboard
             </h1>
             <p className="text-red-100 mt-2">
-              Welcome back, {user?.name || 'Administrator'} | System Management Portal
+              Welcome back, {user?.name || 'Administrator'} | System Management
+              Portal
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -57,7 +59,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
               disabled={isLoading}
               className="flex items-center gap-2 bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+              />
               Refresh
             </button>
             <div className="bg-red-700 px-4 py-2 rounded-lg">
@@ -69,34 +73,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        {summaryData.map((card) => {
+        {summaryData.map(card => {
           const IconMap: { [key: string]: any } = {
             'total-bookings': Users,
-            'revenue': DollarSign,
+            revenue: DollarSign,
             'active-users': Activity,
-            'system-status': Database
+            'system-status': Database,
           };
           const IconComponent = IconMap[card.id] || Users;
           const colorClasses = {
             blue: 'border-blue-500 text-blue-500',
             green: 'border-green-500 text-green-500',
             orange: 'border-orange-500 text-orange-500',
-            red: 'border-red-500 text-red-500'
+            red: 'border-red-500 text-red-500',
           };
 
           return (
-            <div key={card.id} className={`bg-white p-6 rounded-lg shadow-md border-l-4 ${colorClasses[card.color].split(' ')[0]}`}>
+            <div
+              key={card.id}
+              className={`bg-white p-6 rounded-lg shadow-md border-l-4 ${colorClasses[card.color].split(' ')[0]}`}
+            >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">{card.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {card.value}
+                  </p>
                   {card.change && (
-                    <p className={`text-sm ${card.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {card.change > 0 ? '+' : ''}{card.change.toFixed(1)}%
+                    <p
+                      className={`text-sm ${card.change > 0 ? 'text-green-600' : 'text-red-600'}`}
+                    >
+                      {card.change > 0 ? '+' : ''}
+                      {card.change.toFixed(1)}%
                     </p>
                   )}
                 </div>
-                <IconComponent className={`h-8 w-8 ${colorClasses[card.color].split(' ')[1]}`} />
+                <IconComponent
+                  className={`h-8 w-8 ${colorClasses[card.color].split(' ')[1]}`}
+                />
               </div>
             </div>
           );
@@ -107,7 +121,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       <div className="mb-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            {['overview', 'users', 'buses', 'reports'].map((tab) => (
+            {['overview', 'users', 'buses', 'reports'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
@@ -131,18 +145,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
           Recent Activities
         </h2>
         <div className="space-y-3">
-          {activities.map((activity) => {
+          {activities.map(activity => {
             const statusColors = {
               success: 'bg-green-50 border-green-200 text-green-800',
               pending: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-              failed: 'bg-red-50 border-red-200 text-red-800'
+              failed: 'bg-red-50 border-red-200 text-red-800',
             };
-            
+
             const typeIcons = {
               booking: '📅',
               payment: '💰',
               cancellation: '❌',
-              registration: '👤'
+              registration: '👤',
             };
 
             return (
@@ -154,19 +168,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                   <div className="flex items-start gap-3">
                     <span className="text-lg">{typeIcons[activity.type]}</span>
                     <div>
-                      <div className="font-semibold">{activity.description}</div>
-                      <div className="text-sm opacity-75">by {activity.user}</div>
+                      <div className="font-semibold">
+                        {activity.description}
+                      </div>
+                      <div className="text-sm opacity-75">
+                        by {activity.user}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm">
                       {activity.timestamp.toLocaleTimeString()}
                     </div>
-                    <div className={`text-xs px-2 py-1 rounded-full mt-1 ${
-                      activity.status === 'success' ? 'bg-green-100 text-green-800' :
-                      activity.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
+                    <div
+                      className={`text-xs px-2 py-1 rounded-full mt-1 ${
+                        activity.status === 'success'
+                          ? 'bg-green-100 text-green-800'
+                          : activity.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                      }`}
+                    >
                       {activity.status}
                     </div>
                   </div>
@@ -175,7 +197,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             );
           })}
         </div>
-        
+
         <div className="mt-4 text-center">
           <button className="text-blue-600 hover:text-blue-800 font-medium">
             View All Activities

@@ -28,7 +28,9 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
       // Initialize Google Sign-In
       if (window.google) {
         window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '899319379692-06c1gm0bgk4ngkg56j77qguonmu86m9u.apps.googleusercontent.com',
+          client_id:
+            import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+            '899319379692-06c1gm0bgk4ngkg56j77qguonmu86m9u.apps.googleusercontent.com',
           callback: (response: any) => {
             console.log('Google response:', response);
             if (response.credential) {
@@ -55,7 +57,9 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
 
     return () => {
       // Cleanup
-      const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      const existingScript = document.querySelector(
+        'script[src="https://accounts.google.com/gsi/client"]'
+      );
       if (existingScript) {
         document.head.removeChild(existingScript);
       }
@@ -65,7 +69,6 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
     <div className="w-full">
       {/* Google Sign-In Button */}
       <div id="google-signin-button" className="w-full"></div>
-      
     </div>
   );
 };

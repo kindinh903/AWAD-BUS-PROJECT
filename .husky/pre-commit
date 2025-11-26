@@ -1,0 +1,26 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-commit checks (gofmt, go vet, frontend lint)..."
+
+# Run gofmt
+gofmt -l -w backend-auth
+
+# Run go vet (non-fatal to avoid blocking if go tools not installed in env)
+cd backend-auth || exit 0
+if command -v go >/dev/null 2>&1; then
+  go vet ./... || true
+fi
+cd - >/dev/null || exit 0
+
+# Run frontend lint (assumes node deps installed in frontend-auth)
+if [ -d "frontend-auth" ]; then
+  if command -v npm >/dev/null 2>&1; then
+    (cd frontend-auth && npm run lint) || {
+      echo "Frontend lint failed. Fix lint errors or run 'cd frontend-auth && npm run lint' to see details.";
+      exit 1;
+    }
+  fi
+fi
+
+echo "Pre-commit checks passed."

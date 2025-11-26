@@ -67,7 +67,7 @@ export const tokenManager = {
    */
   getUserRole: (): string | null => {
     if (!accessToken) return null;
-    
+
     try {
       const decoded = jwtDecode<JWTPayload>(accessToken);
       return decoded.role;
@@ -82,13 +82,13 @@ export const tokenManager = {
    */
   getUserInfo: (): { userId: string; email: string; role: string } | null => {
     if (!accessToken) return null;
-    
+
     try {
       const decoded = jwtDecode<JWTPayload>(accessToken);
       return {
         userId: decoded.user_id,
         email: decoded.email,
-        role: decoded.role
+        role: decoded.role,
       };
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -101,7 +101,7 @@ export const tokenManager = {
    */
   isTokenExpired: (): boolean => {
     if (!accessToken) return true;
-    
+
     try {
       const decoded = jwtDecode<JWTPayload>(accessToken);
       return decoded.exp * 1000 < Date.now();
