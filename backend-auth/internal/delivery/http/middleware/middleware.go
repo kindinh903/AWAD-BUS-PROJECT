@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -89,16 +90,35 @@ func CORS() gin.HandlerFunc {
 	allowed := os.Getenv("CORS_ALLOWED_ORIGINS")
 	// default origins for local development if not set
 	if strings.TrimSpace(allowed) == "" {
-		allowed = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000"
+		// The user requested a fallback of https://awad-bus-project.vercel.app/login.
+		// For CORS we only allow the origin (scheme + host). Parse and strip any path.
+		fallback := "https://awad-bus-project.vercel.app/login"
+		if u, err := url.Parse(fallback); err == nil {
+			fallback = u.Scheme + "://" + u.Host
+		} else {
+			// if parse fails, use the host-only fallback
+			fallback = "https://awad-bus-project.vercel.app"
+		}
+
+		allowed = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000," + fallback
 	}
 
 	// Build a lookup map
 	allowedMap := make(map[string]bool)
 	for _, o := range strings.Split(allowed, ",") {
 		o = strings.TrimSpace(o)
-		if o != "" {
-			allowedMap[o] = true
+		if o == "" {
+			continue
 		}
+
+		// If an entry contains a path (user may have provided a full URL), parse and keep only scheme://host
+		if strings.Contains(o, "/") {
+			if u, err := url.Parse(o); err == nil {
+				o = u.Scheme + "://" + u.Host
+			}
+		}
+
+		allowedMap[o] = true
 	}
 
 	// If wildcard provided, mark it
