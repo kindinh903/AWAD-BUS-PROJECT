@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Bus, LogOut, LayoutDashboard, User } from 'lucide-react';
 import { tokenManager } from '../lib/tokenManager';
 import { authAPI, authEvents } from '../lib/api';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm border-b dark:border-slate-700">
       <div className="container-custom">
         <div className="flex h-16 items-center justify-between">
           <Link
@@ -43,9 +44,10 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-6">
+            <ThemeToggle />
             {isAuthenticated ? (
               <>
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
                   <User className="h-4 w-4" />
                   <span>
                     Welcome,{' '}
@@ -65,14 +67,14 @@ export default function Navbar() {
                 </div>
                 <Link
                   to="/dashboard"
-                  className="flex items-center gap-2 text-gray-700 hover:text-primary-600"
+                  className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-primary-600"
                 >
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-gray-700 hover:text-primary-600"
+                  className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-primary-600"
                 >
                   <LogOut className="h-4 w-4" />
                   Logout
@@ -82,7 +84,7 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-primary-600"
+                  className="text-gray-700 dark:text-gray-200 hover:text-primary-600"
                 >
                   Login
                 </Link>

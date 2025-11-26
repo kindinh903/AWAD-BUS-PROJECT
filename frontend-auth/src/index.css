@@ -11,6 +11,11 @@
     @apply bg-gray-50 text-gray-900 font-sans antialiased;
   }
 
+  /* Dark mode overrides applied when the `dark` class is set on <html> */
+  html.dark body {
+    @apply bg-slate-900 text-gray-100;
+  }
+
   h1,
   h2,
   h3,
@@ -38,21 +43,54 @@
     @apply btn border border-gray-300 bg-white hover:bg-gray-50;
   }
 
+  /* Dark variants for common components */
+  html.dark .btn-outline {
+    @apply bg-slate-800 border-slate-700 text-gray-100 hover:bg-slate-700;
+  }
+
+  /* Quick full-page invert option:
+     - Applies an overall invert+hue-rotate when `.dark` is present on <html>.
+     - Media elements (img, video, svg, iframe) are re-inverted so their colors remain natural.
+     - This is a fallback "full invert" experience; for a pixel-perfect dark theme prefer CSS variables + dark variants.
+  */
+  html.dark {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  html.dark img,
+  html.dark video,
+  html.dark picture,
+  html.dark svg,
+  html.dark iframe,
+  html.dark [data-no-invert] {
+    /* re-invert media so photos/icons keep correct colors */
+    filter: invert(1) hue-rotate(180deg);
+  }
+
   .input {
     @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+  }
+
+  html.dark .input {
+    @apply bg-slate-800 border-slate-700 text-gray-100 placeholder:text-slate-400 focus:border-primary-400;
   }
 
   .card {
     @apply rounded-lg border border-gray-200 bg-white shadow-sm;
   }
 
+  html.dark .card {
+    @apply bg-slate-800 border-slate-700 text-gray-100 shadow-none;
+  }
+
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
-}
+
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
 }
