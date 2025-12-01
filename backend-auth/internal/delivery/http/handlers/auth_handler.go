@@ -25,7 +25,7 @@ func (h *AuthHandler) setCrossSiteCookie(c *gin.Context, name, value string, max
 		Value:    value,
 		MaxAge:   maxAge,
 		Path:     "/",
-		Domain:   "", // Let browser determine domain
+		Domain:   "awad-bus-project-production.up.railway.app", // FIX !!!
 		Secure:   true, // Required for SameSite=None
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode, // Allow cross-origin
@@ -40,7 +40,7 @@ func (h *AuthHandler) clearCrossSiteCookie(c *gin.Context, name string) {
 		Value:    "",
 		MaxAge:   -1,
 		Path:     "/",
-		Domain:   "",
+		Domain:   "awad-bus-project-production.up.railway.app", // FIX !!!
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteNoneMode,
