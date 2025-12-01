@@ -18,6 +18,36 @@ func NewAuthHandler(authUsecase *usecases.AuthUsecase) *AuthHandler {
 	}
 }
 
+// setCrossSiteCookie sets a cookie with SameSite=None; Secure for cross-origin requests
+func (h *AuthHandler) setCrossSiteCookie(c *gin.Context, name, value string, maxAge int) {
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    value,
+		MaxAge:   maxAge,
+		Path:     "/",
+		Domain:   "", // Let browser determine domain
+		Secure:   true, // Required for SameSite=None
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode, // Allow cross-origin
+	}
+	http.SetCookie(c.Writer, cookie)
+}
+
+// clearCrossSiteCookie clears a cookie with proper SameSite settings
+func (h *AuthHandler) clearCrossSiteCookie(c *gin.Context, name string) {
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    "",
+		MaxAge:   -1,
+		Path:     "/",
+		Domain:   "",
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+}
+
 type RegisterRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
@@ -75,16 +105,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Set refresh token as HttpOnly cookie
-	c.SetCookie(
-		"refresh_token",           // name
-		tokens.RefreshToken,       // value
-		7*24*60*60,                // maxAge (7 days)
-		"/",                       // path
-		"",                        // domain
-		false,                     // secure (set to true in production with HTTPS)
-		true,                      // httpOnly
-	)
+	// Set refresh token as HttpOnly cookie with cross-site support
+	h.setCrossSiteCookie(c, "refresh_token", tokens.RefreshToken, 7*24*60*60)
 
 	// Return access token in response (don't include refresh token)
 	c.JSON(http.StatusCreated, AuthResponse{
@@ -119,16 +141,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Set refresh token as HttpOnly cookie
-	c.SetCookie(
-		"refresh_token",           // name
-		tokens.RefreshToken,       // value
-		7*24*60*60,                // maxAge (7 days)
-		"/",                       // path
-		"",                        // domain
-		false,                     // secure (set to true in production with HTTPS)
-		true,                      // httpOnly
-	)
+	// Set refresh token as HttpOnly cookie with cross-site support
+	h.setCrossSiteCookie(c, "refresh_token", tokens.RefreshToken, 7*24*60*60)
 
 	// Return access token in response (don't include refresh token)
 	c.JSON(http.StatusOK, AuthResponse{
@@ -171,16 +185,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// Set refresh token as HttpOnly cookie (update it)
-	c.SetCookie(
-		"refresh_token",           // name
-		tokens.RefreshToken,       // value
-		7*24*60*60,                // maxAge (7 days)
-		"/",                       // path
-		"",                        // domain
-		false,                     // secure (set to true in production with HTTPS)
-		true,                      // httpOnly
-	)
+	// Set refresh token as HttpOnly cookie (update it) with cross-site support
+	h.setCrossSiteCookie(c, "refresh_token", tokens.RefreshToken, 7*24*60*60)
 
 	// Return access token in response (don't include refresh token)
 	c.JSON(http.StatusOK, AuthResponse{
@@ -212,15 +218,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		refreshToken, err = c.Cookie("refresh_token")
 		if err != nil && refreshToken == "" {
 			// No token to revoke, just clear cookie
-			c.SetCookie(
-				"refresh_token",
-				"",
-				-1,
-				"/",
-				"",
-				false,
-				true,
-			)
+			h.clearCrossSiteCookie(c, "refresh_token")
 			c.JSON(http.StatusOK, SuccessResponse{
 				Message: "Logout successful",
 			})
@@ -237,15 +235,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	}
 
 	// Clear refresh token cookie
-	c.SetCookie(
-		"refresh_token",  // name
-		"",               // value (empty to clear)
-		-1,               // maxAge (negative to delete)
-		"/",              // path
-		"",               // domain
-		false,            // secure
-		true,             // httpOnly
-	)
+	h.clearCrossSiteCookie(c, "refresh_token")
 
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: "Logout successful",
@@ -312,8 +302,8 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		}
 		user = tokens.User
 		
-		// Set refresh token cookie
-		c.SetCookie("refresh_token", tokens.RefreshToken, 7*24*60*60, "/", "", false, true)
+		// Set refresh token cookie with cross-site support
+		h.setCrossSiteCookie(c, "refresh_token", tokens.RefreshToken, 7*24*60*60)
 		
 		c.JSON(http.StatusOK, AuthResponse{
 			AccessToken: tokens.AccessToken,
@@ -329,8 +319,8 @@ func (h *AuthHandler) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Set refresh token cookie
-	c.SetCookie("refresh_token", tokens.RefreshToken, 7*24*60*60, "/", "", false, true)
+	// Set refresh token cookie with cross-site support
+	h.setCrossSiteCookie(c, "refresh_token", tokens.RefreshToken, 7*24*60*60)
 
 	c.JSON(http.StatusOK, AuthResponse{
 		AccessToken: tokens.AccessToken,
