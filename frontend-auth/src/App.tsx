@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import TripDetailsPage from './pages/TripDetailsPage';
 import { useAuthInit } from './hooks/useAuthInit';
 
 function App() {
@@ -53,6 +54,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Trip details */}
+        <Route path="trips/:id" element={<TripDetailsPage />} />
       </Route>
     </Routes>
   );

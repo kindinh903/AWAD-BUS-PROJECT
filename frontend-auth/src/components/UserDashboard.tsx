@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   MapPin,
   Calendar,
@@ -63,6 +64,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [availableTrips, setAvailableTrips] = useState<BusTrip[]>([]);
+  const navigate = useNavigate();
 
   // Load saved filters from localStorage or use defaults
   const loadSavedFilters = (): TripFiltersState => {
@@ -568,16 +570,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() =>
-                            alert(
-                              `Booking trip from ${trip.from} to ${trip.to} at ${trip.departure}`
-                            )
-                          }
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
-                        >
-                          Book Now
-                        </button>
+                          <button
+                            onClick={() => navigate(`/trips/${trip.id}`)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                          >
+                            Book Now
+                          </button>
                       </div>
                     </div>
                   </div>
