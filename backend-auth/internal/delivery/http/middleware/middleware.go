@@ -84,6 +84,19 @@ func AdminMiddleware() gin.HandlerFunc {
 	}
 }
 
+// RequireRole checks if user has a specific role
+func RequireRole(requiredRole string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("user_role")
+		if !exists || role != requiredRole {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Insufficient permissions"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+}
+
 // CORS middleware
 func CORS() gin.HandlerFunc {
 	// Read allowed origins from env var CORS_ALLOWED_ORIGINS (comma-separated)

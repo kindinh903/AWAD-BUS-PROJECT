@@ -147,6 +147,9 @@ func runMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&entities.User{},
 		&entities.RefreshToken{},
+		&entities.Bus{},
+		&entities.Route{},
+		&entities.Trip{},
 	)
 }
 
@@ -154,9 +157,13 @@ type Container struct {
 	// Repositories
 	UserRepo          repositories.UserRepository
 	RefreshTokenRepo  repositories.RefreshTokenRepository
+	BusRepo           repositories.BusRepository
+	RouteRepo         repositories.RouteRepository
+	TripRepo          repositories.TripRepository
 
 	// Usecases
 	AuthUsecase *usecases.AuthUsecase
+	TripUsecase *usecases.TripUsecase
 
 	// Configuration
 	JWTSecret string
@@ -166,6 +173,9 @@ func initDependencies(db *gorm.DB) *Container {
 	// Repositories
 	userRepo := postgres.NewUserRepository(db)
 	refreshTokenRepo := postgres.NewRefreshTokenRepository(db)
+	busRepo := postgres.NewBusRepository(db)
+	routeRepo := postgres.NewRouteRepository(db)
+	tripRepo := postgres.NewTripRepository(db)
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
@@ -186,11 +196,16 @@ func initDependencies(db *gorm.DB) *Container {
 
 	// Usecases
 	authUsecase := usecases.NewAuthUsecase(userRepo, refreshTokenRepo, jwtSecret, accessTokenExpiry, refreshTokenExpiry)
+	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo)
 
 	return &Container{
 		UserRepo:         userRepo,
 		RefreshTokenRepo: refreshTokenRepo,
+		BusRepo:          busRepo,
+		RouteRepo:        routeRepo,
+		TripRepo:         tripRepo,
 		AuthUsecase:      authUsecase,
+		TripUsecase:      tripUsecase,
 		JWTSecret:        jwtSecret,
 	}
 }
@@ -234,7 +249,7 @@ func setupRouter(container *Container) *gin.Engine {
 		authorized := v1.Group("")
 		authorized.Use(middleware.AuthMiddleware(container.JWTSecret))
 		{
-			// User profile routes can be added here
+			// User profile routes
 			profile := authorized.Group("/profile")
 			{
 				profile.GET("", func(c *gin.Context) {
@@ -247,6 +262,24 @@ func setupRouter(container *Container) *gin.Engine {
 						"role":    role,
 					})
 				})
+			}
+
+			// Admin routes (require admin role)
+			admin := authorized.Group("/admin")
+			admin.Use(middleware.RequireRole("admin"))
+			{
+				adminHandler := handlers.NewAdminHandler(container.TripUsecase)
+				
+				// Bus management
+				admin.GET("/buses", adminHandler.GetAllBuses)
+				admin.GET("/buses/available", adminHandler.GetAvailableBuses)
+				
+				// Route management
+				admin.GET("/routes", adminHandler.GetAllRoutes)
+				
+				// Trip management
+				admin.GET("/trips", adminHandler.GetAllTrips)
+				admin.POST("/trips/assign-bus", adminHandler.AssignBus)
 			}
 		}
 	}
