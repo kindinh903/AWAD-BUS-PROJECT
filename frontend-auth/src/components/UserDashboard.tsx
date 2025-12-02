@@ -8,13 +8,13 @@ import {
   Star,
   Ticket,
   Navigation,
-  Filter,
   Wifi,
   Snowflake,
   UsbIcon,
   Coffee,
 } from 'lucide-react';
 import { userSummaryCards, mockBusTrips, BusTrip } from '../lib/mockData';
+import { TripFilters, TripFiltersState, doesTripMatchFilters, sortTrips } from './TripFilters';
 
 interface UserDashboardProps {
   user: any;
@@ -63,43 +63,107 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [availableTrips, setAvailableTrips] = useState<BusTrip[]>([]);
-  const [filters, setFilters] = useState({
-    busType: 'all',
-    maxPrice: 100,
-    sortBy: 'price',
-  });
+
+  // Load saved filters from localStorage or use defaults
+  const loadSavedFilters = (): TripFiltersState => {
+    try {
+      const saved = localStorage.getItem('tripFilters');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Error loading saved filters:', error);
+    }
+    
+    return {
+      priceRange: { min: 0, max: 100 },
+      timeSlots: [],
+      busTypes: [],
+      amenities: [],
+      sortBy: 'price',
+      sortOrder: 'asc',
+    };
+  };
+
+  const [filters, setFilters] = useState<TripFiltersState>(loadSavedFilters());
+
+  // Save filters to localStorage whenever they change
+  const handleFiltersChange = (newFilters: TripFiltersState) => {
+    setFilters(newFilters);
+    try {
+      localStorage.setItem('tripFilters', JSON.stringify(newFilters));
+    } catch (error) {
+      console.error('Error saving filters:', error);
+    }
+  };
+
+  // Check for search data from homepage on component mount
+  React.useEffect(() => {
+    const searchData = localStorage.getItem('busSearch');
+    if (searchData) {
+      try {
+        const parsed = JSON.parse(searchData);
+        setBookingForm(prev => ({
+          ...prev,
+          from: parsed.from || prev.from,
+          to: parsed.to || prev.to,
+          date: parsed.date || prev.date,
+        }));
+        
+        // Auto-trigger search if we have valid data
+        if (parsed.from && parsed.to) {
+          // Clear the stored search to prevent auto-search on future visits
+          localStorage.removeItem('busSearch');
+          // Trigger search after a short delay to ensure state is updated
+          setTimeout(() => {
+            handleSearchWithData(parsed.from, parsed.to);
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Error parsing search data:', error);
+        localStorage.removeItem('busSearch');
+      }
+    }
+  }, []);
+
+  // Handle search with specific data
+  const handleSearchWithData = async (from: string, to: string) => {
+    setIsSearching(true);
+    setShowResults(false);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Filter trips based on search criteria
+    const searchResults = mockBusTrips.filter(
+      trip =>
+        trip.from.toLowerCase().includes(from.toLowerCase()) &&
+        trip.to.toLowerCase().includes(to.toLowerCase())
+    );
+
+    setAvailableTrips(searchResults);
+
+    // Update price range in filters based on actual available trips
+    const minPrice = searchResults.length > 0 ? Math.min(...searchResults.map(t => t.price)) : 0;
+    const maxPrice = searchResults.length > 0 ? Math.max(...searchResults.map(t => t.price)) : 100;
+    
+    const updatedFilters = {
+      ...filters,
+      priceRange: { min: minPrice, max: maxPrice },
+    };
+    
+    handleFiltersChange(updatedFilters);
+    setShowResults(true);
+    setIsSearching(false);
+  };
 
   // Filter and sort trips
   const filteredTrips = useMemo(() => {
-    let filtered = availableTrips;
-
-    if (filters.busType !== 'all') {
-      filtered = filtered.filter(
-        trip => trip.busType.toLowerCase() === filters.busType
-      );
-    }
-
-    filtered = filtered.filter(trip => trip.price <= filters.maxPrice);
-
+    // Apply filters
+    const filtered = availableTrips.filter(trip => doesTripMatchFilters(trip, filters));
+    
     // Sort trips
-    switch (filters.sortBy) {
-      case 'price':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'departure':
-        filtered.sort((a, b) => a.departure.localeCompare(b.departure));
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'duration':
-        filtered.sort((a, b) => a.duration.localeCompare(b.duration));
-        break;
-      default:
-        break;
-    }
-
-    return filtered;
+    return sortTrips(filtered, filters);
   }, [availableTrips, filters]);
 
   const handleSearch = async () => {
@@ -122,6 +186,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
     );
 
     setAvailableTrips(searchResults);
+
+    // Update price range in filters based on actual available trips
+    const minPrice = searchResults.length > 0 ? Math.min(...searchResults.map(t => t.price)) : 0;
+    const maxPrice = searchResults.length > 0 ? Math.max(...searchResults.map(t => t.price)) : 100;
+    
+    const updatedFilters = {
+      ...filters,
+      priceRange: { min: minPrice, max: maxPrice },
+    };
+    
+    handleFiltersChange(updatedFilters);
     setShowResults(true);
     setIsSearching(false);
   };
@@ -382,41 +457,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
               </h2>
             </div>
 
-            {/* Filters */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-gray-500" />
-                <select
-                  value={filters.busType}
-                  onChange={e =>
-                    setFilters(prev => ({ ...prev, busType: e.target.value }))
-                  }
-                  className="text-sm border border-gray-300 rounded px-2 py-1"
-                >
-                  <option value="all">All Types</option>
-                  <option value="standard">Standard</option>
-                  <option value="vip">VIP</option>
-                  <option value="sleeper">Sleeper</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Sort by:</span>
-                <select
-                  value={filters.sortBy}
-                  onChange={e =>
-                    setFilters(prev => ({ ...prev, sortBy: e.target.value }))
-                  }
-                  className="text-sm border border-gray-300 rounded px-2 py-1"
-                >
-                  <option value="price">Price</option>
-                  <option value="departure">Departure Time</option>
-                  <option value="rating">Rating</option>
-                  <option value="duration">Duration</option>
-                </select>
-              </div>
-            </div>
           </div>
+
+          {/* Advanced Filters */}
+          <TripFilters
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            minPrice={availableTrips.length > 0 ? Math.min(...availableTrips.map(t => t.price)) : 0}
+            maxPrice={availableTrips.length > 0 ? Math.max(...availableTrips.map(t => t.price)) : 100}
+            className="mb-4"
+          />
 
           {/* Trip Results */}
           <div className="space-y-4">
@@ -501,7 +551,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                           <div className="flex items-center gap-2">
                             {trip.amenities
                               .slice(0, 4)
-                              .map((amenity, index) => (
+                              .map((amenity: string, index: number) => (
                                 <div
                                   key={index}
                                   className="flex items-center gap-1 text-xs text-gray-500"

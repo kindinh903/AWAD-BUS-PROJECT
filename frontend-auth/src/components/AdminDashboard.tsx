@@ -6,8 +6,10 @@ import {
   Database,
   Activity,
   RefreshCw,
+  Calendar,
 } from 'lucide-react';
 import { adminSummaryCards, mockActivities } from '../lib/mockData';
+import { TripScheduler } from './TripScheduler';
 
 interface AdminDashboardProps {
   user: any;
@@ -121,89 +123,126 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       <div className="mb-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            {['overview', 'users', 'buses', 'reports'].map(tab => (
+            {['overview', 'users', 'trips', 'buses', 'reports'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setSelectedTab(tab)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize flex items-center gap-2 ${
                   selectedTab === tab
                     ? 'border-red-500 text-red-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                {tab}
+                {tab === 'trips' && <Calendar className="h-4 w-4" />}
+                {tab === 'trips' ? 'Trip Scheduling' : tab}
               </button>
             ))}
           </nav>
         </div>
       </div>
 
-      {/* Recent Activities */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <Activity className="h-6 w-6 text-blue-600" />
-          Recent Activities
-        </h2>
-        <div className="space-y-3">
-          {activities.map(activity => {
-            const statusColors = {
-              success: 'bg-green-50 border-green-200 text-green-800',
-              pending: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-              failed: 'bg-red-50 border-red-200 text-red-800',
-            };
+      {/* Tab Content */}
+      {selectedTab === 'overview' && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Activity className="h-6 w-6 text-blue-600" />
+            Recent Activities
+          </h2>
+          <div className="space-y-3">
+            {activities.map(activity => {
+              const statusColors = {
+                success: 'bg-green-50 border-green-200 text-green-800',
+                pending: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                failed: 'bg-red-50 border-red-200 text-red-800',
+              };
 
-            const typeIcons = {
-              booking: '📅',
-              payment: '💰',
-              cancellation: '❌',
-              registration: '👤',
-            };
+              const typeIcons = {
+                booking: '📅',
+                payment: '💰',
+                cancellation: '❌',
+                registration: '👤',
+              };
 
-            return (
-              <div
-                key={activity.id}
-                className={`p-4 rounded-lg border ${statusColors[activity.status]}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <span className="text-lg">{typeIcons[activity.type]}</span>
-                    <div>
-                      <div className="font-semibold">
-                        {activity.description}
-                      </div>
-                      <div className="text-sm opacity-75">
-                        by {activity.user}
+              return (
+                <div
+                  key={activity.id}
+                  className={`p-4 rounded-lg border ${statusColors[activity.status]}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <span className="text-lg">{typeIcons[activity.type]}</span>
+                      <div>
+                        <div className="font-semibold">
+                          {activity.description}
+                        </div>
+                        <div className="text-sm opacity-75">
+                          by {activity.user}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm">
-                      {activity.timestamp.toLocaleTimeString()}
-                    </div>
-                    <div
-                      className={`text-xs px-2 py-1 rounded-full mt-1 ${
-                        activity.status === 'success'
-                          ? 'bg-green-100 text-green-800'
-                          : activity.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {activity.status}
+                    <div className="text-right">
+                      <div className="text-sm">
+                        {activity.timestamp.toLocaleTimeString()}
+                      </div>
+                      <div
+                        className={`text-xs px-2 py-1 rounded-full mt-1 ${
+                          activity.status === 'success'
+                            ? 'bg-green-100 text-green-800'
+                            : activity.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {activity.status}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        <div className="mt-4 text-center">
-          <button className="text-blue-600 hover:text-blue-800 font-medium">
-            View All Activities
-          </button>
+          <div className="mt-4 text-center">
+            <button className="text-blue-600 hover:text-blue-800 font-medium">
+              View All Activities
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {selectedTab === 'trips' && (
+        <TripScheduler />
+      )}
+
+      {selectedTab === 'users' && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Users className="h-6 w-6 text-blue-600" />
+            User Management
+          </h2>
+          <p className="text-gray-600">User management features coming soon...</p>
+        </div>
+      )}
+
+      {selectedTab === 'buses' && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Database className="h-6 w-6 text-blue-600" />
+            Bus Fleet Management
+          </h2>
+          <p className="text-gray-600">Bus fleet management features coming soon...</p>
+        </div>
+      )}
+
+      {selectedTab === 'reports' && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Activity className="h-6 w-6 text-blue-600" />
+            Reports & Analytics
+          </h2>
+          <p className="text-gray-600">Reports and analytics features coming soon...</p>
+        </div>
+      )}
     </div>
   );
 };
