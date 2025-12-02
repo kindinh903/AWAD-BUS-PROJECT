@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -121,25 +121,97 @@ func (r *tripRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // SearchTrips implements trip search with joins to route and bus and optional filters
-func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) ([]*entities.Trip, error) {
+// Supports sorting by price, time, duration and pagination
+func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) (*repositories.PaginatedTrips, error) {
 	var trips []*entities.Trip
+	var total int64
 
+	// Set defaults for pagination
+	page := opts.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := opts.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+
+	// Build base query
+	baseQuery := r.db.WithContext(ctx).
+		Model(&entities.Trip{}).
+		Joins("JOIN routes ON routes.id = trips.route_id").
+		Joins("LEFT JOIN buses ON buses.id = trips.bus_id").
+		Where("trips.deleted_at IS NULL")
+
+	// Required filters: origin, destination, date
+	baseQuery = baseQuery.Where("routes.origin = ?", opts.Origin)
+	baseQuery = baseQuery.Where("routes.destination = ?", opts.Destination)
+
+	// Match date (date only)
+	dateStr := opts.Date.Format("2006-01-02")
+	baseQuery = baseQuery.Where("DATE(trips.start_time) = ?", dateStr)
+
+	// Optional filters
+	if opts.BusType != nil && strings.TrimSpace(*opts.BusType) != "" {
+		baseQuery = baseQuery.Where("LOWER(buses.bus_type) = ?", strings.ToLower(strings.TrimSpace(*opts.BusType)))
+	}
+
+	if opts.Status != nil && strings.TrimSpace(*opts.Status) != "" {
+		baseQuery = baseQuery.Where("trips.status = ?", strings.TrimSpace(*opts.Status))
+	}
+
+	if opts.MinPrice != nil {
+		baseQuery = baseQuery.Where("trips.price >= ?", *opts.MinPrice)
+	}
+
+	if opts.MaxPrice != nil {
+		baseQuery = baseQuery.Where("trips.price <= ?", *opts.MaxPrice)
+	}
+
+	// Count total matching records
+	if err := baseQuery.Count(&total).Error; err != nil {
+		return nil, fmt.Errorf("failed to count trips: %w", err)
+	}
+
+	// Build sort order
+	sortOrder := "ASC"
+	if strings.ToLower(opts.SortOrder) == "desc" {
+		sortOrder = "DESC"
+	}
+
+	// Determine sort column
+	var orderClause string
+	switch strings.ToLower(opts.SortBy) {
+	case "price":
+		orderClause = fmt.Sprintf("trips.price %s", sortOrder)
+	case "duration":
+		orderClause = fmt.Sprintf("routes.duration_minutes %s", sortOrder)
+	case "time", "departure", "":
+		orderClause = fmt.Sprintf("trips.start_time %s", sortOrder)
+	default:
+		orderClause = fmt.Sprintf("trips.start_time %s", sortOrder)
+	}
+
+	// Calculate offset
+	offset := (page - 1) * pageSize
+
+	// Execute query with pagination
 	db := r.db.WithContext(ctx).
 		Model(&entities.Trip{}).
 		Preload("Route").
 		Preload("Bus").
 		Joins("JOIN routes ON routes.id = trips.route_id").
-		Joins("LEFT JOIN buses ON buses.id = trips.bus_id")
+		Joins("LEFT JOIN buses ON buses.id = trips.bus_id").
+		Where("trips.deleted_at IS NULL")
 
-	// Required filters: origin, destination, date
+	// Apply same filters
 	db = db.Where("routes.origin = ?", opts.Origin)
 	db = db.Where("routes.destination = ?", opts.Destination)
-
-	// Match date (date only)
-	dateStr := opts.Date.Format("2006-01-02")
 	db = db.Where("DATE(trips.start_time) = ?", dateStr)
 
-	// Optional filters
 	if opts.BusType != nil && strings.TrimSpace(*opts.BusType) != "" {
 		db = db.Where("LOWER(buses.bus_type) = ?", strings.ToLower(strings.TrimSpace(*opts.BusType)))
 	}
@@ -156,10 +228,25 @@ func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.Trip
 		db = db.Where("trips.price <= ?", *opts.MaxPrice)
 	}
 
-	// Order by start_time ascending
-	if err := db.Order("trips.start_time ASC").Find(&trips).Error; err != nil {
+	// Apply sorting and pagination
+	if err := db.Order(orderClause).
+		Offset(offset).
+		Limit(pageSize).
+		Find(&trips).Error; err != nil {
 		return nil, fmt.Errorf("failed to search trips: %w", err)
 	}
 
-	return trips, nil
+	// Calculate total pages
+	totalPages := int(total) / pageSize
+	if int(total)%pageSize > 0 {
+		totalPages++
+	}
+
+	return &repositories.PaginatedTrips{
+		Data:       trips,
+		Total:      total,
+		Page:       page,
+		PageSize:   pageSize,
+		TotalPages: totalPages,
+	}, nil
 }

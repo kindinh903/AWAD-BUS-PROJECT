@@ -74,8 +74,8 @@ func (u *TripUsecase) GetAllBuses(ctx context.Context) ([]*entities.Bus, error) 
 	return u.busRepo.GetAll(ctx)
 }
 
-// SearchTrips searches trips using provided options
-func (u *TripUsecase) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) ([]*entities.Trip, error) {
+// SearchTrips searches trips using provided options with pagination
+func (u *TripUsecase) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) (*repositories.PaginatedTrips, error) {
 	return u.tripRepo.SearchTrips(ctx, opts)
 }
 

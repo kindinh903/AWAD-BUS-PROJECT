@@ -23,6 +23,8 @@ func NewTripHandler(tu *usecases.TripUsecase) *TripHandler {
 
 // SearchTrips handles GET /api/v1/trips/search
 // Query params: origin, destination, date (YYYY-MM-DD), optional bus_type, status, min_price, max_price
+// Sorting: sort_by (price, time, duration), sort_order (asc, desc)
+// Pagination: page (1-based), page_size (default 10, max 100)
 func (h *TripHandler) SearchTrips(c *gin.Context) {
 	origin := strings.TrimSpace(c.Query("origin"))
 	destination := strings.TrimSpace(c.Query("destination"))
@@ -81,6 +83,48 @@ func (h *TripHandler) SearchTrips(c *gin.Context) {
 		statusPtr = &status
 	}
 
+	// Parse sorting options
+	sortBy := strings.TrimSpace(c.Query("sort_by"))
+	sortOrder := strings.TrimSpace(c.Query("sort_order"))
+
+	// Validate sort_by
+	validSortFields := map[string]bool{"price": true, "time": true, "duration": true, "departure": true}
+	if sortBy != "" && !validSortFields[strings.ToLower(sortBy)] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid sort_by, must be one of: price, time, duration, departure"})
+		return
+	}
+
+	// Validate sort_order
+	if sortOrder != "" && strings.ToLower(sortOrder) != "asc" && strings.ToLower(sortOrder) != "desc" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid sort_order, must be 'asc' or 'desc'"})
+		return
+	}
+
+	// Parse pagination options
+	page := 1
+	pageSize := 10
+
+	if pageStr := strings.TrimSpace(c.Query("page")); pageStr != "" {
+		p, err := strconv.Atoi(pageStr)
+		if err != nil || p < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page, must be a positive integer"})
+			return
+		}
+		page = p
+	}
+
+	if pageSizeStr := strings.TrimSpace(c.Query("page_size")); pageSizeStr != "" {
+		ps, err := strconv.Atoi(pageSizeStr)
+		if err != nil || ps < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid page_size, must be a positive integer"})
+			return
+		}
+		if ps > 100 {
+			ps = 100 // Cap at 100
+		}
+		pageSize = ps
+	}
+
 	opts := repositories.TripSearchOptions{
 		Origin:      origin,
 		Destination: destination,
@@ -89,13 +133,25 @@ func (h *TripHandler) SearchTrips(c *gin.Context) {
 		Status:      statusPtr,
 		MinPrice:    minPricePtr,
 		MaxPrice:    maxPricePtr,
+		SortBy:      sortBy,
+		SortOrder:   sortOrder,
+		Page:        page,
+		PageSize:    pageSize,
 	}
 
-	trips, err := h.tripUsecase.SearchTrips(c.Request.Context(), opts)
+	result, err := h.tripUsecase.SearchTrips(c.Request.Context(), opts)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": trips})
+	c.JSON(http.StatusOK, gin.H{
+		"data": result.Data,
+		"pagination": gin.H{
+			"total":       result.Total,
+			"page":        result.Page,
+			"page_size":   result.PageSize,
+			"total_pages": result.TotalPages,
+		},
+	})
 }

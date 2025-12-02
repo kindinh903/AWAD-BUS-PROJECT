@@ -151,22 +151,26 @@ func runMigrations(db *gorm.DB) error {
 		&entities.Route{},
 		&entities.Trip{},
 		&entities.RouteStop{},
+		&entities.SeatMap{},
+		&entities.Seat{},
 	)
 }
 
 type Container struct {
 	// Repositories
-	UserRepo          repositories.UserRepository
-	RefreshTokenRepo  repositories.RefreshTokenRepository
-	BusRepo           repositories.BusRepository
-	RouteRepo         repositories.RouteRepository
-	TripRepo          repositories.TripRepository
-	RouteStopRepo     repositories.RouteStopRepository
+	UserRepo         repositories.UserRepository
+	RefreshTokenRepo repositories.RefreshTokenRepository
+	BusRepo          repositories.BusRepository
+	RouteRepo        repositories.RouteRepository
+	TripRepo         repositories.TripRepository
+	RouteStopRepo    repositories.RouteStopRepository
+	SeatMapRepo      repositories.SeatMapRepository
 
 	// Usecases
 	AuthUsecase      *usecases.AuthUsecase
 	TripUsecase      *usecases.TripUsecase
 	RouteStopUsecase *usecases.RouteStopUsecase
+	SeatMapUsecase   *usecases.SeatMapUsecase
 
 	// Configuration
 	JWTSecret string
@@ -180,16 +184,17 @@ func initDependencies(db *gorm.DB) *Container {
 	routeRepo := postgres.NewRouteRepository(db)
 	tripRepo := postgres.NewTripRepository(db)
 	routeStopRepo := postgres.NewRouteStopRepository(db)
+	seatMapRepo := postgres.NewSeatMapRepository(db)
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
-	
+
 	accessTokenExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_EXPIRY", "15m"))
 	if err != nil {
 		log.Printf("Failed to parse JWT_ACCESS_EXPIRY, using default 15m: %v", err)
 		accessTokenExpiry = 15 * time.Minute
 	}
-	
+
 	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_EXPIRY", "7d"))
 	if err != nil {
 		log.Printf("Failed to parse JWT_REFRESH_EXPIRY, using default 7d: %v", err)
@@ -202,6 +207,7 @@ func initDependencies(db *gorm.DB) *Container {
 	authUsecase := usecases.NewAuthUsecase(userRepo, refreshTokenRepo, jwtSecret, accessTokenExpiry, refreshTokenExpiry)
 	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo)
 	routeStopUsecase := usecases.NewRouteStopUsecase(routeStopRepo, routeRepo)
+	seatMapUsecase := usecases.NewSeatMapUsecase(seatMapRepo, busRepo)
 
 	return &Container{
 		UserRepo:         userRepo,
@@ -210,9 +216,11 @@ func initDependencies(db *gorm.DB) *Container {
 		RouteRepo:        routeRepo,
 		TripRepo:         tripRepo,
 		RouteStopRepo:    routeStopRepo,
+		SeatMapRepo:      seatMapRepo,
 		AuthUsecase:      authUsecase,
 		TripUsecase:      tripUsecase,
 		RouteStopUsecase: routeStopUsecase,
+		SeatMapUsecase:   seatMapUsecase,
 		JWTSecret:        jwtSecret,
 	}
 }
@@ -277,20 +285,32 @@ func setupRouter(container *Container) *gin.Engine {
 			{
 				adminHandler := handlers.NewAdminHandler(container.TripUsecase)
 				routeStopHandler := handlers.NewRouteStopHandler(container.RouteStopUsecase)
-				
+				seatMapHandler := handlers.NewSeatMapHandler(container.SeatMapUsecase)
+
 				// Bus management
 				admin.GET("/buses", adminHandler.GetAllBuses)
 				admin.GET("/buses/available", adminHandler.GetAvailableBuses)
-				
+				admin.POST("/buses/assign-seat-map", seatMapHandler.AssignSeatMapToBus)
+
 				// Route management
 				admin.GET("/routes", adminHandler.GetAllRoutes)
 				admin.POST("/routes/:id/stops", routeStopHandler.CreateStop)
 				admin.PUT("/routes/:routeId/stops/:stopId", routeStopHandler.UpdateStop)
 				admin.DELETE("/routes/:routeId/stops/:stopId", routeStopHandler.DeleteStop)
-				
+
 				// Trip management
 				admin.GET("/trips", adminHandler.GetAllTrips)
 				admin.POST("/trips/assign-bus", adminHandler.AssignBus)
+
+				// Seat map management
+				admin.GET("/seat-maps", seatMapHandler.GetAllSeatMaps)
+				admin.GET("/seat-maps/configs", seatMapHandler.GetSeatTypeConfigs)
+				admin.POST("/seat-maps", seatMapHandler.CreateSeatMap)
+				admin.GET("/seat-maps/:id", seatMapHandler.GetSeatMap)
+				admin.PUT("/seat-maps/:id", seatMapHandler.UpdateSeatMap)
+				admin.DELETE("/seat-maps/:id", seatMapHandler.DeleteSeatMap)
+				admin.PUT("/seat-maps/:id/seats", seatMapHandler.BulkUpdateSeats)
+				admin.POST("/seat-maps/:id/regenerate", seatMapHandler.RegenerateSeatLayout)
 			}
 		}
 

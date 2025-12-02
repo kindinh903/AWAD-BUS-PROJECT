@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { API_URL } from '../config/constants';
 import { tokenManager } from './tokenManager';
+import type {
+  CreateSeatMapInput,
+  UpdateSeatMapInput,
+  BulkUpdateSeatsInput,
+  RegenerateSeatLayoutInput,
+  AssignSeatMapToBusInput,
+} from '../types/seatMap';
 
 // Event emitter for auth events
 export const authEvents = {
@@ -104,6 +111,76 @@ export const authAPI = {
   logout: () => api.post('/auth/logout', {}),
   googleAuth: (idToken: string) =>
     api.post('/auth/google/callback', { id_token: idToken }),
+};
+
+// Trip Search API
+export interface TripSearchParams {
+  origin: string;
+  destination: string;
+  date: string;
+  bus_type?: string;
+  status?: string;
+  min_price?: number;
+  max_price?: number;
+  sort_by?: 'price' | 'time' | 'duration' | 'departure';
+  sort_order?: 'asc' | 'desc';
+  page?: number;
+  page_size?: number;
+}
+
+export const tripAPI = {
+  search: (params: TripSearchParams) => 
+    api.get('/trips/search', { params }),
+};
+
+// Admin API
+export const adminAPI = {
+  // Buses
+  getAllBuses: () => api.get('/admin/buses'),
+  getAvailableBuses: (routeId: string, start: string, end: string) =>
+    api.get('/admin/buses/available', { params: { routeId, start, end } }),
+  
+  // Routes
+  getAllRoutes: () => api.get('/admin/routes'),
+  
+  // Trips
+  getAllTrips: () => api.get('/admin/trips'),
+  assignBus: (tripId: string, busId: string) =>
+    api.post('/admin/trips/assign-bus', { tripId, busId }),
+};
+
+// Seat Map API
+export const seatMapAPI = {
+  // Get all seat maps
+  getAll: () => api.get('/admin/seat-maps'),
+  
+  // Get seat type configurations
+  getConfigs: () => api.get('/admin/seat-maps/configs'),
+  
+  // Get a specific seat map with seats
+  getById: (id: string) => api.get(`/admin/seat-maps/${id}`),
+  
+  // Create a new seat map
+  create: (data: CreateSeatMapInput) => api.post('/admin/seat-maps', data),
+  
+  // Update a seat map
+  update: (id: string, data: UpdateSeatMapInput) => 
+    api.put(`/admin/seat-maps/${id}`, data),
+  
+  // Delete a seat map
+  delete: (id: string) => api.delete(`/admin/seat-maps/${id}`),
+  
+  // Bulk update seats
+  bulkUpdateSeats: (id: string, data: BulkUpdateSeatsInput) =>
+    api.put(`/admin/seat-maps/${id}/seats`, data),
+  
+  // Regenerate seat layout
+  regenerateLayout: (id: string, data: RegenerateSeatLayoutInput) =>
+    api.post(`/admin/seat-maps/${id}/regenerate`, data),
+  
+  // Assign seat map to bus
+  assignToBus: (data: AssignSeatMapToBusInput) =>
+    api.post('/admin/buses/assign-seat-map', data),
 };
 
 export default api;

@@ -7,9 +7,13 @@ import {
   Activity,
   RefreshCw,
   Calendar,
+  Grid,
+  Bus,
 } from 'lucide-react';
 import { adminSummaryCards, mockActivities } from '../lib/mockData';
 import { TripScheduler } from './TripScheduler';
+import { SeatMapList } from './SeatMapList';
+import { SeatMapEditor } from './SeatMapEditor';
 
 interface AdminDashboardProps {
   user: any;
@@ -20,6 +24,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   const [activities] = useState(mockActivities.slice(0, 6));
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTab, setSelectedTab] = useState('overview');
+  
+  // Seat map editor state
+  const [editingSeatMapId, setEditingSeatMapId] = useState<string | null>(null);
+  const [isCreatingSeatMap, setIsCreatingSeatMap] = useState(false);
 
   // Simulate data refresh
   const refreshData = async () => {
@@ -123,10 +131,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       <div className="mb-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            {['overview', 'users', 'trips', 'buses', 'reports'].map(tab => (
+            {['overview', 'users', 'trips', 'seat-maps', 'buses', 'reports'].map(tab => (
               <button
                 key={tab}
-                onClick={() => setSelectedTab(tab)}
+                onClick={() => {
+                  setSelectedTab(tab);
+                  if (tab !== 'seat-maps') {
+                    setEditingSeatMapId(null);
+                    setIsCreatingSeatMap(false);
+                  }
+                }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm capitalize flex items-center gap-2 ${
                   selectedTab === tab
                     ? 'border-red-500 text-red-600'
@@ -134,7 +148,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 }`}
               >
                 {tab === 'trips' && <Calendar className="h-4 w-4" />}
-                {tab === 'trips' ? 'Trip Scheduling' : tab}
+                {tab === 'seat-maps' && <Grid className="h-4 w-4" />}
+                {tab === 'buses' && <Bus className="h-4 w-4" />}
+                {tab === 'trips' ? 'Trip Scheduling' : tab === 'seat-maps' ? 'Seat Maps' : tab}
               </button>
             ))}
           </nav>
@@ -231,6 +247,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
             Bus Fleet Management
           </h2>
           <p className="text-gray-600">Bus fleet management features coming soon...</p>
+        </div>
+      )}
+
+      {selectedTab === 'seat-maps' && (
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md">
+          {editingSeatMapId || isCreatingSeatMap ? (
+            <SeatMapEditor
+              seatMapId={editingSeatMapId || undefined}
+              onBack={() => {
+                setEditingSeatMapId(null);
+                setIsCreatingSeatMap(false);
+              }}
+              onSave={() => {
+                setEditingSeatMapId(null);
+                setIsCreatingSeatMap(false);
+              }}
+            />
+          ) : (
+            <SeatMapList
+              onEdit={(id) => setEditingSeatMapId(id)}
+              onCreateNew={() => setIsCreatingSeatMap(true)}
+            />
+          )}
         </div>
       )}
 

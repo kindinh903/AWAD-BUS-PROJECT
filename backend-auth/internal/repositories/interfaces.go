@@ -56,7 +56,7 @@ type TripRepository interface {
 	AssignBus(ctx context.Context, tripID, busID uuid.UUID) error
 	Update(ctx context.Context, trip *entities.Trip) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	SearchTrips(ctx context.Context, options TripSearchOptions) ([]*entities.Trip, error)
+	SearchTrips(ctx context.Context, options TripSearchOptions) (*PaginatedTrips, error)
 }
 
 // TripSearchOptions holds optional search filters for trips
@@ -68,11 +68,42 @@ type TripSearchOptions struct {
 	Status      *string
 	MinPrice    *float64
 	MaxPrice    *float64
+	// Sorting options
+	SortBy    string // "price", "time", "duration", "departure"
+	SortOrder string // "asc", "desc"
+	// Pagination options
+	Page     int // 1-based page number
+	PageSize int // Items per page (default 10, max 100)
+}
+
+// PaginatedTrips represents a paginated response for trip searches
+type PaginatedTrips struct {
+	Data       []*entities.Trip `json:"data"`
+	Total      int64            `json:"total"`
+	Page       int              `json:"page"`
+	PageSize   int              `json:"page_size"`
+	TotalPages int              `json:"total_pages"`
 }
 
 // SearchTrips searches trips joined with route and bus information using filters
 type TripSearchRepository interface {
-	SearchTrips(ctx context.Context, opts TripSearchOptions) ([]*entities.Trip, error)
+	SearchTrips(ctx context.Context, opts TripSearchOptions) (*PaginatedTrips, error)
+}
+
+// SeatMapRepository defines the interface for seat map data operations
+type SeatMapRepository interface {
+	Create(ctx context.Context, seatMap *entities.SeatMap) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.SeatMap, error)
+	GetAll(ctx context.Context) ([]*entities.SeatMap, error)
+	Update(ctx context.Context, seatMap *entities.SeatMap) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetWithSeats(ctx context.Context, id uuid.UUID) (*entities.SeatMap, error)
+	CreateSeat(ctx context.Context, seat *entities.Seat) error
+	UpdateSeat(ctx context.Context, seat *entities.Seat) error
+	DeleteSeat(ctx context.Context, id uuid.UUID) error
+	GetSeatsByMapID(ctx context.Context, seatMapID uuid.UUID) ([]*entities.Seat, error)
+	BulkCreateSeats(ctx context.Context, seats []*entities.Seat) error
+	DeleteSeatsByMapID(ctx context.Context, seatMapID uuid.UUID) error
 }
 
 // RouteStopRepository defines the interface for route stop data operations
