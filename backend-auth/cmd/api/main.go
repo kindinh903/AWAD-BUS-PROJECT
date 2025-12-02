@@ -150,6 +150,7 @@ func runMigrations(db *gorm.DB) error {
 		&entities.Bus{},
 		&entities.Route{},
 		&entities.Trip{},
+		&entities.RouteStop{},
 	)
 }
 
@@ -160,10 +161,12 @@ type Container struct {
 	BusRepo           repositories.BusRepository
 	RouteRepo         repositories.RouteRepository
 	TripRepo          repositories.TripRepository
+	RouteStopRepo     repositories.RouteStopRepository
 
 	// Usecases
-	AuthUsecase *usecases.AuthUsecase
-	TripUsecase *usecases.TripUsecase
+	AuthUsecase      *usecases.AuthUsecase
+	TripUsecase      *usecases.TripUsecase
+	RouteStopUsecase *usecases.RouteStopUsecase
 
 	// Configuration
 	JWTSecret string
@@ -176,6 +179,7 @@ func initDependencies(db *gorm.DB) *Container {
 	busRepo := postgres.NewBusRepository(db)
 	routeRepo := postgres.NewRouteRepository(db)
 	tripRepo := postgres.NewTripRepository(db)
+	routeStopRepo := postgres.NewRouteStopRepository(db)
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
@@ -197,6 +201,7 @@ func initDependencies(db *gorm.DB) *Container {
 	// Usecases
 	authUsecase := usecases.NewAuthUsecase(userRepo, refreshTokenRepo, jwtSecret, accessTokenExpiry, refreshTokenExpiry)
 	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo)
+	routeStopUsecase := usecases.NewRouteStopUsecase(routeStopRepo, routeRepo)
 
 	return &Container{
 		UserRepo:         userRepo,
@@ -204,8 +209,10 @@ func initDependencies(db *gorm.DB) *Container {
 		BusRepo:          busRepo,
 		RouteRepo:        routeRepo,
 		TripRepo:         tripRepo,
+		RouteStopRepo:    routeStopRepo,
 		AuthUsecase:      authUsecase,
 		TripUsecase:      tripUsecase,
+		RouteStopUsecase: routeStopUsecase,
 		JWTSecret:        jwtSecret,
 	}
 }
@@ -269,6 +276,7 @@ func setupRouter(container *Container) *gin.Engine {
 			admin.Use(middleware.RequireRole("admin"))
 			{
 				adminHandler := handlers.NewAdminHandler(container.TripUsecase)
+				routeStopHandler := handlers.NewRouteStopHandler(container.RouteStopUsecase)
 				
 				// Bus management
 				admin.GET("/buses", adminHandler.GetAllBuses)
@@ -276,11 +284,21 @@ func setupRouter(container *Container) *gin.Engine {
 				
 				// Route management
 				admin.GET("/routes", adminHandler.GetAllRoutes)
+				admin.POST("/routes/:id/stops", routeStopHandler.CreateStop)
+				admin.PUT("/routes/:routeId/stops/:stopId", routeStopHandler.UpdateStop)
+				admin.DELETE("/routes/:routeId/stops/:stopId", routeStopHandler.DeleteStop)
 				
 				// Trip management
 				admin.GET("/trips", adminHandler.GetAllTrips)
 				admin.POST("/trips/assign-bus", adminHandler.AssignBus)
 			}
+		}
+
+		// Public route endpoints (no auth required)
+		routes := v1.Group("/routes")
+		{
+			routeStopHandler := handlers.NewRouteStopHandler(container.RouteStopUsecase)
+			routes.GET("/:id", routeStopHandler.GetRouteWithStops)
 		}
 	}
 

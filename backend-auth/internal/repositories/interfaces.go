@@ -57,3 +57,15 @@ type TripRepository interface {
 	Update(ctx context.Context, trip *entities.Trip) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
+
+// RouteStopRepository defines the interface for route stop data operations
+type RouteStopRepository interface {
+	Create(ctx context.Context, stop *entities.RouteStop) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.RouteStop, error)
+	GetByRouteID(ctx context.Context, routeID uuid.UUID) ([]*entities.RouteStop, error)
+	GetByRouteIDAndType(ctx context.Context, routeID uuid.UUID, stopType entities.RouteStopType) ([]*entities.RouteStop, error)
+	Update(ctx context.Context, stop *entities.RouteStop) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	ReorderStops(ctx context.Context, routeID uuid.UUID, stopType entities.RouteStopType) error
+	CountByRouteIDAndType(ctx context.Context, routeID uuid.UUID, stopType entities.RouteStopType) (int64, error)
+}

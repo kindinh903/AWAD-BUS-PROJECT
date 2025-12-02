@@ -230,6 +230,125 @@ func SeedData(db *gorm.DB) error {
 		log.Println("Trip seed data created: 3 trips")
 	}
 
+	// Seed Route Stops
+	var routeStopCount int64
+	db.Model(&entities.RouteStop{}).Count(&routeStopCount)
+	if routeStopCount == 0 {
+		// Get routes to add stops
+		var routes []entities.Route
+		db.Find(&routes)
+
+		if len(routes) > 0 {
+			// HCM -> Da Nang route stops
+			hcmDanangRoute := routes[0]
+			routeStops := []entities.RouteStop{
+				// Pickup points for HCM -> Da Nang
+				{
+					ID:         uuid.New(),
+					RouteID:    hcmDanangRoute.ID,
+					Name:       "Ben Xe Mien Dong",
+					Type:       entities.RouteStopTypePickup,
+					OrderIndex: 1,
+					Address:    stringPtr("292 Dinh Bo Linh, Binh Thanh, Ho Chi Minh City"),
+					CreatedAt:  time.Now(),
+					UpdatedAt:  time.Now(),
+				},
+				{
+					ID:         uuid.New(),
+					RouteID:    hcmDanangRoute.ID,
+					Name:       "Ben Xe Mien Tay",
+					Type:       entities.RouteStopTypePickup,
+					OrderIndex: 2,
+					Address:    stringPtr("395 Kinh Duong Vuong, Binh Tan, Ho Chi Minh City"),
+					CreatedAt:  time.Now(),
+					UpdatedAt:  time.Now(),
+				},
+				// Dropoff points for HCM -> Da Nang
+				{
+					ID:         uuid.New(),
+					RouteID:    hcmDanangRoute.ID,
+					Name:       "Ben Xe Trung Tam Da Nang",
+					Type:       entities.RouteStopTypeDropoff,
+					OrderIndex: 1,
+					Address:    stringPtr("200 Dien Bien Phu, Da Nang"),
+					CreatedAt:  time.Now(),
+					UpdatedAt:  time.Now(),
+				},
+				{
+					ID:         uuid.New(),
+					RouteID:    hcmDanangRoute.ID,
+					Name:       "My Khe Beach Area",
+					Type:       entities.RouteStopTypeDropoff,
+					OrderIndex: 2,
+					Address:    stringPtr("My Khe Beach, Ngu Hanh Son, Da Nang"),
+					CreatedAt:  time.Now(),
+					UpdatedAt:  time.Now(),
+				},
+			}
+
+			// Add stops for second route if exists
+			if len(routes) > 1 {
+				hanoiHaiphongRoute := routes[1]
+				routeStops = append(routeStops, []entities.RouteStop{
+					// Pickup points for Hanoi -> Hai Phong
+					{
+						ID:         uuid.New(),
+						RouteID:    hanoiHaiphongRoute.ID,
+						Name:       "My Dinh Bus Station",
+						Type:       entities.RouteStopTypePickup,
+						OrderIndex: 1,
+						Address:    stringPtr("My Dinh, Tu Liem, Hanoi"),
+						CreatedAt:  time.Now(),
+						UpdatedAt:  time.Now(),
+					},
+					{
+						ID:         uuid.New(),
+						RouteID:    hanoiHaiphongRoute.ID,
+						Name:       "Giap Bat Bus Station",
+						Type:       entities.RouteStopTypePickup,
+						OrderIndex: 2,
+						Address:    stringPtr("Giap Bat, Hoang Mai, Hanoi"),
+						CreatedAt:  time.Now(),
+						UpdatedAt:  time.Now(),
+					},
+					// Dropoff points for Hanoi -> Hai Phong
+					{
+						ID:         uuid.New(),
+						RouteID:    hanoiHaiphongRoute.ID,
+						Name:       "Hai Phong Central Station",
+						Type:       entities.RouteStopTypeDropoff,
+						OrderIndex: 1,
+						Address:    stringPtr("Tam Bac, Hai Phong"),
+						CreatedAt:  time.Now(),
+						UpdatedAt:  time.Now(),
+					},
+					{
+						ID:         uuid.New(),
+						RouteID:    hanoiHaiphongRoute.ID,
+						Name:       "Cat Bi Airport Area",
+						Type:       entities.RouteStopTypeDropoff,
+						OrderIndex: 2,
+						Address:    stringPtr("Cat Bi, Hai An, Hai Phong"),
+						CreatedAt:  time.Now(),
+						UpdatedAt:  time.Now(),
+					},
+				}...)
+			}
+
+			for _, stop := range routeStops {
+				if err := db.WithContext(ctx).Create(&stop).Error; err != nil {
+					return err
+				}
+			}
+			log.Printf("Route stop seed data created: %d stops", len(routeStops))
+		}
+	}
+
 	log.Println("Seed data initialization complete")
 	return nil
+}
+
+// Helper function to create string pointer
+func stringPtr(s string) *string {
+	return &s
 }
