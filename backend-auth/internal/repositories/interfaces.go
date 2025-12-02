@@ -56,6 +56,23 @@ type TripRepository interface {
 	AssignBus(ctx context.Context, tripID, busID uuid.UUID) error
 	Update(ctx context.Context, trip *entities.Trip) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	SearchTrips(ctx context.Context, options TripSearchOptions) ([]*entities.Trip, error)
+}
+
+// TripSearchOptions holds optional search filters for trips
+type TripSearchOptions struct {
+	Origin      string
+	Destination string
+	Date        time.Time
+	BusType     *string
+	Status      *string
+	MinPrice    *float64
+	MaxPrice    *float64
+}
+
+// SearchTrips searches trips joined with route and bus information using filters
+type TripSearchRepository interface {
+	SearchTrips(ctx context.Context, opts TripSearchOptions) ([]*entities.Trip, error)
 }
 
 // RouteStopRepository defines the interface for route stop data operations

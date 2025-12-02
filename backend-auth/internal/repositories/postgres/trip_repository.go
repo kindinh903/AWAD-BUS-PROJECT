@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"strings"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -117,4 +118,48 @@ func (r *tripRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		Model(&entities.Trip{}).
 		Where("id = ?", id).
 		Update("deleted_at", time.Now()).Error
+}
+
+// SearchTrips implements trip search with joins to route and bus and optional filters
+func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) ([]*entities.Trip, error) {
+	var trips []*entities.Trip
+
+	db := r.db.WithContext(ctx).
+		Model(&entities.Trip{}).
+		Preload("Route").
+		Preload("Bus").
+		Joins("JOIN routes ON routes.id = trips.route_id").
+		Joins("LEFT JOIN buses ON buses.id = trips.bus_id")
+
+	// Required filters: origin, destination, date
+	db = db.Where("routes.origin = ?", opts.Origin)
+	db = db.Where("routes.destination = ?", opts.Destination)
+
+	// Match date (date only)
+	dateStr := opts.Date.Format("2006-01-02")
+	db = db.Where("DATE(trips.start_time) = ?", dateStr)
+
+	// Optional filters
+	if opts.BusType != nil && strings.TrimSpace(*opts.BusType) != "" {
+		db = db.Where("LOWER(buses.bus_type) = ?", strings.ToLower(strings.TrimSpace(*opts.BusType)))
+	}
+
+	if opts.Status != nil && strings.TrimSpace(*opts.Status) != "" {
+		db = db.Where("trips.status = ?", strings.TrimSpace(*opts.Status))
+	}
+
+	if opts.MinPrice != nil {
+		db = db.Where("trips.price >= ?", *opts.MinPrice)
+	}
+
+	if opts.MaxPrice != nil {
+		db = db.Where("trips.price <= ?", *opts.MaxPrice)
+	}
+
+	// Order by start_time ascending
+	if err := db.Order("trips.start_time ASC").Find(&trips).Error; err != nil {
+		return nil, fmt.Errorf("failed to search trips: %w", err)
+	}
+
+	return trips, nil
 }

@@ -74,6 +74,11 @@ func (u *TripUsecase) GetAllBuses(ctx context.Context) ([]*entities.Bus, error) 
 	return u.busRepo.GetAll(ctx)
 }
 
+// SearchTrips searches trips using provided options
+func (u *TripUsecase) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) ([]*entities.Trip, error) {
+	return u.tripRepo.SearchTrips(ctx, opts)
+}
+
 // GetAllRoutes returns all routes
 func (u *TripUsecase) GetAllRoutes(ctx context.Context) ([]*entities.Route, error) {
 	return u.routeRepo.GetAll(ctx)

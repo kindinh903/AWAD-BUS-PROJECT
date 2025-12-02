@@ -300,6 +300,13 @@ func setupRouter(container *Container) *gin.Engine {
 			routeStopHandler := handlers.NewRouteStopHandler(container.RouteStopUsecase)
 			routes.GET("/:id", routeStopHandler.GetRouteWithStops)
 		}
+
+		// Public trip search
+		trips := v1.Group("/trips")
+		{
+			tripHandler := handlers.NewTripHandler(container.TripUsecase)
+			trips.GET("/search", tripHandler.SearchTrips)
+		}
 	}
 
 	return router
