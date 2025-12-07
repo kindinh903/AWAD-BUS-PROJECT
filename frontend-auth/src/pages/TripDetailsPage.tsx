@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Bus, Wifi, Snowflake, UsbIcon, Coffee, Bed, ArrowLeft, MapPin, Clock, Star } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Bus, Wifi, Snowflake, UsbIcon, Coffee, Bed, ArrowLeft } from 'lucide-react';
 import { BusTrip } from '../lib/mockData';
 import SeatMap from '../components/SeatMap';
 import PassengerForm from '../components/PassengerForm';
@@ -11,7 +11,6 @@ import type { Seat, Passenger } from '../types/booking';
 type BookingStep = 'details' | 'seats' | 'passengers' | 'summary' | 'confirmation';
 
 export default function TripDetailsPage() {
-  const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -23,8 +22,8 @@ export default function TripDetailsPage() {
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [trip, setTrip] = useState<BusTrip | null>(location.state?.trip || null);
-  const [tripLoading, setTripLoading] = useState(!location.state?.trip);
+  const [trip] = useState<BusTrip | null>(location.state?.trip || null);
+  const [tripLoading] = useState(!location.state?.trip);
 
   useEffect(() => {
     // If trip not passed via location state, we would need to fetch it
