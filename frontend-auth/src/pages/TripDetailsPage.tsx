@@ -7,6 +7,7 @@ import PassengerForm from '../components/PassengerForm';
 import BookingSummary from '../components/BookingSummary';
 import { bookingAPI, tripAPI } from '../lib/api';
 import type { Seat, Passenger } from '../types/booking';
+import { usePolling } from '../hooks/usePolling';
 
 type BookingStep = 'details' | 'seats' | 'passengers' | 'summary' | 'confirmation';
 
@@ -24,10 +25,9 @@ export default function TripDetailsPage() {
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [trip] = useState<BusTrip | null>(location.state?.trip || null);
   const [tripLoading] = useState(!location.state?.trip);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    // If trip not passed via location state, we would need to fetch it
-    // For now, redirect back if no trip data
     if (!trip && !tripLoading) {
       navigate('/dashboard', { replace: true });
     }
@@ -54,21 +54,38 @@ export default function TripDetailsPage() {
     }
   };
 
+  // Refresh seats silently (for polling)
+  const refreshSeats = async () => {
+    if (!trip?.id || currentStep !== 'seats') return;
+    
+    try {
+      setIsRefreshing(true);
+      const response = await tripAPI.getAvailableSeats(trip.id);
+      const newSeats = response.data.data;
+      
+      setSeats(newSeats);
+      
+      const availableSeatIds = new Set(newSeats.map((s: Seat) => s.id));
+      setSelectedSeatIds(prev => prev.filter(id => availableSeatIds.has(id)));
+    } catch (error) {
+      console.error('Failed to refresh seats:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  usePolling({
+    interval: 5000,
+    enabled: currentStep === 'seats' && !!trip?.id,
+    onPoll: refreshSeats,
+  });
+
   const handleSeatSelect = async (seatId: string) => {
     if (selectedSeatIds.includes(seatId)) {
       setSelectedSeatIds(prev => prev.filter(id => id !== seatId));
     } else {
       const newSelection = [...selectedSeatIds, seatId];
       setSelectedSeatIds(newSelection);
-      
-      try {
-        // Reserve seats on backend (commented out for mock)
-        // await bookingAPI.reserveSeats(id!, newSelection, sessionId);
-      } catch (error) {
-        console.error('Failed to reserve seats:', error);
-        setSelectedSeatIds(prev => prev.filter(id => id !== seatId));
-        alert('Failed to reserve seat. It may be taken by another user.');
-      }
     }
   };
 
@@ -144,7 +161,6 @@ export default function TripDetailsPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="container-custom max-w-6xl mx-auto">
-        {/* Back Button */}
         <button
           onClick={() => currentStep === 'details' ? navigate('/dashboard') : setCurrentStep('details')}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
@@ -153,7 +169,6 @@ export default function TripDetailsPage() {
           {currentStep === 'details' ? 'Back to Dashboard' : 'Back'}
         </button>
 
-        {/* Progress Steps */}
         {currentStep !== 'details' && (
           <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -183,7 +198,6 @@ export default function TripDetailsPage() {
           </div>
         )}
 
-        {/* Trip Details View */}
         {currentStep === 'details' && (
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1">
@@ -263,10 +277,17 @@ export default function TripDetailsPage() {
           </div>
         )}
 
-        {/* Seat Selection Step */}
         {currentStep === 'seats' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-2xl font-bold mb-6">Select Your Seats</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Select Your Seats</h2>
+              {isRefreshing && (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-blue-600"></div>
+                  <span>Updating availability...</span>
+                </div>
+              )}
+            </div>
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -296,7 +317,6 @@ export default function TripDetailsPage() {
           </div>
         )}
 
-        {/* Passenger Form Step */}
         {currentStep === 'passengers' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <PassengerForm
@@ -308,7 +328,6 @@ export default function TripDetailsPage() {
           </div>
         )}
 
-        {/* Booking Summary Step */}
         {currentStep === 'summary' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <BookingSummary
@@ -330,7 +349,6 @@ export default function TripDetailsPage() {
           </div>
         )}
 
-        {/* Confirmation Step */}
         {currentStep === 'confirmation' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="text-center py-12">
