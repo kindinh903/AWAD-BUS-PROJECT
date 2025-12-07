@@ -117,3 +117,50 @@ type RouteStopRepository interface {
 	ReorderStops(ctx context.Context, routeID uuid.UUID, stopType entities.RouteStopType) error
 	CountByRouteIDAndType(ctx context.Context, routeID uuid.UUID, stopType entities.RouteStopType) (int64, error)
 }
+
+// BookingRepository defines the interface for booking data operations
+type BookingRepository interface {
+	Create(ctx context.Context, booking *entities.Booking) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.Booking, error)
+	GetByReference(ctx context.Context, reference string) (*entities.Booking, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID, page, pageSize int) ([]*entities.Booking, int64, error)
+	GetByGuestContact(ctx context.Context, email, phone string) ([]*entities.Booking, error)
+	GetByTripID(ctx context.Context, tripID uuid.UUID) ([]*entities.Booking, error)
+	Update(ctx context.Context, booking *entities.Booking) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	ExpirePendingBookings(ctx context.Context) error
+	GetWithDetails(ctx context.Context, id uuid.UUID) (*entities.Booking, error)
+}
+
+// PassengerRepository defines the interface for passenger data operations
+type PassengerRepository interface {
+	Create(ctx context.Context, passenger *entities.Passenger) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.Passenger, error)
+	GetByBookingID(ctx context.Context, bookingID uuid.UUID) ([]*entities.Passenger, error)
+	BulkCreate(ctx context.Context, passengers []*entities.Passenger) error
+	Update(ctx context.Context, passenger *entities.Passenger) error
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
+// SeatReservationRepository defines the interface for seat reservation data operations
+type SeatReservationRepository interface {
+	Create(ctx context.Context, reservation *entities.SeatReservation) error
+	GetByTripAndSeat(ctx context.Context, tripID, seatID uuid.UUID) (*entities.SeatReservation, error)
+	GetBySessionID(ctx context.Context, sessionID string) ([]*entities.SeatReservation, error)
+	GetByTripID(ctx context.Context, tripID uuid.UUID) ([]*entities.SeatReservation, error)
+	DeleteExpired(ctx context.Context) error
+	DeleteBySessionID(ctx context.Context, sessionID string) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	IsSeatsAvailable(ctx context.Context, tripID uuid.UUID, seatIDs []uuid.UUID) (bool, error)
+}
+
+// TicketRepository defines the interface for ticket data operations
+type TicketRepository interface {
+	Create(ctx context.Context, ticket *entities.Ticket) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.Ticket, error)
+	GetByTicketNumber(ctx context.Context, ticketNumber string) (*entities.Ticket, error)
+	GetByBookingID(ctx context.Context, bookingID uuid.UUID) ([]*entities.Ticket, error)
+	BulkCreate(ctx context.Context, tickets []*entities.Ticket) error
+	Update(ctx context.Context, ticket *entities.Ticket) error
+	MarkAsUsed(ctx context.Context, ticketNumber string) error
+}

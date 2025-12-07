@@ -221,6 +221,96 @@ The service returns standard HTTP status codes:
 4. **CORS**: Configurable cross-origin settings
 5. **Rate Limiting**: To be implemented
 
+## E-Ticket System
+
+This service includes automated e-ticket generation and delivery for bus bookings.
+
+### Features
+
+- **PDF Generation**: Professional ticket PDFs with booking details, trip information, and passenger data
+- **QR Code Integration**: Each ticket includes a QR code for validation and boarding
+- **Email Delivery**: Automatic SMTP email delivery with PDF attachments
+- **Bulk Downloads**: Support for downloading all tickets in a booking at once
+- **Resend Functionality**: Ability to resend ticket emails if needed
+
+### Implementation
+
+#### Key Components
+- `internal/services/ticket_service.go` - PDF and QR code generation using `gofpdf` and `go-qrcode`
+- `internal/services/email_service.go` - SMTP email delivery with attachment support
+- `internal/delivery/http/handlers/booking_handler.go` - HTTP endpoints for ticket operations
+
+#### Endpoints
+
+**Download All Booking Tickets**
+```
+GET /api/v1/bookings/{booking_id}/tickets/download
+```
+Returns PDF with all tickets for the booking.
+
+**Download Single Ticket**
+```
+GET /api/v1/tickets/{ticket_id}/download
+```
+Returns PDF for individual ticket.
+
+**Resend Ticket Email**
+```
+POST /api/v1/bookings/{booking_id}/resend-tickets
+```
+Re-sends ticket PDFs to the booking contact email.
+
+#### Email Configuration
+
+Add these environment variables for email functionality:
+
+```env
+# SMTP Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password  # For Gmail, use App Password
+SMTP_FROM=noreply@busproject.com
+```
+
+**Gmail Setup:**
+1. Enable 2-Factor Authentication on your Google account
+2. Generate an App Password at https://myaccount.google.com/apppasswords
+3. Use the App Password (not your regular password) in `SMTP_PASSWORD`
+
+#### Ticket Generation Flow
+
+1. User completes booking via `POST /api/v1/bookings`
+2. Backend creates booking and passenger records
+3. Ticket service generates:
+   - Unique ticket number for each passenger
+   - QR code containing ticket validation data (JSON format)
+   - PDF with professional layout including trip details, passenger info, and QR code
+4. Email service sends PDFs as attachments to contact email
+5. Tickets returned in API response with base64-encoded QR codes
+6. User can download tickets anytime using booking or ticket ID
+
+#### QR Code Content
+
+Each QR code contains JSON with validation data:
+```json
+{
+  "ticket_number": "BK20251207211857a0-T01",
+  "booking_reference": "BK20251207211857a0",
+  "passenger_name": "John Doe",
+  "trip_origin": "Ho Chi Minh City",
+  "trip_destination": "Da Nang",
+  "seat_number": "01A",
+  "departure_time": "2025-12-08T08:00:00Z"
+}
+```
+
+#### Dependencies
+
+Required Go packages (already in `go.mod`):
+- `github.com/jung-kurt/gofpdf` - PDF generation
+- `github.com/skip2/go-qrcode` - QR code creation
+
 ## Contributing
 
 Please follow the code structure and conventions established in the project.

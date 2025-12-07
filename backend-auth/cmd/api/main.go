@@ -153,24 +153,33 @@ func runMigrations(db *gorm.DB) error {
 		&entities.RouteStop{},
 		&entities.SeatMap{},
 		&entities.Seat{},
+		&entities.Booking{},
+		&entities.Passenger{},
+		&entities.SeatReservation{},
+		&entities.Ticket{},
 	)
 }
 
 type Container struct {
 	// Repositories
-	UserRepo         repositories.UserRepository
-	RefreshTokenRepo repositories.RefreshTokenRepository
-	BusRepo          repositories.BusRepository
-	RouteRepo        repositories.RouteRepository
-	TripRepo         repositories.TripRepository
-	RouteStopRepo    repositories.RouteStopRepository
-	SeatMapRepo      repositories.SeatMapRepository
+	UserRepo            repositories.UserRepository
+	RefreshTokenRepo    repositories.RefreshTokenRepository
+	BusRepo             repositories.BusRepository
+	RouteRepo           repositories.RouteRepository
+	TripRepo            repositories.TripRepository
+	RouteStopRepo       repositories.RouteStopRepository
+	SeatMapRepo         repositories.SeatMapRepository
+	BookingRepo         repositories.BookingRepository
+	PassengerRepo       repositories.PassengerRepository
+	SeatReservationRepo repositories.SeatReservationRepository
+	TicketRepo          repositories.TicketRepository
 
 	// Usecases
 	AuthUsecase      *usecases.AuthUsecase
 	TripUsecase      *usecases.TripUsecase
 	RouteStopUsecase *usecases.RouteStopUsecase
 	SeatMapUsecase   *usecases.SeatMapUsecase
+	BookingUsecase   *usecases.BookingUsecase
 
 	// Configuration
 	JWTSecret string
@@ -185,6 +194,10 @@ func initDependencies(db *gorm.DB) *Container {
 	tripRepo := postgres.NewTripRepository(db)
 	routeStopRepo := postgres.NewRouteStopRepository(db)
 	seatMapRepo := postgres.NewSeatMapRepository(db)
+	bookingRepo := postgres.NewBookingRepository(db)
+	passengerRepo := postgres.NewPassengerRepository(db)
+	seatReservationRepo := postgres.NewSeatReservationRepository(db)
+	ticketRepo := postgres.NewTicketRepository(db)
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
@@ -208,20 +221,26 @@ func initDependencies(db *gorm.DB) *Container {
 	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo)
 	routeStopUsecase := usecases.NewRouteStopUsecase(routeStopRepo, routeRepo)
 	seatMapUsecase := usecases.NewSeatMapUsecase(seatMapRepo, busRepo)
+	bookingUsecase := usecases.NewBookingUsecase(bookingRepo, passengerRepo, seatReservationRepo, ticketRepo, tripRepo, seatMapRepo)
 
 	return &Container{
-		UserRepo:         userRepo,
-		RefreshTokenRepo: refreshTokenRepo,
-		BusRepo:          busRepo,
-		RouteRepo:        routeRepo,
-		TripRepo:         tripRepo,
-		RouteStopRepo:    routeStopRepo,
-		SeatMapRepo:      seatMapRepo,
-		AuthUsecase:      authUsecase,
-		TripUsecase:      tripUsecase,
-		RouteStopUsecase: routeStopUsecase,
-		SeatMapUsecase:   seatMapUsecase,
-		JWTSecret:        jwtSecret,
+		UserRepo:            userRepo,
+		RefreshTokenRepo:    refreshTokenRepo,
+		BusRepo:             busRepo,
+		RouteRepo:           routeRepo,
+		TripRepo:            tripRepo,
+		RouteStopRepo:       routeStopRepo,
+		SeatMapRepo:         seatMapRepo,
+		BookingRepo:         bookingRepo,
+		PassengerRepo:       passengerRepo,
+		SeatReservationRepo: seatReservationRepo,
+		TicketRepo:          ticketRepo,
+		AuthUsecase:         authUsecase,
+		TripUsecase:         tripUsecase,
+		RouteStopUsecase:    routeStopUsecase,
+		SeatMapUsecase:      seatMapUsecase,
+		BookingUsecase:      bookingUsecase,
+		JWTSecret:           jwtSecret,
 	}
 }
 
@@ -326,6 +345,39 @@ func setupRouter(container *Container) *gin.Engine {
 		{
 			tripHandler := handlers.NewTripHandler(container.TripUsecase)
 			trips.GET("/search", tripHandler.SearchTrips)
+			
+			// Booking-related trip endpoints
+			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
+			trips.GET("/:trip_id/seats", bookingHandler.GetAvailableSeats)
+		}
+
+		// Booking routes (public - supports guest checkout)
+		bookings := v1.Group("/bookings")
+		{
+			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
+			bookings.POST("/reserve", bookingHandler.ReserveSeats)
+			bookings.DELETE("/release", bookingHandler.ReleaseSeats)
+			bookings.POST("", bookingHandler.CreateBooking)
+			bookings.GET("/ref/:reference", bookingHandler.GetBookingByReference)
+			bookings.GET("/guest", bookingHandler.GetGuestBookings)
+			bookings.POST("/:id/confirm", bookingHandler.ConfirmBooking)
+			bookings.POST("/:id/cancel", bookingHandler.CancelBooking)
+			bookings.GET("/:id/tickets/download", bookingHandler.DownloadBookingTickets)
+			bookings.POST("/:id/resend-tickets", bookingHandler.ResendTicketEmail)
+		}
+
+		// Ticket routes (public)
+		tickets := v1.Group("/tickets")
+		{
+			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
+			tickets.GET("/:id/download", bookingHandler.DownloadTicket)
+		}
+
+		// Protected booking routes (authenticated users)
+		authorizedBookings := authorized.Group("/bookings")
+		{
+			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
+			authorizedBookings.GET("/my-bookings", bookingHandler.GetUserBookings)
 		}
 	}
 

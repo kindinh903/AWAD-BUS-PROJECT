@@ -14,8 +14,19 @@ import {
   UsbIcon,
   Coffee,
 } from 'lucide-react';
-import { userSummaryCards, mockBusTrips, BusTrip } from '../lib/mockData';
+import { userSummaryCards, BusTrip } from '../lib/mockData';
 import { TripFilters, TripFiltersState, doesTripMatchFilters, sortTrips } from './TripFilters';
+import { tripAPI } from '../lib/api';
+
+// Helper function to calculate duration between two timestamps
+const calculateDuration = (startTime: string, endTime: string): string => {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  const diffMs = end.getTime() - start.getTime();
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+};
 
 interface UserDashboardProps {
   user: any;
@@ -54,9 +65,9 @@ const mockBookings = [
 
 export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const [bookingForm, setBookingForm] = useState({
-    from: 'Ho Chi Minh',
+    from: 'Ho Chi Minh City',
     to: 'Da Nang',
-    date: '2024-12-25',
+    date: '2025-12-08',
     time: 'morning',
   });
   const [recentBookings] = useState(mockBookings);
@@ -133,30 +144,52 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
     setIsSearching(true);
     setShowResults(false);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const response = await tripAPI.search({
+        origin: from,
+        destination: to,
+        date: bookingForm.date,
+      });
 
-    // Filter trips based on search criteria
-    const searchResults = mockBusTrips.filter(
-      trip =>
-        trip.from.toLowerCase().includes(from.toLowerCase()) &&
-        trip.to.toLowerCase().includes(to.toLowerCase())
-    );
+      const trips = response.data.data || [];
+      
+      // Transform backend trips to match BusTrip interface
+      const searchResults: BusTrip[] = trips.map((trip: any) => ({
+        id: trip.id,
+        from: trip.route?.origin || from,
+        to: trip.route?.destination || to,
+        departure: new Date(trip.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        arrival: new Date(trip.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        duration: calculateDuration(trip.start_time, trip.end_time),
+        price: trip.price,
+        busType: 'Standard' as const,
+        company: trip.bus?.company || 'Bus Company',
+        availableSeats: 40,
+        totalSeats: trip.bus?.total_seats || 45,
+        amenities: ['WiFi', 'AC'],
+        rating: 4.5,
+      }));
 
-    setAvailableTrips(searchResults);
+      setAvailableTrips(searchResults);
 
-    // Update price range in filters based on actual available trips
-    const minPrice = searchResults.length > 0 ? Math.min(...searchResults.map(t => t.price)) : 0;
-    const maxPrice = searchResults.length > 0 ? Math.max(...searchResults.map(t => t.price)) : 100;
+      // Update price range in filters based on actual available trips
+      const minPrice = searchResults.length > 0 ? Math.min(...searchResults.map(t => t.price)) : 0;
+      const maxPrice = searchResults.length > 0 ? Math.max(...searchResults.map(t => t.price)) : 100;
     
-    const updatedFilters = {
-      ...filters,
-      priceRange: { min: minPrice, max: maxPrice },
-    };
-    
-    handleFiltersChange(updatedFilters);
-    setShowResults(true);
-    setIsSearching(false);
+      const updatedFilters = {
+        ...filters,
+        priceRange: { min: minPrice, max: maxPrice },
+      };
+      
+      handleFiltersChange(updatedFilters);
+    } catch (error) {
+      console.error('Search failed:', error);
+      setAvailableTrips([]);
+      alert('Failed to search trips. Please try again.');
+    } finally {
+      setShowResults(true);
+      setIsSearching(false);
+    }
   };
 
   // Filter and sort trips
@@ -174,33 +207,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       return;
     }
 
-    setIsSearching(true);
-    setShowResults(false);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // Filter trips based on search criteria
-    const searchResults = mockBusTrips.filter(
-      trip =>
-        trip.from.toLowerCase().includes(bookingForm.from.toLowerCase()) &&
-        trip.to.toLowerCase().includes(bookingForm.to.toLowerCase())
-    );
-
-    setAvailableTrips(searchResults);
-
-    // Update price range in filters based on actual available trips
-    const minPrice = searchResults.length > 0 ? Math.min(...searchResults.map(t => t.price)) : 0;
-    const maxPrice = searchResults.length > 0 ? Math.max(...searchResults.map(t => t.price)) : 100;
-    
-    const updatedFilters = {
-      ...filters,
-      priceRange: { min: minPrice, max: maxPrice },
-    };
-    
-    handleFiltersChange(updatedFilters);
-    setShowResults(true);
-    setIsSearching(false);
+    await handleSearchWithData(bookingForm.from, bookingForm.to);
   };
 
   const getAmenityIcon = (amenity: string) => {
@@ -571,7 +578,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                         </div>
 
                           <button
-                            onClick={() => navigate(`/trips/${trip.id}`)}
+                            onClick={() => navigate(`/trips/${trip.id}`, { state: { trip } })}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                           >
                             Book Now

@@ -8,6 +8,7 @@ import type {
   RegenerateSeatLayoutInput,
   AssignSeatMapToBusInput,
 } from '../types/seatMap';
+import type { Passenger } from '../types/booking';
 
 // Event emitter for auth events
 export const authEvents = {
@@ -131,6 +132,8 @@ export interface TripSearchParams {
 export const tripAPI = {
   search: (params: TripSearchParams) => 
     api.get('/trips/search', { params }),
+  getAvailableSeats: (tripId: string) =>
+    api.get(`/trips/${tripId}/seats`),
 };
 
 // Admin API
@@ -181,6 +184,67 @@ export const seatMapAPI = {
   // Assign seat map to bus
   assignToBus: (data: AssignSeatMapToBusInput) =>
     api.post('/admin/buses/assign-seat-map', data),
+};
+
+// Booking API
+export const bookingAPI = {
+  // Reserve seats temporarily
+  reserveSeats: (tripId: string, seatIds: string[], sessionId: string) =>
+    api.post('/bookings/reserve', { trip_id: tripId, seat_ids: seatIds, session_id: sessionId }),
+  
+  // Release seat reservations
+  releaseSeats: (sessionId: string) =>
+    api.delete('/bookings/release', { params: { session_id: sessionId } }),
+  
+  // Create booking
+  createBooking: (data: {
+    trip_id: string;
+    contact_email: string;
+    contact_phone: string;
+    contact_name: string;
+    passengers: Passenger[];
+    session_id: string;
+  }) => api.post('/bookings', data),
+  
+  // Confirm booking after payment
+  confirmBooking: (bookingId: string, paymentMethod: string, paymentReference?: string) =>
+    api.post(`/bookings/${bookingId}/confirm`, { payment_method: paymentMethod, payment_reference: paymentReference }),
+  
+  // Cancel booking
+  cancelBooking: (bookingId: string, reason?: string) =>
+    api.post(`/bookings/${bookingId}/cancel`, { reason }),
+  
+  // Get booking by reference
+  getByReference: (reference: string) =>
+    api.get(`/bookings/ref/${reference}`),
+  
+  // Get user's booking history (authenticated)
+  getMyBookings: (page = 1, pageSize = 10) =>
+    api.get('/bookings/my-bookings', { params: { page, page_size: pageSize } }),
+  
+  // Get guest bookings
+  getGuestBookings: (email?: string, phone?: string) =>
+    api.get('/bookings/guest', { params: { email, phone } }),
+  
+  // Get available seats for a trip
+  getAvailableSeats: (tripId: string) =>
+    api.get(`/trips/${tripId}/seats`),
+  
+  // Download ticket PDF
+  downloadTicket: (ticketId: string) => {
+    const url = `${API_URL}/tickets/${ticketId}/download`;
+    window.open(url, '_blank');
+  },
+  
+  // Download all tickets for a booking
+  downloadBookingTickets: (bookingId: string) => {
+    const url = `${API_URL}/bookings/${bookingId}/tickets/download`;
+    window.open(url, '_blank');
+  },
+  
+  // Resend ticket emails
+  resendTickets: (bookingId: string) =>
+    api.post(`/bookings/${bookingId}/resend-tickets`),
 };
 
 export default api;

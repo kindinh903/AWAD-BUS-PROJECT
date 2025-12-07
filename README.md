@@ -129,5 +129,45 @@ authorized.Use(middleware.AuthMiddleware(container.JWTSecret))
 - Consider rotating refresh tokens on every refresh (with detection of concurrent reuse) and store a token family to detect theft.
 - Add automated tests for the refresh & revocation flows.
 
+## E-Ticket System Implementation
+
+This project includes a complete e-ticket generation and delivery system implemented in the backend.
+
+### Key Files
+- E-ticket PDF generation: `backend-auth/internal/services/ticket_service.go`
+- Email delivery: `backend-auth/internal/services/email_service.go`
+- Booking handler with ticket endpoints: `backend-auth/internal/delivery/http/handlers/booking_handler.go`
+
+### Features
+- **PDF Generation**: Uses `gofpdf` library to create professional ticket PDFs with booking details, passenger information, and trip data
+- **QR Code**: Embedded QR codes generated with `go-qrcode` containing ticket validation data (ticket number, booking reference, passenger name)
+- **Email Delivery**: SMTP integration sends tickets as PDF attachments automatically on booking confirmation
+- **Download Endpoints**:
+  - `GET /api/v1/bookings/:id/tickets/download` — Download all tickets for a booking
+  - `GET /api/v1/tickets/:id/download` — Download individual ticket
+  - `POST /api/v1/bookings/:id/resend-tickets` — Resend tickets via email
+
+### Configuration
+Set these environment variables for email delivery:
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password  # Use App Password for Gmail
+SMTP_FROM=noreply@busproject.com
+```
+
+### Booking Flow with E-Tickets
+1. User creates booking via `POST /api/v1/bookings`
+2. Backend generates tickets with QR codes
+3. PDF tickets automatically emailed to contact email
+4. Booking response includes ticket data with base64 QR codes
+5. User can download tickets anytime via booking ID
+
+### Frontend Integration
+- Download buttons on booking confirmation page (`TripDetailsPage.tsx`)
+- Uses `bookingAPI.downloadBookingTickets(bookingId)` to trigger download
+- Tickets open in browser or save as PDF file
+
 If you want, I can add a short troubleshooting section with common failure scenarios (CORS mismatch, cookies not sent, 401 loops) and precise steps to debug them on your dev environment.
 

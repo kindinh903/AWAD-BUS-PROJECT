@@ -175,51 +175,69 @@ func SeedData(db *gorm.DB) error {
 	var tripCount int64
 	db.Model(&entities.Trip{}).Count(&tripCount)
 	if tripCount == 0 {
-		// Get first route and bus for assignment
-		var firstRoute entities.Route
-		var firstBus entities.Bus
-		db.First(&firstRoute)
-		db.First(&firstBus)
+		// Get all routes and buses
+		var routes []entities.Route
+		var buses []entities.Bus
+		db.Find(&routes)
+		db.Find(&buses)
+
+		if len(routes) == 0 || len(buses) == 0 {
+			log.Println("No routes or buses found, skipping trip seed")
+			return nil
+		}
 
 		// Create trips - some with buses assigned, some without
 		now := time.Now()
 		tomorrow := now.AddDate(0, 0, 1)
 		nextWeek := now.AddDate(0, 0, 7)
 
-		trips := []entities.Trip{
-			{
+		var trips []entities.Trip
+		
+		// Create trips for each route
+		for i, route := range routes {
+			var busID *uuid.UUID
+			if i < len(buses) {
+				busID = &buses[i].ID
+			}
+			
+			// Trip 1: Tomorrow
+			trips = append(trips, entities.Trip{
 				ID:        uuid.New(),
-				RouteID:   firstRoute.ID,
-				BusID:     &firstBus.ID, // Assigned
+				RouteID:   route.ID,
+				BusID:     busID,
 				StartTime: tomorrow.Add(8 * time.Hour),  // Tomorrow 8 AM
-				EndTime:   tomorrow.Add(20 * time.Hour), // Tomorrow 8 PM
-				Price:     25.0,
+				EndTime:   tomorrow.Add(time.Duration(route.DurationMinutes) * time.Minute),
+				Price:     route.BasePrice,
 				Status:    entities.TripStatusScheduled,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
-			},
-			{
+			})
+			
+			// Trip 2: Next week
+			trips = append(trips, entities.Trip{
 				ID:        uuid.New(),
-				RouteID:   firstRoute.ID,
+				RouteID:   route.ID,
 				BusID:     nil, // Not assigned yet
 				StartTime: nextWeek.Add(9 * time.Hour),  // Next week 9 AM
-				EndTime:   nextWeek.Add(21 * time.Hour), // Next week 9 PM
-				Price:     25.0,
+				EndTime:   nextWeek.Add(time.Duration(route.DurationMinutes) * time.Minute),
+				Price:     route.BasePrice,
 				Status:    entities.TripStatusScheduled,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
-			},
-			{
+			})
+			
+			// Trip 3: Next week + 2 days
+			trips = append(trips, entities.Trip{
 				ID:        uuid.New(),
-				RouteID:   firstRoute.ID,
+				RouteID:   route.ID,
 				BusID:     nil, // Not assigned yet
 				StartTime: nextWeek.Add(2 * 24 * time.Hour).Add(10 * time.Hour), // Next week + 2 days, 10 AM
-				EndTime:   nextWeek.Add(2 * 24 * time.Hour).Add(22 * time.Hour), // Next week + 2 days, 10 PM
-				Price:     25.0,
+				EndTime:   nextWeek.Add(2 * 24 * time.Hour).Add(time.Duration(route.DurationMinutes) * time.Minute),
+				Price:     route.BasePrice,
 				Status:    entities.TripStatusScheduled,
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
-			},
+			})
 		}
 
 		for _, trip := range trips {
@@ -227,7 +245,7 @@ func SeedData(db *gorm.DB) error {
 				return err
 			}
 		}
-		log.Println("Trip seed data created: 3 trips")
+		log.Printf("Trip seed data created: %d trips for %d routes", len(trips), len(routes))
 	}
 
 	// Seed Route Stops
