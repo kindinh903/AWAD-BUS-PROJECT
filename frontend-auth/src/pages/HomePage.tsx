@@ -1,127 +1,498 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Shield, Bus, Clock, Award } from 'lucide-react';
-import { tokenManager } from '../lib/tokenManager';
-import { DemoAccounts } from '../components/DemoAccounts';
-import { BusSearchForm, SearchData } from '../components/BusSearchForm';
+import {
+  Search, MapPin, Calendar, Clock, Bus, Shield, Tag,
+  CreditCard, Headphones, ArrowRight, ChevronRight, Sparkles,
+  Users, Zap, Award
+} from 'lucide-react';
+import { tripAPI } from '../lib/api';
+
+interface Trip {
+  id: string;
+  route?: {
+    origin: string;
+    destination: string;
+  };
+  bus?: {
+    name: string;
+    bus_type: string;
+    amenities?: string[];
+    seat_map?: {
+      total_seats: number;
+    };
+  };
+  start_time: string;
+  end_time: string;
+  base_price: number;
+  available_seats: number;
+  status: string;
+}
+
+interface PopularRoute {
+  origin: string;
+  destination: string;
+  price: number;
+  duration: string;
+  image: string;
+}
+
+// Route images mapping for visual display
+const routeImages: Record<string, string> = {
+  'Ho Chi Minh City': '🏙️',
+  'Da Nang': '🏖️',
+  'Hanoi': '🏛️',
+  'Hai Phong': '🌉',
+  'Hue': '⛩️',
+  'Vung Tau': '🏖️',
+  'Ha Long': '⛵',
+  'Can Tho': '🌾',
+  'Nha Trang': '🌴',
+  'Da Lat': '🌸',
+  'default': '🚌'
+};
+
+// Bus types showcase
+const busTypes = [
+  { type: 'Standard', seats: 45, amenities: ['AC', 'Reclining Seats'], price: 'Budget-friendly', icon: '🚌' },
+  { type: 'VIP', seats: 35, amenities: ['AC', 'WiFi', 'TV', 'Snacks'], price: 'Premium comfort', icon: '🚎' },
+  { type: 'Sleeper', seats: 24, amenities: ['AC', 'Bed', 'Blanket', 'USB'], price: 'Overnight travel', icon: '🛏️' },
+];
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const isAuthenticated = !!tokenManager.getAccessToken();
+  const [availableTrips, setAvailableTrips] = useState<Trip[]>([]);
+  const [popularRoutes, setPopularRoutes] = useState<PopularRoute[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingRoutes, setLoadingRoutes] = useState(true);
 
-  // Get user info from localStorage
-  const userInfo = localStorage.getItem('user');
-  const user = userInfo ? JSON.parse(userInfo) : null;
-  const username = user?.name || 'User';
+  // Search form state
+  const [origin, setOrigin] = useState('');
+  const [destination, setDestination] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Handle search submission
-  const handleSearch = (searchData: SearchData) => {
-    // Store search data in localStorage for dashboard access
-    localStorage.setItem('busSearch', JSON.stringify(searchData));
-    
-    // Navigate to dashboard without page refresh
-    navigate('/dashboard');
+  // Fetch available trips for today and extract popular routes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const res = await tripAPI.search({ origin: '', destination: '', date: today });
+        // API returns { data: [...trips], pagination: {...} }
+        const trips: Trip[] = res.data?.data || [];
+
+        // Set available trips for today (up to 6)
+        setAvailableTrips(trips.slice(0, 6));
+
+        // Extract unique routes from trips for popular routes section
+        const routeMap = new Map<string, PopularRoute>();
+        trips.forEach((trip) => {
+          if (trip.route?.origin && trip.route?.destination) {
+            const key = `${trip.route.origin}-${trip.route.destination}`;
+            if (!routeMap.has(key)) {
+              // Calculate approximate duration from start_time and end_time
+              let duration = '3h';
+              if (trip.start_time && trip.end_time) {
+                const start = new Date(trip.start_time);
+                const end = new Date(trip.end_time);
+                const diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+                duration = diffHours >= 1 ? `${Math.round(diffHours)}h` : `${Math.round(diffHours * 60)}m`;
+              }
+
+              routeMap.set(key, {
+                origin: trip.route.origin,
+                destination: trip.route.destination,
+                price: trip.base_price,
+                duration,
+                image: routeImages[trip.route.destination] || routeImages[trip.route.origin] || routeImages['default']
+              });
+            }
+          }
+        });
+
+        setPopularRoutes(Array.from(routeMap.values()).slice(0, 6));
+      } catch (error) {
+        console.error('Failed to fetch trips:', error);
+      } finally {
+        setLoading(false);
+        setLoadingRoutes(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (origin) params.set('origin', origin);
+    if (destination) params.set('destination', destination);
+    if (date) params.set('date', date);
+    navigate(`/routes?${params.toString()}`);
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 to-primary-800 text-white py-20">
-        <div className="container-custom">
-          <div className="max-w-3xl">
-            {isAuthenticated ? (
-              <>
-                <h1 className="text-5xl font-bold mb-6">
-                  Welcome back,{' '}
-                  <span className="text-primary-200">{username}!</span>
-                </h1>
-                <p className="text-xl mb-8 text-primary-100">
-                  Ready to book your next bus trip?
-                </p>
-                <Link
-                  to="/dashboard"
-                  className="btn bg-white text-primary-600 hover:bg-gray-100 px-8 py-4 text-lg inline-block"
-                >
-                  Go to Dashboard
-                </Link>
-              </>
-            ) : (
-              <>
-                <h1 className="text-5xl font-bold mb-6">
-                  Welcome to Bus Booking
-                </h1>
-                <p className="text-xl mb-8 text-primary-100">
-                  Fast, secure, and convenient bus booking platform
-                </p>
-                <div className="flex gap-4">
-                  <Link
-                    to="/login"
-                    className="btn bg-white text-primary-600 hover:bg-gray-100 px-8 py-4 text-lg"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="btn border-2 border-white text-white hover:bg-white/10 px-8 py-4 text-lg"
-                  >
-                    Create Account
-                  </Link>
+      <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/5 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative container mx-auto px-4 py-16 md:py-24">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+              <Sparkles className="h-4 w-4 text-yellow-300" />
+              <span className="text-sm font-medium">Book your journey with confidence</span>
+            </div>
+
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+              Travel Vietnam
+              <span className="block text-yellow-300">Your Way</span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+              Book bus tickets to 500+ destinations across Vietnam.
+              Safe, comfortable, and affordable travel at your fingertips.
+            </p>
+
+            {/* Search Form */}
+            <form onSubmit={handleSearch} className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 md:p-6 max-w-3xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="From"
+                    value={origin}
+                    onChange={(e) => setOrigin(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
-              </>
-            )}
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="To"
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Search className="h-5 w-5" />
+                  Search
+                </button>
+              </div>
+            </form>
+
+            {/* Quick stats */}
+            <div className="flex flex-wrap justify-center gap-8 mt-10 text-sm">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-yellow-300" />
+                <span>2M+ Happy Travelers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-yellow-300" />
+                <span>500+ Destinations</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Bus className="h-5 w-5 text-yellow-300" />
+                <span>1000+ Daily Trips</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Search Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container-custom">
-          <BusSearchForm onSearch={handleSearch} className="max-w-4xl mx-auto" />
+      {/* Available Buses Today */}
+      <section className="py-16 bg-white dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                🚌 Available Today
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Buses departing soon - no search needed!
+              </p>
+            </div>
+            <Link
+              to="/routes"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View All <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-2xl h-48 animate-pulse"></div>
+              ))}
+            </div>
+          ) : availableTrips.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {availableTrips.map((trip) => (
+                <Link
+                  key={trip.id}
+                  to={`/trips/${trip.id}`}
+                  className="group bg-gray-50 dark:bg-gray-700 rounded-2xl p-5 hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-600 hover:border-blue-200 dark:hover:border-blue-500"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
+                        <span>{trip.route?.origin || 'Origin'}</span>
+                        <ArrowRight className="h-4 w-4 text-blue-500" />
+                        <span>{trip.route?.destination || 'Destination'}</span>
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {trip.bus?.name || 'Bus'} • {trip.bus?.bus_type || 'Standard'}
+                      </p>
+                    </div>
+                    <span className="text-lg font-bold text-blue-600">
+                      {formatPrice(trip.base_price)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {formatTime(trip.start_time)}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      {trip.available_seats} seats left
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${trip.available_seats > 10
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                      }`}>
+                      {trip.available_seats > 10 ? 'Available' : 'Filling Fast'}
+                    </span>
+                    <span className="text-sm text-blue-600 font-medium group-hover:underline">
+                      Book Now →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-50 dark:bg-gray-700 rounded-2xl">
+              <Bus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">No trips available today. Check back tomorrow!</p>
+              <Link to="/routes" className="mt-4 inline-block text-blue-600 hover:underline">
+                Browse all routes →
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Demo Accounts Section - Show only when not authenticated */}
-      {!isAuthenticated && (
-        <section className="py-16 bg-gray-50">
-          <div className="container-custom">
-            <DemoAccounts />
+      {/* Popular Routes */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              ⭐ Popular Routes
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Most booked destinations by our travelers
+            </p>
           </div>
-        </section>
-      )}
 
-      {/* Features */}
-      <section className="py-16">
-        <div className="container-custom">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Why Choose Our Bus Booking Platform?
-          </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="card p-6 text-center">
-              <Bus className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Wide Network</h3>
-              <p className="text-gray-600">
-                Connect to over 50+ destinations across Vietnam with trusted operators
-              </p>
+          {loadingRoutes ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-2xl h-24 animate-pulse"></div>
+              ))}
             </div>
-            <div className="card p-6 text-center">
-              <Clock className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Real-Time Updates</h3>
-              <p className="text-gray-600">
-                Get instant booking confirmations and live bus tracking
-              </p>
+          ) : popularRoutes.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {popularRoutes.map((route, index) => (
+                <Link
+                  key={index}
+                  to={`/routes?origin=${encodeURIComponent(route.origin)}&destination=${encodeURIComponent(route.destination)}`}
+                  className="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="text-4xl">{route.image}</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        {route.origin} → {route.destination}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {route.duration} journey
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">from</div>
+                      <div className="font-bold text-blue-600">{formatPrice(route.price)}</div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
-            <div className="card p-6 text-center">
-              <Shield className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Secure Payments</h3>
-              <p className="text-gray-600">
-                Industry-standard security for all transactions and refunds
-              </p>
+          ) : (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl">
+              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">No popular routes available yet.</p>
+              <Link to="/routes" className="mt-4 inline-block text-blue-600 hover:underline">
+                Browse all routes →
+              </Link>
             </div>
-            <div className="card p-6 text-center">
-              <Award className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-              <p className="text-gray-600">
-                Compare prices from multiple operators and get the best deals
-              </p>
+          )}
+
+          <div className="text-center mt-8">
+            <Link
+              to="/routes"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+            >
+              Explore All Routes <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Fleet Showcase */}
+      <section className="py-16 bg-white dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              🚎 Our Fleet
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Choose the perfect bus for your journey
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {busTypes.map((bus, index) => (
+              <div
+                key={index}
+                className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-600 hover:shadow-lg transition-all duration-300"
+              >
+                <div className="text-5xl mb-4">{bus.icon}</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  {bus.type}
+                </h3>
+                <p className="text-blue-600 font-medium mb-4">{bus.price}</p>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <li className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {bus.seats} seats
+                  </li>
+                  {bus.amenities.map((amenity, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-yellow-500" />
+                      {amenity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-8">
+            <Link
+              to="/fleet"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View Full Fleet Details <ChevronRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section className="py-16 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Why Choose BusBooking?</h2>
+            <p className="text-blue-100">Trusted by millions of travelers across Vietnam</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="h-8 w-8" />
+              </div>
+              <h3 className="font-semibold mb-2">Safe Travel</h3>
+              <p className="text-sm text-blue-100">All buses meet safety standards</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="h-8 w-8" />
+              </div>
+              <h3 className="font-semibold mb-2">Easy Payment</h3>
+              <p className="text-sm text-blue-100">Multiple payment options</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Headphones className="h-8 w-8" />
+              </div>
+              <h3 className="font-semibold mb-2">24/7 Support</h3>
+              <p className="text-sm text-blue-100">Always here to help</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Award className="h-8 w-8" />
+              </div>
+              <h3 className="font-semibold mb-2">Best Prices</h3>
+              <p className="text-sm text-blue-100">Price match guarantee</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Promotions Banner */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1 mb-4">
+                  <Tag className="h-4 w-4" />
+                  <span className="text-sm font-medium">Limited Time Offer</span>
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                  Get 20% Off Your First Booking!
+                </h3>
+                <p className="text-white/80">Use code SAVE20 at checkout</p>
+              </div>
+              <Link
+                to="/promotions"
+                className="px-8 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
+              >
+                View All Deals
+              </Link>
             </div>
           </div>
         </div>

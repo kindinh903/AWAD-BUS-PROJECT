@@ -130,7 +130,7 @@ export interface TripSearchParams {
 }
 
 export const tripAPI = {
-  search: (params: TripSearchParams) => 
+  search: (params: TripSearchParams) =>
     api.get('/trips/search', { params }),
   getAvailableSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
@@ -142,10 +142,10 @@ export const adminAPI = {
   getAllBuses: () => api.get('/admin/buses'),
   getAvailableBuses: (routeId: string, start: string, end: string) =>
     api.get('/admin/buses/available', { params: { routeId, start, end } }),
-  
+
   // Routes
   getAllRoutes: () => api.get('/admin/routes'),
-  
+
   // Trips
   getAllTrips: () => api.get('/admin/trips'),
   assignBus: (tripId: string, busId: string) =>
@@ -156,31 +156,31 @@ export const adminAPI = {
 export const seatMapAPI = {
   // Get all seat maps
   getAll: () => api.get('/admin/seat-maps'),
-  
+
   // Get seat type configurations
   getConfigs: () => api.get('/admin/seat-maps/configs'),
-  
+
   // Get a specific seat map with seats
   getById: (id: string) => api.get(`/admin/seat-maps/${id}`),
-  
+
   // Create a new seat map
   create: (data: CreateSeatMapInput) => api.post('/admin/seat-maps', data),
-  
+
   // Update a seat map
-  update: (id: string, data: UpdateSeatMapInput) => 
+  update: (id: string, data: UpdateSeatMapInput) =>
     api.put(`/admin/seat-maps/${id}`, data),
-  
+
   // Delete a seat map
   delete: (id: string) => api.delete(`/admin/seat-maps/${id}`),
-  
+
   // Bulk update seats
   bulkUpdateSeats: (id: string, data: BulkUpdateSeatsInput) =>
     api.put(`/admin/seat-maps/${id}/seats`, data),
-  
+
   // Regenerate seat layout
   regenerateLayout: (id: string, data: RegenerateSeatLayoutInput) =>
     api.post(`/admin/seat-maps/${id}/regenerate`, data),
-  
+
   // Assign seat map to bus
   assignToBus: (data: AssignSeatMapToBusInput) =>
     api.post('/admin/buses/assign-seat-map', data),
@@ -191,11 +191,11 @@ export const bookingAPI = {
   // Reserve seats temporarily
   reserveSeats: (tripId: string, seatIds: string[], sessionId: string) =>
     api.post('/bookings/reserve', { trip_id: tripId, seat_ids: seatIds, session_id: sessionId }),
-  
+
   // Release seat reservations
   releaseSeats: (sessionId: string) =>
     api.delete('/bookings/release', { params: { session_id: sessionId } }),
-  
+
   // Create booking
   createBooking: (data: {
     trip_id: string;
@@ -205,46 +205,106 @@ export const bookingAPI = {
     passengers: Passenger[];
     session_id: string;
   }) => api.post('/bookings', data),
-  
+
   // Confirm booking after payment
   confirmBooking: (bookingId: string, paymentMethod: string, paymentReference?: string) =>
     api.post(`/bookings/${bookingId}/confirm`, { payment_method: paymentMethod, payment_reference: paymentReference }),
-  
+
   // Cancel booking
   cancelBooking: (bookingId: string, reason?: string) =>
     api.post(`/bookings/${bookingId}/cancel`, { reason }),
-  
+
   // Get booking by reference
   getByReference: (reference: string) =>
     api.get(`/bookings/ref/${reference}`),
-  
+
   // Get user's booking history (authenticated)
   getMyBookings: (page = 1, pageSize = 10) =>
     api.get('/bookings/my-bookings', { params: { page, page_size: pageSize } }),
-  
+
   // Get guest bookings
   getGuestBookings: (email?: string, phone?: string) =>
     api.get('/bookings/guest', { params: { email, phone } }),
-  
+
   // Get available seats for a trip
   getAvailableSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
-  
+
   // Download ticket PDF
   downloadTicket: (ticketId: string) => {
     const url = `${API_URL}/tickets/${ticketId}/download`;
     window.open(url, '_blank');
   },
-  
+
   // Download all tickets for a booking
   downloadBookingTickets: (bookingId: string) => {
     const url = `${API_URL}/bookings/${bookingId}/tickets/download`;
     window.open(url, '_blank');
   },
-  
+
   // Resend ticket emails
   resendTickets: (bookingId: string) =>
     api.post(`/bookings/${bookingId}/resend-tickets`),
+};
+
+// Payment API
+export const paymentAPI = {
+  // Create a payment for a booking
+  createPayment: (bookingId: string, returnUrl?: string, cancelUrl?: string) =>
+    api.post('/payments', { booking_id: bookingId, return_url: returnUrl, cancel_url: cancelUrl }),
+
+  // Get payment by ID
+  getPayment: (paymentId: string) =>
+    api.get(`/payments/${paymentId}`),
+
+  // Get payment status (for polling)
+  getPaymentStatus: (paymentId: string) =>
+    api.get(`/payments/${paymentId}/status`),
+
+  // Get all payments for a booking
+  getBookingPayments: (bookingId: string) =>
+    api.get(`/bookings/${bookingId}/payments`),
+};
+
+// Analytics API (Admin only)
+export const analyticsAPI = {
+  // Get dashboard summary
+  getDashboard: () => api.get('/admin/analytics/dashboard'),
+
+  // Get booking trends over time
+  getBookingTrends: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/bookings/trends', { params: { start_date: startDate, end_date: endDate } }),
+
+  // Get revenue summary
+  getRevenue: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/revenue', { params: { start_date: startDate, end_date: endDate } }),
+
+  // Get revenue by time of day
+  getRevenueByTimeOfDay: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/revenue/time-of-day', { params: { start_date: startDate, end_date: endDate } }),
+
+  // Get conversion rate
+  getConversionRate: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/conversion-rate', { params: { start_date: startDate, end_date: endDate } }),
+
+  // Get popular routes
+  getPopularRoutes: (limit?: number, orderBy?: string) =>
+    api.get('/admin/analytics/routes/popular', { params: { limit, order_by: orderBy } }),
+
+  // Get route performance
+  getRoutePerformance: (routeId: string, startDate: string, endDate: string) =>
+    api.get(`/admin/analytics/routes/${routeId}/performance`, { params: { start_date: startDate, end_date: endDate } }),
+
+  // Compare periods
+  comparePeriods: (currentStart: string, currentEnd: string, previousStart: string, previousEnd: string) =>
+    api.get('/admin/analytics/compare', {
+      params: {
+        current_start: currentStart,
+        current_end: currentEnd,
+        previous_start: previousStart,
+        previous_end: previousEnd
+      }
+    }),
 };
 
 export default api;

@@ -30,8 +30,9 @@ func (h *TripHandler) SearchTrips(c *gin.Context) {
 	destination := strings.TrimSpace(c.Query("destination"))
 	dateStr := strings.TrimSpace(c.Query("date"))
 
-	if origin == "" || destination == "" || dateStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "origin, destination and date are required"})
+	// Only date is required - origin and destination can be empty for browsing all trips
+	if dateStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "date is required"})
 		return
 	}
 

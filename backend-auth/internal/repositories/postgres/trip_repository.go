@@ -146,9 +146,13 @@ func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.Trip
 		Joins("LEFT JOIN buses ON buses.id = trips.bus_id").
 		Where("trips.deleted_at IS NULL")
 
-	// Required filters: origin, destination, date
-	baseQuery = baseQuery.Where("routes.origin = ?", opts.Origin)
-	baseQuery = baseQuery.Where("routes.destination = ?", opts.Destination)
+	// Optional filters: origin, destination (required only if provided)
+	if opts.Origin != "" {
+		baseQuery = baseQuery.Where("routes.origin = ?", opts.Origin)
+	}
+	if opts.Destination != "" {
+		baseQuery = baseQuery.Where("routes.destination = ?", opts.Destination)
+	}
 
 	// Match date (date only)
 	dateStr := opts.Date.Format("2006-01-02")
@@ -207,9 +211,13 @@ func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.Trip
 		Joins("LEFT JOIN buses ON buses.id = trips.bus_id").
 		Where("trips.deleted_at IS NULL")
 
-	// Apply same filters
-	db = db.Where("routes.origin = ?", opts.Origin)
-	db = db.Where("routes.destination = ?", opts.Destination)
+	// Apply same filters (only if provided)
+	if opts.Origin != "" {
+		db = db.Where("routes.origin = ?", opts.Origin)
+	}
+	if opts.Destination != "" {
+		db = db.Where("routes.destination = ?", opts.Destination)
+	}
 	db = db.Where("DATE(trips.start_time) = ?", dateStr)
 
 	if opts.BusType != nil && strings.TrimSpace(*opts.BusType) != "" {
