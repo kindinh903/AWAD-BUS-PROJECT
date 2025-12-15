@@ -193,6 +193,12 @@ export const adminAPI = {
   updateTripStatus: (tripId: string, status: string) =>
     api.put(`/admin/trips/${tripId}/status`, { status }),
 
+  // Trip Operations - Passengers
+  getTripPassengers: (tripId: string) =>
+    api.get(`/admin/trips/${tripId}/passengers`),
+  checkInPassenger: (tripId: string, passengerId: string) =>
+    api.post(`/admin/trips/${tripId}/passengers/${passengerId}/check-in`),
+
   // User Management
   listAdmins: () => api.get('/admin/users'),
   getUser: (userId: string) => api.get(`/admin/users/${userId}`),

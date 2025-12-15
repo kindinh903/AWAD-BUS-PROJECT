@@ -433,7 +433,7 @@ func setupRouter(container *Container) *gin.Engine {
 			admin := authorized.Group("/admin")
 			admin.Use(middleware.RequireRole("admin"))
 			{
-				adminHandler := handlers.NewAdminHandler(container.TripUsecase)
+				adminHandler := handlers.NewAdminHandler(container.TripUsecase, container.BookingUsecase)
 				routeStopHandler := handlers.NewRouteStopHandler(container.RouteStopUsecase)
 				seatMapHandler := handlers.NewSeatMapHandler(container.SeatMapUsecase)
 
@@ -477,6 +477,8 @@ func setupRouter(container *Container) *gin.Engine {
 				// Trip operations (admin only)
 				tripOpHandler := handlers.NewTripHandler(container.TripUsecase)
 				admin.PUT("/trips/:id/status", tripOpHandler.UpdateTripStatus)
+				admin.GET("/trips/:id/passengers", adminHandler.GetTripPassengers)
+				admin.POST("/trips/:id/passengers/:passengerId/check-in", adminHandler.CheckInPassenger)
 			}
 			
 			// Protected review routes (authenticated users)
@@ -513,7 +515,7 @@ func setupRouter(container *Container) *gin.Engine {
 			
 			// Booking-related trip endpoints
 			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
-			trips.GET("/:trip_id/seats", bookingHandler.GetAvailableSeats)
+			trips.GET("/:id/seats", bookingHandler.GetAvailableSeats)
 		}
 
 		// Booking routes (public - supports guest checkout)

@@ -11,13 +11,15 @@ import (
 
 // AdminHandler handles admin-specific operations
 type AdminHandler struct {
-	tripUsecase *usecases.TripUsecase
+	tripUsecase    *usecases.TripUsecase
+	bookingUsecase *usecases.BookingUsecase
 }
 
 // NewAdminHandler creates a new admin handler
-func NewAdminHandler(tripUsecase *usecases.TripUsecase) *AdminHandler {
+func NewAdminHandler(tripUsecase *usecases.TripUsecase, bookingUsecase *usecases.BookingUsecase) *AdminHandler {
 	return &AdminHandler{
-		tripUsecase: tripUsecase,
+		tripUsecase:    tripUsecase,
+		bookingUsecase: bookingUsecase,
 	}
 }
 
@@ -249,6 +251,100 @@ func (h *AdminHandler) GetAllRoutes(c *gin.Context) {
 		"success": true,
 		"data": routes,
 		"count": len(routes),
+	})
+}
+
+// GetTripPassengers returns all passengers for a specific trip
+// @Summary Get trip passengers
+// @Description Get list of all passengers booked on a specific trip with check-in status
+// @Tags admin
+// @Produce json
+// @Param id path string true "Trip ID"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "List of passengers"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/trips/{id}/passengers [get]
+func (h *AdminHandler) GetTripPassengers(c *gin.Context) {
+	tripIDStr := c.Param("id")
+	
+	tripID, err := uuid.Parse(tripIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid trip ID format",
+		})
+		return
+	}
+
+	passengers, err := h.bookingUsecase.GetTripPassengers(c.Request.Context(), tripID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to get passengers",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": passengers,
+		"count": len(passengers),
+	})
+}
+
+// CheckInPassenger marks a passenger as checked in
+// @Summary Check in passenger
+// @Description Mark a passenger as checked in for their trip
+// @Tags admin
+// @Produce json
+// @Param id path string true "Trip ID"
+// @Param passengerId path string true "Passenger ID"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Check-in successful"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 409 {object} map[string]interface{} "Already checked in"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /admin/trips/{id}/passengers/{passengerId}/check-in [post]
+func (h *AdminHandler) CheckInPassenger(c *gin.Context) {
+	tripIDStr := c.Param("id")
+	passengerIDStr := c.Param("passengerId")
+	
+	tripID, err := uuid.Parse(tripIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid trip ID format",
+		})
+		return
+	}
+
+	passengerID, err := uuid.Parse(passengerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid passenger ID format",
+		})
+		return
+	}
+
+	err = h.bookingUsecase.CheckInPassenger(c.Request.Context(), tripID, passengerID)
+	if err != nil {
+		if err.Error() == "passenger already checked in" {
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "Passenger already checked in",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to check in passenger",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Passenger checked in successfully",
 	})
 }
 

@@ -12,6 +12,8 @@ import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage';
 import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import TripOperationsPage from './pages/TripOperationsPage';
+import BookingHistoryPage from './pages/BookingHistoryPage';
 import RoutesPage from './pages/RoutesPage';
 import FleetPage from './pages/FleetPage';
 import PromotionsPage from './pages/PromotionsPage';
@@ -71,6 +73,16 @@ function App() {
           }
         />
 
+        {/* Booking History - protected, requires authentication */}
+        <Route
+          path="booking-history"
+          element={
+            <ProtectedRoute>
+              <BookingHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Trip details */}
         <Route path="trips/:id" element={<TripDetailsPage />} />
 
@@ -95,6 +107,16 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminUsersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Trip Operations - protected, requires admin role */}
+        <Route
+          path="admin/trip-operations"
+          element={
+            <ProtectedRoute>
+              <TripOperationsPage />
             </ProtectedRoute>
           }
         />

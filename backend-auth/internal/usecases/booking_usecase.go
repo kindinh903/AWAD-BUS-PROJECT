@@ -905,3 +905,128 @@ func (uc *BookingUsecase) AddPassengerToBooking(ctx context.Context, bookingID u
 
 	return passenger, ticket, nil
 }
+
+// TripPassengerInfo represents a passenger with their ticket and check-in status
+type TripPassengerInfo struct {
+	PassengerID      uuid.UUID `json:"passenger_id"`
+	BookingID        uuid.UUID `json:"booking_id"`
+	BookingReference string    `json:"booking_reference"`
+	FullName         string    `json:"full_name"`
+	SeatNumber       string    `json:"seat_number"`
+	SeatType         string    `json:"seat_type"`
+	Phone            *string   `json:"phone,omitempty"`
+	Email            *string   `json:"email,omitempty"`
+	TicketID         uuid.UUID `json:"ticket_id"`
+	TicketNumber     string    `json:"ticket_number"`
+	CheckedIn        bool      `json:"checked_in"`
+	CheckedInAt      *time.Time `json:"checked_in_at,omitempty"`
+	ContactName      string    `json:"contact_name"`
+	ContactEmail     string    `json:"contact_email"`
+	ContactPhone     string    `json:"contact_phone"`
+}
+
+// GetTripPassengers retrieves all passengers for a specific trip with their check-in status
+func (uc *BookingUsecase) GetTripPassengers(ctx context.Context, tripID uuid.UUID) ([]*TripPassengerInfo, error) {
+	// Get all confirmed bookings for this trip
+	bookings, err := uc.bookingRepo.GetByTripID(ctx, tripID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bookings: %w", err)
+	}
+
+	var passengerInfos []*TripPassengerInfo
+
+	for _, booking := range bookings {
+		// Only include confirmed bookings
+		if booking.Status != entities.BookingStatusConfirmed {
+			continue
+		}
+
+		// Get passengers for this booking
+		passengers, err := uc.passengerRepo.GetByBookingID(ctx, booking.ID)
+		if err != nil {
+			continue
+		}
+
+		// Get tickets for this booking
+		tickets, err := uc.ticketRepo.GetByBookingID(ctx, booking.ID)
+		if err != nil {
+			continue
+		}
+
+		// Create a map of passenger ID to ticket
+		ticketMap := make(map[uuid.UUID]*entities.Ticket)
+		for _, ticket := range tickets {
+			ticketMap[ticket.PassengerID] = ticket
+		}
+
+		// Build passenger info list
+		for _, passenger := range passengers {
+			ticket := ticketMap[passenger.ID]
+			if ticket == nil {
+				continue
+			}
+
+			info := &TripPassengerInfo{
+				PassengerID:      passenger.ID,
+				BookingID:        booking.ID,
+				BookingReference: booking.BookingReference,
+				FullName:         passenger.FullName,
+				SeatNumber:       passenger.SeatNumber,
+				SeatType:         string(passenger.SeatType),
+				Phone:            passenger.Phone,
+				Email:            passenger.Email,
+				TicketID:         ticket.ID,
+				TicketNumber:     ticket.TicketNumber,
+				CheckedIn:        ticket.IsUsed,
+				CheckedInAt:      ticket.UsedAt,
+				ContactName:      booking.ContactName,
+				ContactEmail:     booking.ContactEmail,
+				ContactPhone:     booking.ContactPhone,
+			}
+			passengerInfos = append(passengerInfos, info)
+		}
+	}
+
+	return passengerInfos, nil
+}
+
+// CheckInPassenger marks a passenger as checked in by marking their ticket as used
+func (uc *BookingUsecase) CheckInPassenger(ctx context.Context, tripID, passengerID uuid.UUID) error {
+	// Get the ticket for this passenger and trip
+	tickets, err := uc.ticketRepo.GetByBookingID(ctx, uuid.Nil)
+	if err != nil {
+		// Need to find ticket by passenger ID directly
+		// Get all bookings for the trip first
+		bookings, err := uc.bookingRepo.GetByTripID(ctx, tripID)
+		if err != nil {
+			return fmt.Errorf("failed to get bookings: %w", err)
+		}
+
+		for _, booking := range bookings {
+			tickets, err := uc.ticketRepo.GetByBookingID(ctx, booking.ID)
+			if err != nil {
+				continue
+			}
+			for _, ticket := range tickets {
+				if ticket.PassengerID == passengerID {
+					if ticket.IsUsed {
+						return errors.New("passenger already checked in")
+					}
+					return uc.ticketRepo.MarkAsUsed(ctx, ticket.TicketNumber)
+				}
+			}
+		}
+		return errors.New("ticket not found for passenger")
+	}
+
+	for _, ticket := range tickets {
+		if ticket.PassengerID == passengerID && ticket.TripID == tripID {
+			if ticket.IsUsed {
+				return errors.New("passenger already checked in")
+			}
+			return uc.ticketRepo.MarkAsUsed(ctx, ticket.TicketNumber)
+		}
+	}
+
+	return errors.New("ticket not found for passenger")
+}
