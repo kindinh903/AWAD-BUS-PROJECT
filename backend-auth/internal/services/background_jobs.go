@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yourusername/bus-booking-auth/internal/entities"
 	"github.com/yourusername/bus-booking-auth/internal/repositories"
 )
 
@@ -214,18 +215,129 @@ func (s *BackgroundJobScheduler) processScheduledNotifications() error {
 
 // sendTripReminders sends reminder notifications to users 24h before their trip
 func (s *BackgroundJobScheduler) sendTripReminders() error {
-	// Note: This is a simplified implementation since GetByStatus doesn't exist
-	// In production, you would add GetByStatus to BookingRepository interface
-	log.Println("Send trip reminders job executed (implementation pending)")
+	ctx := context.Background()
+
+	// Get all confirmed bookings
+	bookings, err := s.bookingRepo.GetByStatus(ctx, "confirmed")
+	if err != nil {
+		return fmt.Errorf("failed to get confirmed bookings: %w", err)
+	}
+
+	now := time.Now()
+	reminderWindow := now.Add(time.Duration(s.tripReminderHours) * time.Hour)
+	sentCount := 0
+
+	for _, booking := range bookings {
+		// Skip if no trip loaded
+		if booking.Trip == nil {
+			continue
+		}
+
+		// Check if trip departure is within reminder window (24h from now)
+		if booking.Trip.StartTime.After(now) && booking.Trip.StartTime.Before(reminderWindow) {
+			// Send trip reminder notification
+			if err := s.sendTripReminderNotification(booking.ID); err != nil {
+				log.Printf("Failed to send trip reminder for booking %s: %v", booking.ID, err)
+				continue
+			}
+			sentCount++
+		}
+	}
+
+	if sentCount > 0 {
+		log.Printf("Sent %d trip reminder notifications", sentCount)
+	}
+
 	return nil
 }
 
 // computeDailyAnalytics aggregates previous day's booking and revenue data
 func (s *BackgroundJobScheduler) computeDailyAnalytics() error {
-	// Note: This is a simplified implementation since GetByDateRange doesn't exist
-	// In production, you would add GetByDateRange to BookingRepository interface
-	log.Println("Compute daily analytics job executed (implementation pending)")
+	ctx := context.Background()
+
+	// Compute for yesterday
+	now := time.Now()
+	startOfYesterday := time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, now.Location())
+	endOfYesterday := startOfYesterday.Add(24 * time.Hour)
+
+	// Get all bookings from yesterday
+	bookings, err := s.bookingRepo.GetByDateRange(ctx, startOfYesterday, endOfYesterday)
+	if err != nil {
+		return fmt.Errorf("failed to get bookings for analytics: %w", err)
+	}
+
+	// Aggregate booking analytics
+	var totalBookings, confirmedBookings, cancelledBookings int
+	var totalRevenue float64
+	routeStats := make(map[uuid.UUID]*routeAnalyticsData)
+
+	for _, booking := range bookings {
+		totalBookings++
+
+		switch booking.Status {
+		case "confirmed", "completed":
+			confirmedBookings++
+			totalRevenue += booking.TotalAmount
+		case "cancelled":
+			cancelledBookings++
+		}
+
+		// Aggregate by route
+		if booking.Trip != nil && booking.Trip.RouteID != uuid.Nil {
+			routeID := booking.Trip.RouteID
+			if routeStats[routeID] == nil {
+				routeStats[routeID] = &routeAnalyticsData{}
+			}
+			routeStats[routeID].totalBookings++
+			if booking.Status == "confirmed" || booking.Status == "completed" {
+				routeStats[routeID].totalRevenue += booking.TotalAmount
+			}
+		}
+	}
+
+	// Calculate conversion rate
+	conversionRate := 0.0
+	if totalBookings > 0 {
+		conversionRate = float64(confirmedBookings) / float64(totalBookings) * 100
+	}
+
+	// Store booking analytics - use CreateOrUpdate to handle existing records
+	bookingAnalytics := &entities.BookingAnalytics{
+		Date:              startOfYesterday,
+		TotalBookings:     totalBookings,
+		ConfirmedBookings: confirmedBookings,
+		CancelledBookings: cancelledBookings,
+		TotalRevenue:      totalRevenue,
+		ConversionRate:    conversionRate,
+	}
+
+	if err := s.bookingAnalyticsRepo.CreateOrUpdate(ctx, bookingAnalytics); err != nil {
+		log.Printf("Error storing booking analytics: %v", err)
+	}
+
+	// Store route analytics
+	for routeID, stats := range routeStats {
+		routeAnalytics := &entities.RouteAnalytics{
+			RouteID:       routeID,
+			Date:          startOfYesterday,
+			TotalBookings: stats.totalBookings,
+			TotalRevenue:  stats.totalRevenue,
+		}
+		if err := s.routeAnalyticsRepo.CreateOrUpdate(ctx, routeAnalytics); err != nil {
+			log.Printf("Error storing route analytics for route %s: %v", routeID, err)
+		}
+	}
+
+	log.Printf("Daily analytics computed: %d bookings, %.2f revenue, %.1f%% conversion",
+		totalBookings, totalRevenue, conversionRate)
+
 	return nil
+}
+
+// routeAnalyticsData holds temporary aggregation data for route analytics
+type routeAnalyticsData struct {
+	totalBookings int
+	totalRevenue  float64
 }
 
 // cleanupExpiredData removes old webhook logs and expired reservations

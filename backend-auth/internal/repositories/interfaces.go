@@ -130,6 +130,12 @@ type BookingRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	ExpirePendingBookings(ctx context.Context) error
 	GetWithDetails(ctx context.Context, id uuid.UUID) (*entities.Booking, error)
+	// GetByStatus retrieves bookings by their status (e.g., confirmed, pending)
+	// Used by background jobs for trip reminders and analytics
+	GetByStatus(ctx context.Context, status entities.BookingStatus) ([]*entities.Booking, error)
+	// GetByDateRange retrieves bookings within a time range
+	// Used for analytics and reporting
+	GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*entities.Booking, error)
 }
 
 // PassengerRepository defines the interface for passenger data operations

@@ -116,3 +116,30 @@ func (r *bookingRepository) GetWithDetails(ctx context.Context, id uuid.UUID) (*
 	}
 	return &booking, nil
 }
+
+// GetByStatus retrieves all bookings with a specific status
+// Used by background jobs for trip reminders and analytics
+func (r *bookingRepository) GetByStatus(ctx context.Context, status entities.BookingStatus) ([]*entities.Booking, error) {
+	var bookings []*entities.Booking
+	err := r.db.WithContext(ctx).
+		Where("status = ?", status).
+		Preload("Trip").
+		Preload("Trip.Route").
+		Preload("Passengers").
+		Order("created_at DESC").
+		Find(&bookings).Error
+	return bookings, err
+}
+
+// GetByDateRange retrieves all bookings within a specified time range
+// Used for analytics and daily report generation
+func (r *bookingRepository) GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*entities.Booking, error) {
+	var bookings []*entities.Booking
+	err := r.db.WithContext(ctx).
+		Where("created_at >= ? AND created_at < ?", startDate, endDate).
+		Preload("Trip").
+		Preload("Trip.Route").
+		Order("created_at DESC").
+		Find(&bookings).Error
+	return bookings, err
+}

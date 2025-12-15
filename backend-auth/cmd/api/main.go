@@ -23,6 +23,7 @@ import (
 	"github.com/yourusername/bus-booking-auth/internal/entities"
 	"github.com/yourusername/bus-booking-auth/internal/repositories"
 	"github.com/yourusername/bus-booking-auth/internal/repositories/postgres"
+	"github.com/yourusername/bus-booking-auth/internal/services"
 	"github.com/yourusername/bus-booking-auth/internal/usecases"
 )
 
@@ -79,6 +80,12 @@ func main() {
 	// Setup Gin router
 	router := setupRouter(container)
 
+	// Start background services
+	log.Println("Starting background services...")
+	go container.NotificationQueue.Start()
+	go container.BackgroundJobScheduler.Start()
+	log.Println("Background services started")
+
 	// Start HTTP server
 	port := getEnv("PORT", "8080")
 	srv := &http.Server{
@@ -89,7 +96,7 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Graceful shutdown
+	// Run server in a goroutine
 	go func() {
 		log.Printf("Auth Service starting on port %s", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -102,6 +109,12 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Println("Shutting down server...")
+
+	// Graceful shutdown of background services
+	log.Println("Stopping background services...")
+	container.NotificationQueue.Stop()
+	container.BackgroundJobScheduler.Stop()
+	log.Println("Background services stopped")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -157,22 +170,44 @@ func runMigrations(db *gorm.DB) error {
 		&entities.Passenger{},
 		&entities.SeatReservation{},
 		&entities.Ticket{},
+		// Payment entities
+		&entities.Payment{},
+		&entities.PaymentWebhookLog{},
+		// Notification entities
+		&entities.Notification{},
+		&entities.NotificationPreference{},
+		// Analytics entities
+		&entities.BookingAnalytics{},
+		&entities.RouteAnalytics{},
 	)
 }
 
 type Container struct {
 	// Repositories
-	UserRepo            repositories.UserRepository
-	RefreshTokenRepo    repositories.RefreshTokenRepository
-	BusRepo             repositories.BusRepository
-	RouteRepo           repositories.RouteRepository
-	TripRepo            repositories.TripRepository
-	RouteStopRepo       repositories.RouteStopRepository
-	SeatMapRepo         repositories.SeatMapRepository
-	BookingRepo         repositories.BookingRepository
-	PassengerRepo       repositories.PassengerRepository
-	SeatReservationRepo repositories.SeatReservationRepository
-	TicketRepo          repositories.TicketRepository
+	UserRepo               repositories.UserRepository
+	RefreshTokenRepo       repositories.RefreshTokenRepository
+	BusRepo                repositories.BusRepository
+	RouteRepo              repositories.RouteRepository
+	TripRepo               repositories.TripRepository
+	RouteStopRepo          repositories.RouteStopRepository
+	SeatMapRepo            repositories.SeatMapRepository
+	BookingRepo            repositories.BookingRepository
+	PassengerRepo          repositories.PassengerRepository
+	SeatReservationRepo    repositories.SeatReservationRepository
+	TicketRepo             repositories.TicketRepository
+	PaymentRepo            repositories.PaymentRepository
+	PaymentWebhookLogRepo  repositories.PaymentWebhookLogRepository
+	NotificationRepo       repositories.NotificationRepository
+	NotificationPrefRepo   repositories.NotificationPreferenceRepository
+	BookingAnalyticsRepo   repositories.BookingAnalyticsRepository
+	RouteAnalyticsRepo     repositories.RouteAnalyticsRepository
+
+	// Services
+	PaymentProvider          services.PaymentProvider
+	EmailService             *services.EmailService
+	NotificationTemplateEng  *services.NotificationTemplateEngine
+	NotificationQueue        *services.NotificationQueue
+	BackgroundJobScheduler   *services.BackgroundJobScheduler
 
 	// Usecases
 	AuthUsecase      *usecases.AuthUsecase
@@ -180,6 +215,8 @@ type Container struct {
 	RouteStopUsecase *usecases.RouteStopUsecase
 	SeatMapUsecase   *usecases.SeatMapUsecase
 	BookingUsecase   *usecases.BookingUsecase
+	PaymentUsecase   *usecases.PaymentUsecase
+	AnalyticsUsecase *usecases.AnalyticsUsecase
 
 	// Configuration
 	JWTSecret string
@@ -198,6 +235,12 @@ func initDependencies(db *gorm.DB) *Container {
 	passengerRepo := postgres.NewPassengerRepository(db)
 	seatReservationRepo := postgres.NewSeatReservationRepository(db)
 	ticketRepo := postgres.NewTicketRepository(db)
+	paymentRepo := postgres.NewPaymentRepository(db)
+	paymentWebhookLogRepo := postgres.NewPaymentWebhookLogRepository(db)
+	notificationRepo := postgres.NewNotificationRepository(db)
+	notificationPrefRepo := postgres.NewNotificationPreferenceRepository(db)
+	bookingAnalyticsRepo := postgres.NewBookingAnalyticsRepository(db)
+	routeAnalyticsRepo := postgres.NewRouteAnalyticsRepository(db)
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
@@ -216,32 +259,106 @@ func initDependencies(db *gorm.DB) *Container {
 
 	log.Printf("Token expiry times - Access: %v, Refresh: %v", accessTokenExpiry, refreshTokenExpiry)
 
+	// Payment provider (mock or real based on env)
+	paymentProvider := getPaymentProvider()
+
+	// Email and notification services
+	emailService := services.NewEmailService()
+	notificationTemplateEng := services.NewNotificationTemplateEngine(emailService)
+	notificationQueue := services.NewNotificationQueue(
+		3,   // workers
+		100, // queue size
+		notificationRepo,
+		emailService,
+		notificationTemplateEng,
+	)
+
 	// Usecases
 	authUsecase := usecases.NewAuthUsecase(userRepo, refreshTokenRepo, jwtSecret, accessTokenExpiry, refreshTokenExpiry)
 	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo)
 	routeStopUsecase := usecases.NewRouteStopUsecase(routeStopRepo, routeRepo)
 	seatMapUsecase := usecases.NewSeatMapUsecase(seatMapRepo, busRepo)
 	bookingUsecase := usecases.NewBookingUsecase(bookingRepo, passengerRepo, seatReservationRepo, ticketRepo, tripRepo, seatMapRepo)
+	paymentUsecase := usecases.NewPaymentUsecase(
+		paymentRepo,
+		paymentWebhookLogRepo,
+		bookingRepo,
+		notificationRepo,
+		paymentProvider,
+		notificationQueue,
+		notificationTemplateEng,
+	)
+	analyticsUsecase := usecases.NewAnalyticsUsecase(
+		bookingRepo,
+		bookingAnalyticsRepo,
+		routeAnalyticsRepo,
+		tripRepo,
+		routeRepo,
+	)
+
+	// Background job scheduler
+	backgroundJobs := services.NewBackgroundJobScheduler(
+		bookingRepo,
+		paymentRepo,
+		notificationRepo,
+		notificationPrefRepo,
+		bookingAnalyticsRepo,
+		routeAnalyticsRepo,
+		tripRepo,
+		notificationQueue,
+		notificationTemplateEng,
+		emailService,
+	)
 
 	return &Container{
-		UserRepo:            userRepo,
-		RefreshTokenRepo:    refreshTokenRepo,
-		BusRepo:             busRepo,
-		RouteRepo:           routeRepo,
-		TripRepo:            tripRepo,
-		RouteStopRepo:       routeStopRepo,
-		SeatMapRepo:         seatMapRepo,
-		BookingRepo:         bookingRepo,
-		PassengerRepo:       passengerRepo,
-		SeatReservationRepo: seatReservationRepo,
-		TicketRepo:          ticketRepo,
-		AuthUsecase:         authUsecase,
-		TripUsecase:         tripUsecase,
-		RouteStopUsecase:    routeStopUsecase,
-		SeatMapUsecase:      seatMapUsecase,
-		BookingUsecase:      bookingUsecase,
-		JWTSecret:           jwtSecret,
+		UserRepo:               userRepo,
+		RefreshTokenRepo:       refreshTokenRepo,
+		BusRepo:                busRepo,
+		RouteRepo:              routeRepo,
+		TripRepo:               tripRepo,
+		RouteStopRepo:          routeStopRepo,
+		SeatMapRepo:            seatMapRepo,
+		BookingRepo:            bookingRepo,
+		PassengerRepo:          passengerRepo,
+		SeatReservationRepo:    seatReservationRepo,
+		TicketRepo:             ticketRepo,
+		PaymentRepo:            paymentRepo,
+		PaymentWebhookLogRepo:  paymentWebhookLogRepo,
+		NotificationRepo:       notificationRepo,
+		NotificationPrefRepo:   notificationPrefRepo,
+		BookingAnalyticsRepo:   bookingAnalyticsRepo,
+		RouteAnalyticsRepo:     routeAnalyticsRepo,
+		PaymentProvider:        paymentProvider,
+		EmailService:           emailService,
+		NotificationTemplateEng: notificationTemplateEng,
+		NotificationQueue:      notificationQueue,
+		BackgroundJobScheduler: backgroundJobs,
+		AuthUsecase:            authUsecase,
+		TripUsecase:            tripUsecase,
+		RouteStopUsecase:       routeStopUsecase,
+		SeatMapUsecase:         seatMapUsecase,
+		BookingUsecase:         bookingUsecase,
+		PaymentUsecase:         paymentUsecase,
+		AnalyticsUsecase:       analyticsUsecase,
+		JWTSecret:              jwtSecret,
 	}
+}
+
+// getPaymentProvider returns the appropriate payment provider based on environment
+func getPaymentProvider() services.PaymentProvider {
+	useMock := os.Getenv("USE_MOCK_PAYMENT") == "true"
+
+	if useMock {
+		log.Println("Using mock payment provider")
+		return services.NewMockPaymentService()
+	}
+
+	log.Println("Using PayOS payment provider")
+	return services.NewPayOSService(
+		os.Getenv("PAYOS_CLIENT_ID"),
+		os.Getenv("PAYOS_API_KEY"),
+		os.Getenv("PAYOS_CHECKSUM_KEY"),
+	)
 }
 
 func setupRouter(container *Container) *gin.Engine {
@@ -330,8 +447,16 @@ func setupRouter(container *Container) *gin.Engine {
 				admin.DELETE("/seat-maps/:id", seatMapHandler.DeleteSeatMap)
 				admin.PUT("/seat-maps/:id/seats", seatMapHandler.BulkUpdateSeats)
 				admin.POST("/seat-maps/:id/regenerate", seatMapHandler.RegenerateSeatLayout)
+
+				// Analytics routes (admin only)
+				analyticsHandler := handlers.NewAnalyticsHandler(container.AnalyticsUsecase)
+				handlers.RegisterAnalyticsRoutes(admin, analyticsHandler, middleware.RequireRole("admin"))
 			}
 		}
+
+		// Payment routes (uses RegisterPaymentRoutes helper which handles auth internally)
+		paymentHandler := handlers.NewPaymentHandler(container.PaymentUsecase)
+		handlers.RegisterPaymentRoutes(v1, paymentHandler, middleware.AuthMiddleware(container.JWTSecret))
 
 		// Public route endpoints (no auth required)
 		routes := v1.Group("/routes")
