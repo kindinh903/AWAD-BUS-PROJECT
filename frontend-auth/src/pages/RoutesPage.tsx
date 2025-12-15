@@ -10,7 +10,7 @@ interface Trip {
     route?: { origin: string; destination: string };
     bus?: { name: string; bus_type: string };
     start_time: string;
-    base_price: number;
+    price: number;
     available_seats: number;
 }
 
@@ -182,7 +182,7 @@ export default function RoutesPage() {
                                             </div>
                                             <div className="flex items-center gap-6">
                                                 <div className="text-right">
-                                                    <p className="text-2xl font-bold text-blue-600">{formatPrice(trip.base_price)}</p>
+                                                    <p className="text-2xl font-bold text-blue-600">{formatPrice(trip.price)}</p>
                                                     <p className="text-sm text-gray-500">{trip.available_seats} seats left</p>
                                                 </div>
                                                 <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors group-hover:shadow-lg">

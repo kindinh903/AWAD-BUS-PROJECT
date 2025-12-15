@@ -23,7 +23,7 @@ interface Trip {
   };
   start_time: string;
   end_time: string;
-  base_price: number;
+  price: number;
   available_seats: number;
   status: string;
 }
@@ -100,7 +100,7 @@ export default function HomePage() {
               routeMap.set(key, {
                 origin: trip.route.origin,
                 destination: trip.route.destination,
-                price: trip.base_price,
+                price: trip.price,
                 duration,
                 image: routeImages[trip.route.destination] || routeImages[trip.route.origin] || routeImages['default']
               });
@@ -274,7 +274,7 @@ export default function HomePage() {
                       </p>
                     </div>
                     <span className="text-lg font-bold text-blue-600">
-                      {formatPrice(trip.base_price)}
+                      {formatPrice(trip.price)}
                     </span>
                   </div>
 
