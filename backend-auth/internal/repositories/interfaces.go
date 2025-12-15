@@ -14,8 +14,11 @@ type UserRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entities.User, error)
 	GetByEmail(ctx context.Context, email string) (*entities.User, error)
 	GetByOAuthID(ctx context.Context, oauthID string, provider string) (*entities.User, error)
+	GetByRole(ctx context.Context, role entities.Role) ([]*entities.User, error)
+	GetAll(ctx context.Context) ([]*entities.User, error)
 	Update(ctx context.Context, user *entities.User) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	SetActive(ctx context.Context, id uuid.UUID, active bool) error
 }
 
 // RefreshTokenRepository defines the interface for refresh token operations
@@ -57,6 +60,8 @@ type TripRepository interface {
 	Update(ctx context.Context, trip *entities.Trip) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	SearchTrips(ctx context.Context, options TripSearchOptions) (*PaginatedTrips, error)
+	GetRelatedTrips(ctx context.Context, tripID uuid.UUID, limit int) ([]*entities.Trip, error)
+	UpdateStatus(ctx context.Context, tripID uuid.UUID, status entities.TripStatus) error
 }
 
 // TripSearchOptions holds optional search filters for trips
@@ -237,4 +242,17 @@ type RouteAnalyticsRepository interface {
 	GetTopRoutesByBookings(ctx context.Context, startDate, endDate time.Time, limit int) ([]*entities.RouteAnalytics, error)
 	Update(ctx context.Context, analytics *entities.RouteAnalytics) error
 	CreateOrUpdate(ctx context.Context, analytics *entities.RouteAnalytics) error
+}
+
+// ReviewRepository defines the interface for review data operations
+type ReviewRepository interface {
+	Create(ctx context.Context, review *entities.Review) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.Review, error)
+	GetByTripID(ctx context.Context, tripID uuid.UUID, page, pageSize int) ([]*entities.Review, int64, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]*entities.Review, error)
+	GetByBookingID(ctx context.Context, bookingID uuid.UUID) (*entities.Review, error)
+	GetTripStats(ctx context.Context, tripID uuid.UUID) (*entities.ReviewStats, error)
+	GetTripAverageRating(ctx context.Context, tripID uuid.UUID) (float64, error)
+	Update(ctx context.Context, review *entities.Review) error
+	Delete(ctx context.Context, id uuid.UUID) error
 }

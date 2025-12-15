@@ -18,6 +18,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	_ "github.com/yourusername/bus-booking-auth/docs" // Swagger generated docs
 	"github.com/yourusername/bus-booking-auth/internal/delivery/http/handlers"
 	"github.com/yourusername/bus-booking-auth/internal/delivery/http/middleware"
 	"github.com/yourusername/bus-booking-auth/internal/entities"
@@ -179,6 +180,8 @@ func runMigrations(db *gorm.DB) error {
 		// Analytics entities
 		&entities.BookingAnalytics{},
 		&entities.RouteAnalytics{},
+		// Review entity
+		&entities.Review{},
 	)
 }
 
@@ -201,6 +204,7 @@ type Container struct {
 	NotificationPrefRepo   repositories.NotificationPreferenceRepository
 	BookingAnalyticsRepo   repositories.BookingAnalyticsRepository
 	RouteAnalyticsRepo     repositories.RouteAnalyticsRepository
+	ReviewRepo             repositories.ReviewRepository
 
 	// Services
 	PaymentProvider          services.PaymentProvider
@@ -217,6 +221,7 @@ type Container struct {
 	BookingUsecase   *usecases.BookingUsecase
 	PaymentUsecase   *usecases.PaymentUsecase
 	AnalyticsUsecase *usecases.AnalyticsUsecase
+	ReviewUsecase    *usecases.ReviewUsecase
 
 	// Configuration
 	JWTSecret string
@@ -241,6 +246,7 @@ func initDependencies(db *gorm.DB) *Container {
 	notificationPrefRepo := postgres.NewNotificationPreferenceRepository(db)
 	bookingAnalyticsRepo := postgres.NewBookingAnalyticsRepository(db)
 	routeAnalyticsRepo := postgres.NewRouteAnalyticsRepository(db)
+	reviewRepo := postgres.NewReviewRepository(db)
 
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
@@ -295,6 +301,12 @@ func initDependencies(db *gorm.DB) *Container {
 		tripRepo,
 		routeRepo,
 	)
+	
+	reviewUsecase := usecases.NewReviewUsecase(
+		reviewRepo,
+		bookingRepo,
+		tripRepo,
+	)
 
 	// Background job scheduler
 	backgroundJobs := services.NewBackgroundJobScheduler(
@@ -328,6 +340,7 @@ func initDependencies(db *gorm.DB) *Container {
 		NotificationPrefRepo:   notificationPrefRepo,
 		BookingAnalyticsRepo:   bookingAnalyticsRepo,
 		RouteAnalyticsRepo:     routeAnalyticsRepo,
+		ReviewRepo:             reviewRepo,
 		PaymentProvider:        paymentProvider,
 		EmailService:           emailService,
 		NotificationTemplateEng: notificationTemplateEng,
@@ -340,6 +353,7 @@ func initDependencies(db *gorm.DB) *Container {
 		BookingUsecase:         bookingUsecase,
 		PaymentUsecase:         paymentUsecase,
 		AnalyticsUsecase:       analyticsUsecase,
+		ReviewUsecase:          reviewUsecase,
 		JWTSecret:              jwtSecret,
 	}
 }
@@ -451,7 +465,26 @@ func setupRouter(container *Container) *gin.Engine {
 				// Analytics routes (admin only)
 				analyticsHandler := handlers.NewAnalyticsHandler(container.AnalyticsUsecase)
 				handlers.RegisterAnalyticsRoutes(admin, analyticsHandler, middleware.RequireRole("admin"))
+				
+				// User management (admin only)
+				userMgmtHandler := handlers.NewUserManagementHandler(container.AuthUsecase)
+				admin.GET("/users", userMgmtHandler.ListAdmins)
+				admin.POST("/users", userMgmtHandler.CreateAdmin)
+				admin.GET("/users/:id", userMgmtHandler.GetUser)
+				admin.PUT("/users/:id", userMgmtHandler.UpdateUser)
+				admin.DELETE("/users/:id", userMgmtHandler.DeactivateUser)
+				
+				// Trip operations (admin only)
+				tripOpHandler := handlers.NewTripHandler(container.TripUsecase)
+				admin.PUT("/trips/:id/status", tripOpHandler.UpdateTripStatus)
 			}
+			
+			// Protected review routes (authenticated users)
+			reviewHandler := handlers.NewReviewHandler(container.ReviewUsecase)
+			authorized.POST("/trips/:id/reviews", reviewHandler.CreateReview)
+			authorized.GET("/reviews/my-reviews", reviewHandler.GetUserReviews)
+			authorized.PUT("/reviews/:id", reviewHandler.UpdateReview)
+			authorized.DELETE("/reviews/:id", reviewHandler.DeleteReview)
 		}
 
 		// Payment routes (uses RegisterPaymentRoutes helper which handles auth internally)
@@ -469,7 +502,14 @@ func setupRouter(container *Container) *gin.Engine {
 		trips := v1.Group("/trips")
 		{
 			tripHandler := handlers.NewTripHandler(container.TripUsecase)
+			reviewHandler := handlers.NewReviewHandler(container.ReviewUsecase)
+			
 			trips.GET("/search", tripHandler.SearchTrips)
+			trips.GET("/:id", tripHandler.GetTripByID)
+			trips.GET("/:id/related", tripHandler.GetRelatedTrips)
+			
+			// Reviews (GET is public, POST requires auth)
+			trips.GET("/:id/reviews", reviewHandler.GetTripReviews)
 			
 			// Booking-related trip endpoints
 			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/yourusername/bus-booking-auth/internal/repositories"
 	"github.com/yourusername/bus-booking-auth/internal/usecases"
 )
@@ -154,5 +155,135 @@ func (h *TripHandler) SearchTrips(c *gin.Context) {
 			"page_size":   result.PageSize,
 			"total_pages": result.TotalPages,
 		},
+	})
+}
+
+// GetTripByID godoc
+// @Summary Get trip details
+// @Description Get detailed information about a specific trip
+// @Tags trips
+// @Produce json
+// @Param id path string true "Trip ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse
+// @Router /trips/{id} [get]
+func (h *TripHandler) GetTripByID(c *gin.Context) {
+	tripIDStr := c.Param("id")
+	
+	tripID, err := uuid.Parse(tripIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid trip ID format",
+		})
+		return
+	}
+	
+	trip, err := h.tripUsecase.GetTripByID(c.Request.Context(), tripID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error":   "Trip not found",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    trip,
+	})
+}
+
+// GetRelatedTrips godoc
+// @Summary Get related trips
+// @Description Get similar trips on the same route for the given trip
+// @Tags trips
+// @Produce json
+// @Param id path string true "Trip ID"
+// @Param limit query int false "Maximum number of related trips (default 5)"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /trips/{id}/related [get]
+func (h *TripHandler) GetRelatedTrips(c *gin.Context) {
+	tripIDStr := c.Param("id")
+	
+	// Parse limit
+	limit := 5
+	if limitStr := c.Query("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 20 {
+			limit = l
+		}
+	}
+
+	relatedTrips, err := h.tripUsecase.GetRelatedTrips(c.Request.Context(), tripIDStr, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to get related trips",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    relatedTrips,
+		"count":   len(relatedTrips),
+	})
+}
+
+// UpdateTripStatusRequest represents the request for updating trip status
+type UpdateTripStatusRequest struct {
+	Status string `json:"status" binding:"required"` // scheduled, active, departed, completed, cancelled
+}
+
+// UpdateTripStatus godoc
+// @Summary Update trip operational status
+// @Description Update the status of a trip (admin only)
+// @Tags admin
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Trip ID"
+// @Param request body UpdateTripStatusRequest true "New status"
+// @Success 200 {object} SuccessResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Router /admin/trips/{id}/status [put]
+func (h *TripHandler) UpdateTripStatus(c *gin.Context) {
+	tripIDStr := c.Param("id")
+	
+	var req UpdateTripStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Validate status
+	validStatuses := map[string]bool{
+		"scheduled": true, "active": true, "departed": true, 
+		"completed": true, "cancelled": true,
+	}
+	if !validStatuses[strings.ToLower(req.Status)] {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid status. Must be one of: scheduled, active, departed, completed, cancelled",
+		})
+		return
+	}
+
+	if err := h.tripUsecase.UpdateTripStatus(c.Request.Context(), tripIDStr, req.Status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to update trip status",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Trip status updated successfully",
 	})
 }

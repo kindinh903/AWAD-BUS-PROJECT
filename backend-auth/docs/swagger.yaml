@@ -1,0 +1,2505 @@
+basePath: /api/v1
+definitions:
+  entities.Booking:
+    properties:
+      booking_reference:
+        description: Unique booking reference (e.g., "BK20231215ABC123")
+        type: string
+      cancellation_reason:
+        description: Reason for cancellation
+        type: string
+      cancelled_at:
+        description: When booking was cancelled
+        type: string
+      confirmed_at:
+        description: When booking was confirmed
+        type: string
+      contact_email:
+        description: Primary contact email
+        type: string
+      contact_name:
+        description: Primary contact name
+        type: string
+      contact_phone:
+        description: Primary contact phone
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      expires_at:
+        description: Expiration time for pending bookings
+        type: string
+      id:
+        type: string
+      is_guest_booking:
+        description: True if booked without account
+        type: boolean
+      notes:
+        description: Additional notes
+        type: string
+      passengers:
+        items:
+          $ref: '#/definitions/entities.Passenger'
+        type: array
+      payment_method:
+        description: e.g., "credit_card", "cash", "bank_transfer"
+        type: string
+      payment_reference:
+        description: External payment reference
+        type: string
+      payment_status:
+        $ref: '#/definitions/entities.PaymentStatus'
+      status:
+        $ref: '#/definitions/entities.BookingStatus'
+      tickets:
+        items:
+          $ref: '#/definitions/entities.Ticket'
+        type: array
+      total_amount:
+        description: Total price
+        type: number
+      total_seats:
+        description: Number of seats booked
+        type: integer
+      trip:
+        allOf:
+        - $ref: '#/definitions/entities.Trip'
+        description: Relations
+      trip_id:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/entities.User'
+      user_id:
+        description: Nullable for guest bookings
+        type: string
+    type: object
+  entities.BookingStatus:
+    enum:
+    - pending
+    - confirmed
+    - cancelled
+    - completed
+    - expired
+    type: string
+    x-enum-comments:
+      BookingStatusCancelled: Booking cancelled
+      BookingStatusCompleted: Trip completed
+      BookingStatusConfirmed: Payment confirmed
+      BookingStatusExpired: Booking expired due to non-payment
+      BookingStatusPending: Booking created but not paid
+    x-enum-descriptions:
+    - Booking created but not paid
+    - Payment confirmed
+    - Booking cancelled
+    - Trip completed
+    - Booking expired due to non-payment
+    x-enum-varnames:
+    - BookingStatusPending
+    - BookingStatusConfirmed
+    - BookingStatusCancelled
+    - BookingStatusCompleted
+    - BookingStatusExpired
+  entities.Bus:
+    properties:
+      bus_type:
+        description: Standard, VIP, Sleeper
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      manufacturer:
+        description: e.g., "Hyundai", "Thaco"
+        type: string
+      model:
+        description: e.g., "Universe", "TB120S"
+        type: string
+      name:
+        description: e.g., "Bus A1", "VIP Express 01"
+        type: string
+      plate_number:
+        description: e.g., "29B-123.45"
+        type: string
+      seat_map_id:
+        description: Reference to seat configuration
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/entities.BusStatus'
+        description: active, maintenance, inactive
+      total_seats:
+        description: Total number of seats
+        type: integer
+      updated_at:
+        type: string
+      year:
+        description: Manufacturing year
+        type: integer
+    type: object
+  entities.BusStatus:
+    enum:
+    - active
+    - maintenance
+    - inactive
+    type: string
+    x-enum-varnames:
+    - BusStatusActive
+    - BusStatusMaintenance
+    - BusStatusInactive
+  entities.Passenger:
+    properties:
+      age:
+        description: Passenger age
+        type: integer
+      booking_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        description: Passenger email
+        type: string
+      full_name:
+        description: Passenger full name
+        type: string
+      gender:
+        description: Male/Female/Other
+        type: string
+      id:
+        type: string
+      id_number:
+        description: ID/Passport number
+        type: string
+      phone:
+        description: Passenger phone
+        type: string
+      seat:
+        $ref: '#/definitions/entities.Seat'
+      seat_id:
+        description: Which seat on the seat map
+        type: string
+      seat_number:
+        description: Denormalized for convenience
+        type: string
+      seat_price:
+        description: Price for this specific seat
+        type: number
+      seat_type:
+        $ref: '#/definitions/entities.SeatType'
+      special_needs:
+        description: Special requirements
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entities.PaymentStatus:
+    enum:
+    - pending
+    - completed
+    - failed
+    - refunded
+    type: string
+    x-enum-varnames:
+    - PaymentStatusPending
+    - PaymentStatusCompleted
+    - PaymentStatusFailed
+    - PaymentStatusRefunded
+  entities.Review:
+    properties:
+      booking:
+        $ref: '#/definitions/entities.Booking'
+      booking_id:
+        description: Verify user completed the trip
+        type: string
+      comment:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      rating:
+        description: 1-5 stars
+        type: integer
+      title:
+        type: string
+      trip:
+        allOf:
+        - $ref: '#/definitions/entities.Trip'
+        description: Relations
+      trip_id:
+        type: string
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/entities.User'
+      user_id:
+        type: string
+    type: object
+  entities.ReviewStats:
+    properties:
+      average_rating:
+        type: number
+      rating_1_count:
+        type: integer
+      rating_2_count:
+        type: integer
+      rating_3_count:
+        type: integer
+      rating_4_count:
+        type: integer
+      rating_5_count:
+        type: integer
+      total_reviews:
+        type: integer
+    type: object
+  entities.Role:
+    enum:
+    - guest
+    - passenger
+    - admin
+    type: string
+    x-enum-varnames:
+    - RoleGuest
+    - RolePassenger
+    - RoleAdmin
+  entities.Route:
+    properties:
+      base_price:
+        description: Base price for this route
+        type: number
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        description: Route description
+        type: string
+      destination:
+        description: e.g., "Da Nang"
+        type: string
+      distance:
+        description: Distance in kilometers
+        type: number
+      duration_minutes:
+        description: Estimated duration in minutes
+        type: integer
+      id:
+        type: string
+      is_active:
+        description: Whether this route is active
+        type: boolean
+      origin:
+        description: e.g., "Ho Chi Minh City"
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entities.Seat:
+    properties:
+      column:
+        description: Column position (0-based)
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: string
+      is_bookable:
+        description: Can this seat be booked?
+        type: boolean
+      label:
+        description: Optional label override
+        type: string
+      position:
+        allOf:
+        - $ref: '#/definitions/entities.SeatPosition'
+        description: left, right, middle, aisle
+      price_multiplier:
+        description: 1.0 for standard, 1.5 for VIP, etc.
+        type: number
+      row:
+        description: Row number (1-based)
+        type: integer
+      seat_map_id:
+        type: string
+      seat_number:
+        description: e.g., "1A", "1B", "2A"
+        type: string
+      seat_type:
+        $ref: '#/definitions/entities.SeatType'
+      updated_at:
+        type: string
+    type: object
+  entities.SeatPosition:
+    enum:
+    - left
+    - middle
+    - right
+    - aisle
+    type: string
+    x-enum-varnames:
+    - SeatPositionLeft
+    - SeatPositionMiddle
+    - SeatPositionRight
+    - SeatPositionAisle
+  entities.SeatType:
+    enum:
+    - standard
+    - vip
+    - sleeper
+    - aisle
+    - unavailable
+    type: string
+    x-enum-comments:
+      SeatTypeAisle: Gap/walkway - not bookable
+      SeatTypeUnavailable: Blocked seat
+    x-enum-descriptions:
+    - ""
+    - ""
+    - ""
+    - Gap/walkway - not bookable
+    - Blocked seat
+    x-enum-varnames:
+    - SeatTypeStandard
+    - SeatTypeVIP
+    - SeatTypeSleeper
+    - SeatTypeAisle
+    - SeatTypeUnavailable
+  entities.Ticket:
+    properties:
+      barcode:
+        description: Barcode for scanning
+        type: string
+      booking:
+        allOf:
+        - $ref: '#/definitions/entities.Booking'
+        description: Relations
+      booking_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      is_used:
+        description: Has ticket been used/scanned
+        type: boolean
+      passenger:
+        $ref: '#/definitions/entities.Passenger'
+      passenger_id:
+        type: string
+      passenger_name:
+        description: Denormalized
+        type: string
+      qr_code:
+        description: Base64 encoded QR code
+        type: string
+      seat_number:
+        description: Denormalized
+        type: string
+      ticket_number:
+        description: Unique ticket number
+        type: string
+      trip:
+        $ref: '#/definitions/entities.Trip'
+      trip_id:
+        type: string
+      updated_at:
+        type: string
+      used_at:
+        description: When ticket was scanned
+        type: string
+    type: object
+  entities.Trip:
+    properties:
+      bus:
+        $ref: '#/definitions/entities.Bus'
+      bus_id:
+        description: Foreign key to buses (nullable before assignment)
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      driver_id:
+        description: Foreign key to driver (future enhancement)
+        type: string
+      end_time:
+        description: Expected arrival date and time
+        type: string
+      id:
+        type: string
+      notes:
+        description: Admin notes
+        type: string
+      price:
+        description: Price for this specific trip
+        type: number
+      route:
+        allOf:
+        - $ref: '#/definitions/entities.Route'
+        description: Relations (will be loaded separately)
+      route_id:
+        description: Foreign key to routes
+        type: string
+      start_time:
+        description: Departure date and time
+        type: string
+      status:
+        $ref: '#/definitions/entities.TripStatus'
+      updated_at:
+        type: string
+    type: object
+  entities.TripStatus:
+    enum:
+    - scheduled
+    - active
+    - completed
+    - cancelled
+    type: string
+    x-enum-comments:
+      TripStatusActive: Trip is currently running
+      TripStatusCancelled: Trip has been cancelled
+      TripStatusCompleted: Trip has been completed
+      TripStatusScheduled: Trip is scheduled but not started
+    x-enum-descriptions:
+    - Trip is scheduled but not started
+    - Trip is currently running
+    - Trip has been completed
+    - Trip has been cancelled
+    x-enum-varnames:
+    - TripStatusScheduled
+    - TripStatusActive
+    - TripStatusCompleted
+    - TripStatusCancelled
+  entities.User:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      oauth_id:
+        type: string
+      oauth_provider:
+        description: google, github
+        type: string
+      phone:
+        type: string
+      role:
+        $ref: '#/definitions/entities.Role'
+      updated_at:
+        type: string
+    type: object
+  handlers.AssignBusRequest:
+    properties:
+      busId:
+        type: string
+      tripId:
+        type: string
+    required:
+    - busId
+    - tripId
+    type: object
+  handlers.AssignSeatMapToBusRequest:
+    properties:
+      bus_id:
+        type: string
+      seat_map_id:
+        type: string
+    required:
+    - bus_id
+    - seat_map_id
+    type: object
+  handlers.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      user: {}
+    type: object
+  handlers.BulkUpdateSeatsRequest:
+    properties:
+      seats:
+        items:
+          $ref: '#/definitions/handlers.SeatUpdateItem'
+        type: array
+    required:
+    - seats
+    type: object
+  handlers.CreateAdminRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  handlers.CreateReviewRequest:
+    properties:
+      booking_id:
+        type: string
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      title:
+        type: string
+    required:
+    - booking_id
+    - rating
+    type: object
+  handlers.CreateSeatMapRequest:
+    properties:
+      bus_type:
+        type: string
+      columns:
+        maximum: 6
+        minimum: 2
+        type: integer
+      description:
+        type: string
+      name:
+        type: string
+      rows:
+        maximum: 20
+        minimum: 1
+        type: integer
+    required:
+    - bus_type
+    - columns
+    - name
+    - rows
+    type: object
+  handlers.CreateStopRequest:
+    properties:
+      address:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      order_index:
+        minimum: 1
+        type: integer
+      type:
+        enum:
+        - pickup
+        - dropoff
+        type: string
+    required:
+    - name
+    - order_index
+    - type
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.GoogleAuthRequest:
+    properties:
+      id_token:
+        type: string
+    required:
+    - id_token
+    type: object
+  handlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.LogoutRequest:
+    properties:
+      refresh_token:
+        description: Optional - can be from body or cookie
+        type: string
+    type: object
+  handlers.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        description: Optional - can be from cookie
+        type: string
+    type: object
+  handlers.RegenerateSeatLayoutRequest:
+    properties:
+      columns:
+        maximum: 6
+        minimum: 2
+        type: integer
+      rows:
+        maximum: 20
+        minimum: 1
+        type: integer
+    required:
+    - columns
+    - rows
+    type: object
+  handlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  handlers.SeatUpdateItem:
+    properties:
+      id:
+        type: string
+      is_bookable:
+        type: boolean
+      price_multiplier:
+        type: number
+      seat_type:
+        $ref: '#/definitions/entities.SeatType'
+    required:
+    - id
+    type: object
+  handlers.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  handlers.UpdateReviewRequest:
+    properties:
+      comment:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: integer
+      title:
+        type: string
+    type: object
+  handlers.UpdateSeatMapRequest:
+    properties:
+      bus_type:
+        type: string
+      description:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+    type: object
+  handlers.UpdateStopRequest:
+    properties:
+      address:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      order_index:
+        minimum: 1
+        type: integer
+    required:
+    - name
+    - order_index
+    type: object
+  handlers.UpdateTripStatusRequest:
+    properties:
+      status:
+        description: scheduled, active, departed, completed, cancelled
+        type: string
+    required:
+    - status
+    type: object
+  handlers.UpdateUserRequest:
+    properties:
+      is_active:
+        type: boolean
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  usecases.CreateBookingInput:
+    properties:
+      contact_email:
+        type: string
+      contact_name:
+        type: string
+      contact_phone:
+        type: string
+      passengers:
+        items:
+          $ref: '#/definitions/usecases.PassengerInput'
+        type: array
+      session_id:
+        description: For seat reservation
+        type: string
+      trip_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  usecases.PassengerInput:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      full_name:
+        type: string
+      gender:
+        type: string
+      id_number:
+        type: string
+      phone:
+        type: string
+      seat_id:
+        type: string
+      special_needs:
+        type: string
+    type: object
+  usecases.ReserveSeatInput:
+    properties:
+      seat_ids:
+        items:
+          type: string
+        type: array
+      session_id:
+        type: string
+      trip_id:
+        type: string
+    type: object
+  usecases.TripReviewsResponse:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+      reviews:
+        items:
+          $ref: '#/definitions/entities.Review'
+        type: array
+      stats:
+        $ref: '#/definitions/entities.ReviewStats'
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@busbooking.com
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Authentication and Authorization microservice for bus booking system
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Bus Booking Auth Service API
+  version: "1.0"
+paths:
+  /admin/buses:
+    get:
+      description: Get list of all buses in the fleet
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of buses
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all buses
+      tags:
+      - admin
+  /admin/buses/assign-seat-map:
+    post:
+      consumes:
+      - application/json
+      description: Assign a seat map configuration to a specific bus
+      parameters:
+      - description: Assignment details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignSeatMapToBusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated bus
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign seat map to bus
+      tags:
+      - seat-maps
+  /admin/buses/available:
+    get:
+      consumes:
+      - application/json
+      description: Get list of buses that don't have conflicting trips in the specified
+        time range
+      parameters:
+      - description: Route ID
+        in: query
+        name: routeId
+        required: true
+        type: string
+      - description: Start time (RFC3339 format)
+        in: query
+        name: start
+        required: true
+        type: string
+      - description: End time (RFC3339 format)
+        in: query
+        name: end
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Available buses
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get available buses
+      tags:
+      - admin
+  /admin/routes:
+    get:
+      description: Get list of all available routes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of routes
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all routes
+      tags:
+      - admin
+  /admin/routes/{id}/stops:
+    post:
+      consumes:
+      - application/json
+      description: Create a new pickup or dropoff point for a route
+      parameters:
+      - description: Route ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Stop details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateStopRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Stop created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Route not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create route stop
+      tags:
+      - admin
+  /admin/routes/{routeId}/stops/{stopId}:
+    delete:
+      description: Delete a route stop (must maintain at least 1 pickup and 1 dropoff)
+      parameters:
+      - description: Route ID
+        in: path
+        name: routeId
+        required: true
+        type: string
+      - description: Stop ID
+        in: path
+        name: stopId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stop deleted
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Stop not found
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Cannot delete last stop
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete route stop
+      tags:
+      - admin
+    put:
+      consumes:
+      - application/json
+      description: Update an existing route stop
+      parameters:
+      - description: Route ID
+        in: path
+        name: routeId
+        required: true
+        type: string
+      - description: Stop ID
+        in: path
+        name: stopId
+        required: true
+        type: string
+      - description: Updated stop details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateStopRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Stop updated
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Stop not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update route stop
+      tags:
+      - admin
+  /admin/seat-maps:
+    get:
+      description: Get list of all seat map templates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of seat maps
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all seat maps
+      tags:
+      - seat-maps
+    post:
+      consumes:
+      - application/json
+      description: Create a new seat map template with default seat layout
+      parameters:
+      - description: Seat map details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateSeatMapRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created seat map
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create seat map
+      tags:
+      - seat-maps
+  /admin/seat-maps/{id}:
+    delete:
+      description: Delete a seat map and all its seats
+      parameters:
+      - description: Seat Map ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deletion successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete seat map
+      tags:
+      - seat-maps
+    get:
+      description: Get a seat map by ID with all seat configurations
+      parameters:
+      - description: Seat Map ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seat map with seats
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get seat map
+      tags:
+      - seat-maps
+    put:
+      consumes:
+      - application/json
+      description: Update a seat map's name, description, bus type, or active status
+      parameters:
+      - description: Seat Map ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateSeatMapRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated seat map
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update seat map
+      tags:
+      - seat-maps
+  /admin/seat-maps/{id}/regenerate:
+    post:
+      consumes:
+      - application/json
+      description: Delete all existing seats and create a new layout with specified
+        dimensions
+      parameters:
+      - description: Seat Map ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New layout dimensions
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegenerateSeatLayoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Regenerated seat map
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Regenerate seat layout
+      tags:
+      - seat-maps
+  /admin/seat-maps/{id}/seats:
+    put:
+      consumes:
+      - application/json
+      description: Update multiple seats' configurations in a single request
+      parameters:
+      - description: Seat Map ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Seat updates
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BulkUpdateSeatsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated seat map
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Bulk update seats
+      tags:
+      - seat-maps
+  /admin/seat-maps/configs:
+    get:
+      description: Get all available seat type configurations with colors and multipliers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Seat type configurations
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get seat type configs
+      tags:
+      - seat-maps
+  /admin/trips:
+    get:
+      description: Get list of all trips with route and bus information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of trips
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all trips
+      tags:
+      - admin
+  /admin/trips/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update the status of a trip (admin only)
+      parameters:
+      - description: Trip ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateTripStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update trip operational status
+      tags:
+      - admin
+  /admin/trips/assign-bus:
+    post:
+      consumes:
+      - application/json
+      description: Assign a bus to a scheduled trip with conflict checking
+      parameters:
+      - description: Assignment details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AssignBusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Assignment successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Conflict - bus already assigned
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign bus to trip
+      tags:
+      - admin
+  /admin/users:
+    get:
+      description: Get list of all admin users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List admin users
+      tags:
+      - admin-users
+    post:
+      consumes:
+      - application/json
+      description: Create a new admin user account
+      parameters:
+      - description: Admin user data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateAdminRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create admin user
+      tags:
+      - admin-users
+  /admin/users/{id}:
+    delete:
+      description: Deactivate a user account
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Deactivate user
+      tags:
+      - admin-users
+    get:
+      description: Get detailed information about a specific user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user details
+      tags:
+      - admin-users
+    put:
+      consumes:
+      - application/json
+      description: Update an existing user's information
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated user data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - admin-users
+  /auth/github:
+    get:
+      description: Redirect to GitHub OAuth
+      responses:
+        "302":
+          description: Found
+      summary: OAuth login with GitHub
+      tags:
+      - auth
+  /auth/github/callback:
+    get:
+      description: Handle GitHub OAuth callback
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+      summary: GitHub OAuth callback
+      tags:
+      - auth
+  /auth/google:
+    get:
+      description: Redirect to Google OAuth
+      responses:
+        "302":
+          description: Found
+      summary: OAuth login with Google
+      tags:
+      - auth
+  /auth/google/callback:
+    post:
+      consumes:
+      - application/json
+      description: Handle Google OAuth callback with ID token
+      parameters:
+      - description: Google ID Token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.GoogleAuthRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Google OAuth callback
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Login user
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revoke refresh token and logout
+      parameters:
+      - description: Refresh token to revoke (optional, can be from cookie)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Logout user
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Get a new access token using refresh token from cookie or body
+      parameters:
+      - description: Refresh token (optional, can be from HttpOnly cookie)
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/handlers.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Registration details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /bookings:
+    post:
+      consumes:
+      - application/json
+      description: Create a new booking with passenger details
+      parameters:
+      - description: Booking details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.CreateBookingInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Seats not available
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Create booking
+      tags:
+      - Booking
+  /bookings/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancel an existing booking
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Cancellation details
+        in: body
+        name: input
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Cancel booking
+      tags:
+      - Booking
+  /bookings/{id}/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Confirm a booking after successful payment
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Payment details
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Confirm booking
+      tags:
+      - Booking
+  /bookings/{id}/resend-tickets:
+    post:
+      consumes:
+      - application/json
+      description: Resend e-ticket to the booking contact email
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Resend ticket email
+      tags:
+      - Booking
+  /bookings/{id}/tickets/download:
+    get:
+      consumes:
+      - application/json
+      description: Download all e-tickets for a booking as a single PDF
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Download all booking tickets
+      tags:
+      - Booking
+  /bookings/guest:
+    get:
+      consumes:
+      - application/json
+      description: Get bookings for guest users by email or phone
+      parameters:
+      - description: Email
+        in: query
+        name: email
+        type: string
+      - description: Phone
+        in: query
+        name: phone
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get guest bookings
+      tags:
+      - Booking
+  /bookings/my-bookings:
+    get:
+      consumes:
+      - application/json
+      description: Get authenticated user's booking history
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user bookings
+      tags:
+      - Booking
+  /bookings/ref/{reference}:
+    get:
+      consumes:
+      - application/json
+      description: Get booking details by booking reference number
+      parameters:
+      - description: Booking Reference
+        in: path
+        name: reference
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get booking by reference
+      tags:
+      - Booking
+  /bookings/release:
+    delete:
+      consumes:
+      - application/json
+      description: Release temporary seat locks for a session
+      parameters:
+      - description: Session ID
+        in: query
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Release seat reservations
+      tags:
+      - Booking
+  /bookings/reserve:
+    post:
+      consumes:
+      - application/json
+      description: Temporarily lock seats for a user session during checkout (10 min
+        expiry)
+      parameters:
+      - description: Reservation details
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/usecases.ReserveSeatInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "409":
+          description: Seats not available
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Reserve seats
+      tags:
+      - Booking
+  /reviews/{id}:
+    delete:
+      description: Delete an existing review (owner only)
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a review
+      tags:
+      - reviews
+    put:
+      consumes:
+      - application/json
+      description: Update an existing review (owner only)
+      parameters:
+      - description: Review ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated review data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a review
+      tags:
+      - reviews
+  /reviews/my-reviews:
+    get:
+      description: Get all reviews by the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user reviews
+      tags:
+      - reviews
+  /routes/{id}:
+    get:
+      description: Get route details with pickup and dropoff points
+      parameters:
+      - description: Route ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Route with stops
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Route not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get route with stops
+      tags:
+      - routes
+  /tickets/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: Download e-ticket PDF by ticket ID
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/pdf
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Download ticket
+      tags:
+      - Booking
+  /trips/{id}:
+    get:
+      description: Get detailed information about a specific trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get trip details
+      tags:
+      - trips
+  /trips/{id}/related:
+    get:
+      description: Get similar trips on the same route for the given trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Maximum number of related trips (default 5)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get related trips
+      tags:
+      - trips
+  /trips/{id}/reviews:
+    get:
+      description: Get paginated reviews for a specific trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Items per page (default 10, max 50)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/usecases.TripReviewsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get trip reviews
+      tags:
+      - reviews
+    post:
+      consumes:
+      - application/json
+      description: Create a review for a completed trip (authenticated users only)
+      parameters:
+      - description: Trip ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateReviewRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a trip review
+      tags:
+      - reviews
+  /trips/{trip_id}/seats:
+    get:
+      consumes:
+      - application/json
+      description: Get list of available seats for a specific trip
+      parameters:
+      - description: Trip ID
+        in: path
+        name: trip_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get available seats
+      tags:
+      - Booking
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

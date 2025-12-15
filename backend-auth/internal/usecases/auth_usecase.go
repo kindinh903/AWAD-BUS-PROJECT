@@ -402,3 +402,113 @@ func (uc *AuthUsecase) LoginOAuth(ctx context.Context, userID uuid.UUID) (*AuthT
 		User:         user,
 	}, nil
 }
+
+// CreateAdminInput holds data for creating an admin user
+type CreateAdminInput struct {
+	Name     string
+	Email    string
+	Password string
+	Phone    string
+}
+
+// UpdateUserInput holds data for updating a user
+type UpdateUserInput struct {
+	Name     *string
+	Phone    *string
+	IsActive *bool
+}
+
+// GetAdminUsers returns all admin users
+func (uc *AuthUsecase) GetAdminUsers(ctx context.Context) ([]*entities.User, error) {
+	users, err := uc.userRepo.GetByRole(ctx, entities.RoleAdmin)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get admin users: %w", err)
+	}
+	// Remove password hashes from response
+	for _, u := range users {
+		u.PasswordHash = ""
+	}
+	return users, nil
+}
+
+// CreateAdminUser creates a new admin user
+func (uc *AuthUsecase) CreateAdminUser(ctx context.Context, input CreateAdminInput) (*entities.User, error) {
+	// Check if email already exists
+	existing, _ := uc.userRepo.GetByEmail(ctx, input.Email)
+	if existing != nil {
+		return nil, errors.New("user with this email already exists")
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Create admin user
+	user := &entities.User{
+		ID:           uuid.New(),
+		Name:         input.Name,
+		Email:        input.Email,
+		PasswordHash: string(hashedPassword),
+		Phone:        input.Phone,
+		Role:         entities.RoleAdmin,
+		IsActive:     true,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	if err := uc.userRepo.Create(ctx, user); err != nil {
+		return nil, fmt.Errorf("failed to create admin user: %w", err)
+	}
+
+	// Remove password from response
+	user.PasswordHash = ""
+	return user, nil
+}
+
+// GetUserByID returns a user by ID
+func (uc *AuthUsecase) GetUserByID(ctx context.Context, userID uuid.UUID) (*entities.User, error) {
+	user, err := uc.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+	user.PasswordHash = ""
+	return user, nil
+}
+
+// UpdateUser updates user information
+func (uc *AuthUsecase) UpdateUser(ctx context.Context, userID uuid.UUID, input UpdateUserInput) (*entities.User, error) {
+	user, err := uc.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	// Update fields
+	if input.Name != nil {
+		user.Name = *input.Name
+	}
+	if input.Phone != nil {
+		user.Phone = *input.Phone
+	}
+	if input.IsActive != nil {
+		user.IsActive = *input.IsActive
+	}
+	user.UpdatedAt = time.Now()
+
+	if err := uc.userRepo.Update(ctx, user); err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	user.PasswordHash = ""
+	return user, nil
+}
+
+// DeactivateUser deactivates a user account
+func (uc *AuthUsecase) DeactivateUser(ctx context.Context, userID uuid.UUID) error {
+	if err := uc.userRepo.SetActive(ctx, userID, false); err != nil {
+		return fmt.Errorf("failed to deactivate user: %w", err)
+	}
+	// Revoke all refresh tokens for this user
+	return uc.refreshTokenRepo.RevokeAllForUser(ctx, userID)
+}

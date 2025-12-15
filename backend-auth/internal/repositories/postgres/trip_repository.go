@@ -258,3 +258,51 @@ func (r *tripRepository) SearchTrips(ctx context.Context, opts repositories.Trip
 		TotalPages: totalPages,
 	}, nil
 }
+
+// GetRelatedTrips returns similar trips (same route, upcoming dates)
+func (r *tripRepository) GetRelatedTrips(ctx context.Context, tripID uuid.UUID, limit int) ([]*entities.Trip, error) {
+	// First get the current trip to find its route
+	var currentTrip entities.Trip
+	if err := r.db.WithContext(ctx).Where("id = ?", tripID).First(&currentTrip).Error; err != nil {
+		return nil, fmt.Errorf("trip not found: %w", err)
+	}
+
+	if limit <= 0 {
+		limit = 5
+	}
+
+	var relatedTrips []*entities.Trip
+	err := r.db.WithContext(ctx).
+		Preload("Route").
+		Preload("Bus").
+		Where("route_id = ?", currentTrip.RouteID).
+		Where("id != ?", tripID). // Exclude current trip
+		Where("deleted_at IS NULL").
+		Where("status IN (?, ?)", entities.TripStatusScheduled, entities.TripStatusActive).
+		Where("start_time >= ?", time.Now()). // Only future trips
+		Order("start_time ASC").
+		Limit(limit).
+		Find(&relatedTrips).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get related trips: %w", err)
+	}
+
+	return relatedTrips, nil
+}
+
+// UpdateStatus updates the operational status of a trip (departed, arrived, cancelled)
+func (r *tripRepository) UpdateStatus(ctx context.Context, tripID uuid.UUID, status entities.TripStatus) error {
+	result := r.db.WithContext(ctx).
+		Model(&entities.Trip{}).
+		Where("id = ?", tripID).
+		Update("status", status)
+	
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("trip not found")
+	}
+	return nil
+}

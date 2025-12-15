@@ -113,3 +113,21 @@ func (u *TripUsecase) CreateTrip(ctx context.Context, trip *entities.Trip) error
 
 	return u.tripRepo.Create(ctx, trip)
 }
+
+// GetRelatedTrips returns similar trips on the same route
+func (u *TripUsecase) GetRelatedTrips(ctx context.Context, tripIDStr string, limit int) ([]*entities.Trip, error) {
+	tripID, err := uuid.Parse(tripIDStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid trip ID format: %w", err)
+	}
+	return u.tripRepo.GetRelatedTrips(ctx, tripID, limit)
+}
+
+// UpdateTripStatus updates the operational status of a trip
+func (u *TripUsecase) UpdateTripStatus(ctx context.Context, tripIDStr string, status string) error {
+	tripID, err := uuid.Parse(tripIDStr)
+	if err != nil {
+		return fmt.Errorf("invalid trip ID format: %w", err)
+	}
+	return u.tripRepo.UpdateStatus(ctx, tripID, entities.TripStatus(status))
+}

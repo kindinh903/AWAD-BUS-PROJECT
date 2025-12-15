@@ -59,3 +59,37 @@ func (r *userRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		Where("id = ?", id).
 		Update("deleted_at", gorm.Expr("NOW()")).Error
 }
+
+// GetByRole returns all users with a specific role
+func (r *userRepository) GetByRole(ctx context.Context, role entities.Role) ([]*entities.User, error) {
+	var users []*entities.User
+	err := r.db.WithContext(ctx).
+		Where("role = ? AND deleted_at IS NULL", role).
+		Order("created_at DESC").
+		Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+// GetAll returns all users (excluding deleted)
+func (r *userRepository) GetAll(ctx context.Context) ([]*entities.User, error) {
+	var users []*entities.User
+	err := r.db.WithContext(ctx).
+		Where("deleted_at IS NULL").
+		Order("created_at DESC").
+		Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+// SetActive updates user active status
+func (r *userRepository) SetActive(ctx context.Context, id uuid.UUID, active bool) error {
+	return r.db.WithContext(ctx).
+		Model(&entities.User{}).
+		Where("id = ?", id).
+		Update("is_active", active).Error
+}
