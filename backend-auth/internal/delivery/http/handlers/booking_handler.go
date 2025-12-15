@@ -349,10 +349,10 @@ func (h *BookingHandler) GetUserBookings(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data":       bookings,
-		"total":      total,
-		"page":       page,
-		"page_size":  pageSize,
+		"data":        bookings,
+		"total":       total,
+		"page":        page,
+		"page_size":   pageSize,
 		"total_pages": (int(total) + pageSize - 1) / pageSize,
 	})
 }
@@ -417,5 +417,146 @@ func (h *BookingHandler) GetAvailableSeats(c *gin.Context) {
 	c.JSON(http.StatusOK, SuccessResponse{
 		Message: "Available seats retrieved successfully",
 		Data:    seats,
+	})
+}
+
+// UpdatePassengerInfo handles PUT /api/v1/bookings/:id/passengers/:passenger_id
+// Updates passenger information for a booking
+func (h *BookingHandler) UpdatePassengerInfo(c *gin.Context) {
+	// Parse booking ID
+	bookingIDStr := c.Param("id")
+	bookingID, err := uuid.Parse(bookingIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid booking ID"})
+		return
+	}
+
+	// Parse passenger ID
+	passengerIDStr := c.Param("passenger_id")
+	passengerID, err := uuid.Parse(passengerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid passenger ID"})
+		return
+	}
+
+	// Parse request body
+	var input usecases.UpdatePassengerInfoInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request body"})
+		return
+	}
+
+	// Update passenger info
+	if err := h.bookingUsecase.UpdatePassengerInfo(c.Request.Context(), bookingID, passengerID, input); err != nil {
+		statusCode := http.StatusInternalServerError
+		if err.Error() == "can only update passenger info for confirmed bookings" ||
+			err.Error() == "cannot update passenger info after trip departure" {
+			statusCode = http.StatusBadRequest
+		} else if err.Error() == "passenger not found" || err.Error() == "booking not found" {
+			statusCode = http.StatusNotFound
+		} else if err.Error() == "passenger does not belong to this booking" {
+			statusCode = http.StatusForbidden
+		}
+
+		c.JSON(statusCode, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Message: "Passenger information updated successfully",
+	})
+}
+
+// ChangeSeat handles PUT /api/v1/bookings/:id/passengers/:passenger_id/seat
+// Changes a passenger's seat assignment
+func (h *BookingHandler) ChangeSeat(c *gin.Context) {
+	// Parse booking ID
+	bookingIDStr := c.Param("id")
+	bookingID, err := uuid.Parse(bookingIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid booking ID"})
+		return
+	}
+
+	// Parse passenger ID
+	passengerIDStr := c.Param("passenger_id")
+	passengerID, err := uuid.Parse(passengerIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid passenger ID"})
+		return
+	}
+
+	// Parse request body
+	var input usecases.ChangeSeatInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request body"})
+		return
+	}
+
+	// Change seat
+	if err := h.bookingUsecase.ChangeSeat(c.Request.Context(), bookingID, passengerID, input); err != nil {
+		statusCode := http.StatusInternalServerError
+		if err.Error() == "can only change seats for confirmed bookings" ||
+			err.Error() == "cannot change seats within 24 hours of trip departure" ||
+			err.Error() == "new seat is the same as current seat" ||
+			err.Error() == "new seat is not bookable" ||
+			err.Error() == "new seat is not available" {
+			statusCode = http.StatusBadRequest
+		} else if err.Error() == "passenger not found" || err.Error() == "booking not found" || err.Error() == "new seat not found" {
+			statusCode = http.StatusNotFound
+		} else if err.Error() == "passenger does not belong to this booking" {
+			statusCode = http.StatusForbidden
+		}
+
+		c.JSON(statusCode, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Message: "Seat changed successfully. Price adjustment applied if applicable.",
+	})
+}
+
+// AddPassenger handles POST /api/v1/bookings/:id/passengers
+// Adds a new passenger to an existing booking
+func (h *BookingHandler) AddPassenger(c *gin.Context) {
+	// Parse booking ID
+	bookingIDStr := c.Param("id")
+	bookingID, err := uuid.Parse(bookingIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid booking ID"})
+		return
+	}
+
+	// Parse request body
+	var input usecases.PassengerInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid request body"})
+		return
+	}
+
+	// Add passenger
+	passenger, ticket, err := h.bookingUsecase.AddPassengerToBooking(c.Request.Context(), bookingID, input)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if err.Error() == "can only add passengers to confirmed bookings" ||
+			err.Error() == "cannot add passengers within 24 hours of trip departure" ||
+			err.Error() == "seat is not bookable" ||
+			err.Error() == "seat is not available" {
+			statusCode = http.StatusBadRequest
+		} else if err.Error() == "booking not found" || err.Error() == "seat not found" {
+			statusCode = http.StatusNotFound
+		}
+
+		c.JSON(statusCode, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, SuccessResponse{
+		Message: "Passenger added successfully",
+		Data: gin.H{
+			"passenger": passenger,
+			"ticket":    ticket,
+		},
 	})
 }

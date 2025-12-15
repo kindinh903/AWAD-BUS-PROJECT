@@ -164,3 +164,71 @@ type TicketRepository interface {
 	Update(ctx context.Context, ticket *entities.Ticket) error
 	MarkAsUsed(ctx context.Context, ticketNumber string) error
 }
+
+// PaymentRepository defines the interface for payment data operations
+type PaymentRepository interface {
+	Create(ctx context.Context, payment *entities.Payment) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.Payment, error)
+	GetByBookingID(ctx context.Context, bookingID uuid.UUID) ([]*entities.Payment, error)
+	GetByExternalID(ctx context.Context, externalID string) (*entities.Payment, error)
+	GetByOrderCode(ctx context.Context, orderCode string) (*entities.Payment, error)
+	Update(ctx context.Context, payment *entities.Payment) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetPendingPayments(ctx context.Context) ([]*entities.Payment, error)
+	GetExpiredPayments(ctx context.Context) ([]*entities.Payment, error)
+}
+
+// PaymentWebhookLogRepository defines the interface for payment webhook log operations
+type PaymentWebhookLogRepository interface {
+	Create(ctx context.Context, log *entities.PaymentWebhookLog) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.PaymentWebhookLog, error)
+	GetByPaymentID(ctx context.Context, paymentID uuid.UUID) ([]*entities.PaymentWebhookLog, error)
+	GetByExternalPaymentID(ctx context.Context, externalID string) ([]*entities.PaymentWebhookLog, error)
+	Update(ctx context.Context, log *entities.PaymentWebhookLog) error
+	GetPendingLogs(ctx context.Context) ([]*entities.PaymentWebhookLog, error)
+}
+
+// NotificationRepository defines the interface for notification data operations
+type NotificationRepository interface {
+	Create(ctx context.Context, notification *entities.Notification) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.Notification, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]*entities.Notification, error)
+	GetByBookingID(ctx context.Context, bookingID uuid.UUID) ([]*entities.Notification, error)
+	Update(ctx context.Context, notification *entities.Notification) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetPending(ctx context.Context, limit int) ([]*entities.Notification, error)
+	GetScheduled(ctx context.Context, beforeTime time.Time, limit int) ([]*entities.Notification, error)
+	DeleteOlderThan(ctx context.Context, cutoffTime time.Time) error
+	MarkAsSent(ctx context.Context, id uuid.UUID) error
+	MarkAsFailed(ctx context.Context, id uuid.UUID, errorMsg string) error
+}
+
+// NotificationPreferenceRepository defines the interface for notification preference operations
+type NotificationPreferenceRepository interface {
+	Create(ctx context.Context, pref *entities.NotificationPreference) error
+	GetByID(ctx context.Context, id uuid.UUID) (*entities.NotificationPreference, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) (*entities.NotificationPreference, error)
+	Update(ctx context.Context, pref *entities.NotificationPreference) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	CreateDefault(ctx context.Context, userID uuid.UUID) (*entities.NotificationPreference, error)
+}
+
+// BookingAnalyticsRepository defines the interface for booking analytics operations
+type BookingAnalyticsRepository interface {
+	Create(ctx context.Context, analytics *entities.BookingAnalytics) error
+	GetByDate(ctx context.Context, date time.Time) (*entities.BookingAnalytics, error)
+	GetByDateRange(ctx context.Context, startDate, endDate time.Time) ([]*entities.BookingAnalytics, error)
+	Update(ctx context.Context, analytics *entities.BookingAnalytics) error
+	CreateOrUpdate(ctx context.Context, analytics *entities.BookingAnalytics) error
+}
+
+// RouteAnalyticsRepository defines the interface for route analytics operations
+type RouteAnalyticsRepository interface {
+	Create(ctx context.Context, analytics *entities.RouteAnalytics) error
+	GetByRouteAndDate(ctx context.Context, routeID uuid.UUID, date time.Time) (*entities.RouteAnalytics, error)
+	GetByRouteIDAndDateRange(ctx context.Context, routeID uuid.UUID, startDate, endDate time.Time) ([]*entities.RouteAnalytics, error)
+	GetTopRoutesByRevenue(ctx context.Context, startDate, endDate time.Time, limit int) ([]*entities.RouteAnalytics, error)
+	GetTopRoutesByBookings(ctx context.Context, startDate, endDate time.Time, limit int) ([]*entities.RouteAnalytics, error)
+	Update(ctx context.Context, analytics *entities.RouteAnalytics) error
+	CreateOrUpdate(ctx context.Context, analytics *entities.RouteAnalytics) error
+}

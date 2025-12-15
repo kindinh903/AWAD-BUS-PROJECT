@@ -13,14 +13,14 @@ import (
 )
 
 type BookingUsecase struct {
-	bookingRepo      repositories.BookingRepository
-	passengerRepo    repositories.PassengerRepository
-	reservationRepo  repositories.SeatReservationRepository
-	ticketRepo       repositories.TicketRepository
-	tripRepo         repositories.TripRepository
-	seatMapRepo      repositories.SeatMapRepository
-	ticketService    *services.TicketService
-	emailService     *services.EmailService
+	bookingRepo     repositories.BookingRepository
+	passengerRepo   repositories.PassengerRepository
+	reservationRepo repositories.SeatReservationRepository
+	ticketRepo      repositories.TicketRepository
+	tripRepo        repositories.TripRepository
+	seatMapRepo     repositories.SeatMapRepository
+	ticketService   *services.TicketService
+	emailService    *services.EmailService
 }
 
 func NewBookingUsecase(
@@ -44,13 +44,13 @@ func NewBookingUsecase(
 }
 
 type CreateBookingInput struct {
-	TripID       uuid.UUID          `json:"trip_id"`
-	UserID       *uuid.UUID         `json:"user_id,omitempty"`
-	ContactEmail string             `json:"contact_email"`
-	ContactPhone string             `json:"contact_phone"`
-	ContactName  string             `json:"contact_name"`
-	Passengers   []PassengerInput   `json:"passengers"`
-	SessionID    string             `json:"session_id"` // For seat reservation
+	TripID       uuid.UUID        `json:"trip_id"`
+	UserID       *uuid.UUID       `json:"user_id,omitempty"`
+	ContactEmail string           `json:"contact_email"`
+	ContactPhone string           `json:"contact_phone"`
+	ContactName  string           `json:"contact_name"`
+	Passengers   []PassengerInput `json:"passengers"`
+	SessionID    string           `json:"session_id"` // For seat reservation
 }
 
 type PassengerInput struct {
@@ -71,7 +71,7 @@ type ReserveSeatInput struct {
 }
 
 type BookingResponse struct {
-	Booking    *entities.Booking    `json:"booking"`
+	Booking    *entities.Booking     `json:"booking"`
 	Passengers []*entities.Passenger `json:"passengers"`
 	Tickets    []*entities.Ticket    `json:"tickets"`
 }
@@ -214,7 +214,7 @@ func (uc *BookingUsecase) CreateBooking(ctx context.Context, input CreateBooking
 	tickets := make([]*entities.Ticket, len(passengers))
 	for i, passenger := range passengers {
 		ticketNumber := generateTicketNumber(booking.BookingReference, i+1)
-		
+
 		ticket := &entities.Ticket{
 			TicketNumber:  ticketNumber,
 			BookingID:     booking.ID,
@@ -223,16 +223,16 @@ func (uc *BookingUsecase) CreateBooking(ctx context.Context, input CreateBooking
 			SeatNumber:    passenger.SeatNumber,
 			PassengerName: passenger.FullName,
 		}
-		
+
 		// Generate QR code for ticket
 		if qrCode, err := uc.ticketService.GenerateQRCode(ticket); err == nil {
 			ticket.QRCode = &qrCode
 		}
-		
+
 		// Generate barcode
 		barcode := uc.ticketService.GenerateBarcode(ticketNumber)
 		ticket.Barcode = &barcode
-		
+
 		tickets[i] = ticket
 	}
 
@@ -542,4 +542,366 @@ func (uc *BookingUsecase) ResendTicketEmails(ctx context.Context, bookingID uuid
 	}
 
 	return uc.sendTicketEmails(ctx, bookingID)
+}
+
+// UpdatePassengerInfoInput represents data for updating passenger information
+type UpdatePassengerInfoInput struct {
+	FullName     *string `json:"full_name,omitempty"`
+	IDNumber     *string `json:"id_number,omitempty"`
+	Phone        *string `json:"phone,omitempty"`
+	Email        *string `json:"email,omitempty"`
+	Age          *int    `json:"age,omitempty"`
+	Gender       *string `json:"gender,omitempty"`
+	SpecialNeeds *string `json:"special_needs,omitempty"`
+}
+
+// UpdatePassengerInfo updates passenger information
+// Only allowed for confirmed bookings before trip departure
+func (uc *BookingUsecase) UpdatePassengerInfo(ctx context.Context, bookingID, passengerID uuid.UUID, input UpdatePassengerInfoInput) error {
+	// Get booking to verify status and ownership
+	booking, err := uc.bookingRepo.GetByID(ctx, bookingID)
+	if err != nil {
+		return fmt.Errorf("booking not found: %w", err)
+	}
+
+	// Only confirmed bookings can be modified
+	if booking.Status != entities.BookingStatusConfirmed {
+		return errors.New("can only update passenger info for confirmed bookings")
+	}
+
+	// Get trip to check departure time
+	trip, err := uc.tripRepo.GetByID(ctx, booking.TripID)
+	if err != nil {
+		return fmt.Errorf("trip not found: %w", err)
+	}
+
+	// Cannot modify after trip departure
+	if time.Now().After(trip.StartTime) {
+		return errors.New("cannot update passenger info after trip departure")
+	}
+
+	// Get passenger
+	passenger, err := uc.passengerRepo.GetByID(ctx, passengerID)
+	if err != nil {
+		return fmt.Errorf("passenger not found: %w", err)
+	}
+
+	// Verify passenger belongs to this booking
+	if passenger.BookingID != bookingID {
+		return errors.New("passenger does not belong to this booking")
+	}
+
+	// Update fields if provided
+	if input.FullName != nil {
+		passenger.FullName = *input.FullName
+	}
+	if input.IDNumber != nil {
+		passenger.IDNumber = input.IDNumber
+	}
+	if input.Phone != nil {
+		passenger.Phone = input.Phone
+	}
+	if input.Email != nil {
+		passenger.Email = input.Email
+	}
+	if input.Age != nil {
+		passenger.Age = input.Age
+	}
+	if input.Gender != nil {
+		passenger.Gender = input.Gender
+	}
+	if input.SpecialNeeds != nil {
+		passenger.SpecialNeeds = input.SpecialNeeds
+	}
+
+	// Save updated passenger
+	if err := uc.passengerRepo.Update(ctx, passenger); err != nil {
+		return fmt.Errorf("failed to update passenger: %w", err)
+	}
+
+	// Update ticket with new passenger name
+	tickets, err := uc.ticketRepo.GetByBookingID(ctx, bookingID)
+	if err == nil && len(tickets) > 0 {
+		// Find ticket for this passenger
+		for _, ticket := range tickets {
+			if ticket.PassengerID == passengerID {
+				ticket.PassengerName = passenger.FullName
+				_ = uc.ticketRepo.Update(ctx, ticket)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// ChangeSeatInput represents data for changing a passenger's seat
+type ChangeSeatInput struct {
+	NewSeatID uuid.UUID `json:"new_seat_id"`
+}
+
+// ChangeSeat changes a passenger's assigned seat
+// Only allowed for confirmed bookings before trip departure
+// Verifies new seat availability and adjusts pricing if different seat type
+func (uc *BookingUsecase) ChangeSeat(ctx context.Context, bookingID, passengerID uuid.UUID, input ChangeSeatInput) error {
+	// Get booking
+	booking, err := uc.bookingRepo.GetByID(ctx, bookingID)
+	if err != nil {
+		return fmt.Errorf("booking not found: %w", err)
+	}
+
+	// Only confirmed bookings can have seats changed
+	if booking.Status != entities.BookingStatusConfirmed {
+		return errors.New("can only change seats for confirmed bookings")
+	}
+
+	// Get trip
+	trip, err := uc.tripRepo.GetByID(ctx, booking.TripID)
+	if err != nil {
+		return fmt.Errorf("trip not found: %w", err)
+	}
+
+	// Cannot change seats within 24 hours of departure
+	if time.Until(trip.StartTime) < 24*time.Hour {
+		return errors.New("cannot change seats within 24 hours of trip departure")
+	}
+
+	// Get passenger
+	passenger, err := uc.passengerRepo.GetByID(ctx, passengerID)
+	if err != nil {
+		return fmt.Errorf("passenger not found: %w", err)
+	}
+
+	// Verify passenger belongs to this booking
+	if passenger.BookingID != bookingID {
+		return errors.New("passenger does not belong to this booking")
+	}
+
+	// Cannot change to same seat
+	if passenger.SeatID == input.NewSeatID {
+		return errors.New("new seat is the same as current seat")
+	}
+
+	// Get seat map and verify new seat exists
+	if trip.Bus == nil || trip.Bus.SeatMapID == nil {
+		return errors.New("bus or seat map not assigned to trip")
+	}
+
+	seatMap, err := uc.seatMapRepo.GetWithSeats(ctx, *trip.Bus.SeatMapID)
+	if err != nil {
+		return fmt.Errorf("failed to get seat map: %w", err)
+	}
+
+	var newSeat *entities.Seat
+	for _, seat := range seatMap.Seats {
+		if seat.ID == input.NewSeatID {
+			newSeat = seat
+			break
+		}
+	}
+
+	if newSeat == nil {
+		return errors.New("new seat not found")
+	}
+
+	if !newSeat.IsBookable {
+		return errors.New("new seat is not bookable")
+	}
+
+	// Check if new seat is available
+	available, err := uc.reservationRepo.IsSeatsAvailable(ctx, booking.TripID, []uuid.UUID{input.NewSeatID})
+	if err != nil {
+		return fmt.Errorf("failed to check seat availability: %w", err)
+	}
+
+	if !available {
+		// Check if the seat is occupied by another passenger in same booking
+		passengers, err := uc.passengerRepo.GetByBookingID(ctx, bookingID)
+		if err != nil {
+			return fmt.Errorf("failed to get passengers: %w", err)
+		}
+
+		seatInSameBooking := false
+		for _, p := range passengers {
+			if p.SeatID == input.NewSeatID && p.ID != passengerID {
+				seatInSameBooking = true
+				break
+			}
+		}
+
+		if !seatInSameBooking {
+			return errors.New("new seat is not available")
+		}
+	}
+
+	// Calculate price difference
+	oldPrice := passenger.SeatPrice
+	newPrice := trip.Price * newSeat.PriceMultiplier
+	priceDifference := newPrice - oldPrice
+
+	// Update passenger seat information
+	passenger.SeatID = input.NewSeatID
+	passenger.SeatNumber = newSeat.SeatNumber
+	passenger.SeatType = newSeat.SeatType
+	passenger.SeatPrice = newPrice
+
+	if err := uc.passengerRepo.Update(ctx, passenger); err != nil {
+		return fmt.Errorf("failed to update passenger: %w", err)
+	}
+
+	// Update booking total amount
+	booking.TotalAmount += priceDifference
+	if err := uc.bookingRepo.Update(ctx, booking); err != nil {
+		return fmt.Errorf("failed to update booking amount: %w", err)
+	}
+
+	// Update ticket
+	tickets, err := uc.ticketRepo.GetByBookingID(ctx, bookingID)
+	if err == nil && len(tickets) > 0 {
+		// Find ticket for this passenger
+		for _, ticket := range tickets {
+			if ticket.PassengerID == passengerID {
+				ticket.SeatNumber = newSeat.SeatNumber
+
+				// Regenerate QR code with new seat info
+				if qrCode, err := uc.ticketService.GenerateQRCode(ticket); err == nil {
+					ticket.QRCode = &qrCode
+				}
+
+				_ = uc.ticketRepo.Update(ctx, ticket)
+				break
+			}
+		}
+	} // Send notification about seat change and price adjustment
+	// TODO: Integrate with notification service when available
+	if priceDifference != 0 {
+		// If price increased, may need to process additional payment
+		// If price decreased, may need to process partial refund
+		// For now, just log this
+		fmt.Printf("Seat change for booking %s: price difference = %.2f\n", booking.BookingReference, priceDifference)
+	}
+
+	return nil
+}
+
+// AddPassengerToBooking adds a new passenger to an existing booking
+// Only allowed if trip has available seats and before departure
+func (uc *BookingUsecase) AddPassengerToBooking(ctx context.Context, bookingID uuid.UUID, input PassengerInput) (*entities.Passenger, *entities.Ticket, error) {
+	// Get booking
+	booking, err := uc.bookingRepo.GetByID(ctx, bookingID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("booking not found: %w", err)
+	}
+
+	// Only confirmed bookings can add passengers
+	if booking.Status != entities.BookingStatusConfirmed {
+		return nil, nil, errors.New("can only add passengers to confirmed bookings")
+	}
+
+	// Get trip
+	trip, err := uc.tripRepo.GetByID(ctx, booking.TripID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("trip not found: %w", err)
+	}
+
+	// Cannot add passengers within 24 hours of departure
+	if time.Until(trip.StartTime) < 24*time.Hour {
+		return nil, nil, errors.New("cannot add passengers within 24 hours of trip departure")
+	}
+
+	// Get seat map
+	if trip.Bus == nil || trip.Bus.SeatMapID == nil {
+		return nil, nil, errors.New("bus or seat map not assigned to trip")
+	}
+
+	seatMap, err := uc.seatMapRepo.GetWithSeats(ctx, *trip.Bus.SeatMapID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get seat map: %w", err)
+	}
+
+	// Find requested seat
+	var seat *entities.Seat
+	for _, s := range seatMap.Seats {
+		if s.ID == input.SeatID {
+			seat = s
+			break
+		}
+	}
+
+	if seat == nil {
+		return nil, nil, errors.New("seat not found")
+	}
+
+	if !seat.IsBookable {
+		return nil, nil, errors.New("seat is not bookable")
+	}
+
+	// Check seat availability
+	available, err := uc.reservationRepo.IsSeatsAvailable(ctx, booking.TripID, []uuid.UUID{input.SeatID})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to check seat availability: %w", err)
+	}
+
+	if !available {
+		return nil, nil, errors.New("seat is not available")
+	}
+
+	// Create new passenger
+	passenger := &entities.Passenger{
+		BookingID:    booking.ID,
+		SeatID:       input.SeatID,
+		SeatNumber:   seat.SeatNumber,
+		FullName:     input.FullName,
+		IDNumber:     input.IDNumber,
+		Phone:        input.Phone,
+		Email:        input.Email,
+		Age:          input.Age,
+		Gender:       input.Gender,
+		SeatType:     seat.SeatType,
+		SeatPrice:    trip.Price * seat.PriceMultiplier,
+		SpecialNeeds: input.SpecialNeeds,
+	}
+
+	if err := uc.passengerRepo.Create(ctx, passenger); err != nil {
+		return nil, nil, fmt.Errorf("failed to create passenger: %w", err)
+	}
+
+	// Create ticket
+	existingPassengers, _ := uc.passengerRepo.GetByBookingID(ctx, bookingID)
+	ticketNumber := generateTicketNumber(booking.BookingReference, len(existingPassengers))
+
+	ticket := &entities.Ticket{
+		TicketNumber:  ticketNumber,
+		BookingID:     booking.ID,
+		PassengerID:   passenger.ID,
+		TripID:        trip.ID,
+		SeatNumber:    passenger.SeatNumber,
+		PassengerName: passenger.FullName,
+	}
+
+	// Generate QR code
+	if qrCode, err := uc.ticketService.GenerateQRCode(ticket); err == nil {
+		ticket.QRCode = &qrCode
+	}
+
+	// Generate barcode
+	barcode := uc.ticketService.GenerateBarcode(ticketNumber)
+	ticket.Barcode = &barcode
+
+	if err := uc.ticketRepo.Create(ctx, ticket); err != nil {
+		return nil, nil, fmt.Errorf("failed to create ticket: %w", err)
+	}
+
+	// Update booking totals
+	booking.TotalSeats += 1
+	booking.TotalAmount += passenger.SeatPrice
+
+	if err := uc.bookingRepo.Update(ctx, booking); err != nil {
+		return nil, nil, fmt.Errorf("failed to update booking: %w", err)
+	}
+
+	// Send ticket email for new passenger
+	// TODO: Integrate with notification service
+
+	return passenger, ticket, nil
 }
