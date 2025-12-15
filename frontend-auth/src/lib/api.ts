@@ -134,6 +134,46 @@ export const tripAPI = {
     api.get('/trips/search', { params }),
   getAvailableSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
+  getById: (tripId: string) =>
+    api.get(`/trips/${tripId}`),
+  getRelatedTrips: (tripId: string, limit?: number) =>
+    api.get(`/trips/${tripId}/related`, { params: { limit } }),
+};
+
+// Review API
+export interface CreateReviewData {
+  booking_id: string;
+  rating: number;
+  title?: string;
+  comment?: string;
+}
+
+export interface UpdateReviewData {
+  rating?: number;
+  title?: string;
+  comment?: string;
+}
+
+export const reviewAPI = {
+  // Get reviews for a trip (paginated)
+  getTripReviews: (tripId: string, page = 1, pageSize = 10) =>
+    api.get(`/trips/${tripId}/reviews`, { params: { page, page_size: pageSize } }),
+
+  // Create a review for a trip (authenticated)
+  createReview: (tripId: string, data: CreateReviewData) =>
+    api.post(`/trips/${tripId}/reviews`, data),
+
+  // Get current user's reviews
+  getMyReviews: () =>
+    api.get('/reviews/my-reviews'),
+
+  // Update a review
+  updateReview: (reviewId: string, data: UpdateReviewData) =>
+    api.put(`/reviews/${reviewId}`, data),
+
+  // Delete a review
+  deleteReview: (reviewId: string) =>
+    api.delete(`/reviews/${reviewId}`),
 };
 
 // Admin API
@@ -150,6 +190,17 @@ export const adminAPI = {
   getAllTrips: () => api.get('/admin/trips'),
   assignBus: (tripId: string, busId: string) =>
     api.post('/admin/trips/assign-bus', { tripId, busId }),
+  updateTripStatus: (tripId: string, status: string) =>
+    api.put(`/admin/trips/${tripId}/status`, { status }),
+
+  // User Management
+  listAdmins: () => api.get('/admin/users'),
+  getUser: (userId: string) => api.get(`/admin/users/${userId}`),
+  createAdmin: (data: { name: string; email: string; password: string; phone?: string }) =>
+    api.post('/admin/users', data),
+  updateUser: (userId: string, data: { name?: string; phone?: string; is_active?: boolean }) =>
+    api.put(`/admin/users/${userId}`, data),
+  deactivateUser: (userId: string) => api.delete(`/admin/users/${userId}`),
 };
 
 // Seat Map API

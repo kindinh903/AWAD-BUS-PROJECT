@@ -5,6 +5,8 @@ import { BusTrip } from '../lib/mockData';
 import SeatMap from '../components/SeatMap';
 import PassengerForm from '../components/PassengerForm';
 import BookingSummary from '../components/BookingSummary';
+import TripReviews from '../components/TripReviews';
+import RelatedTrips from '../components/RelatedTrips';
 import { bookingAPI, tripAPI } from '../lib/api';
 import type { Seat, Passenger } from '../types/booking';
 import { usePolling } from '../hooks/usePolling';
@@ -14,7 +16,7 @@ type BookingStep = 'details' | 'seats' | 'passengers' | 'summary' | 'confirmatio
 export default function TripDetailsPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [currentStep, setCurrentStep] = useState<BookingStep>('details');
   const [seats, setSeats] = useState<Seat[]>([]);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
@@ -41,7 +43,7 @@ export default function TripDetailsPage() {
 
   const loadSeats = async () => {
     if (!trip?.id) return;
-    
+
     setLoading(true);
     try {
       const response = await tripAPI.getAvailableSeats(trip.id);
@@ -57,14 +59,14 @@ export default function TripDetailsPage() {
   // Refresh seats silently (for polling)
   const refreshSeats = async () => {
     if (!trip?.id || currentStep !== 'seats') return;
-    
+
     try {
       setIsRefreshing(true);
       const response = await tripAPI.getAvailableSeats(trip.id);
       const newSeats = response.data.data;
-      
+
       setSeats(newSeats);
-      
+
       const availableSeatIds = new Set(newSeats.map((s: Seat) => s.id));
       setSelectedSeatIds(prev => prev.filter(id => availableSeatIds.has(id)));
     } catch (error) {
@@ -121,12 +123,12 @@ export default function TripDetailsPage() {
         passengers: passengers,
         session_id: sessionId,
       });
-      
+
       const bookingData = response.data.data;
       setBookingId(bookingData.booking.id);
       setBookingReference(bookingData.booking.booking_reference);
       setCurrentStep('confirmation');
-      
+
       alert('Booking created! Reference: ' + bookingData.booking.booking_reference);
     } catch (error: any) {
       console.error('Booking failed:', error);
@@ -175,11 +177,10 @@ export default function TripDetailsPage() {
               {['seats', 'passengers', 'summary', 'confirmation'].map((step, index) => (
                 <React.Fragment key={step}>
                   <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${
-                      currentStep === step ? 'bg-blue-600 text-white' :
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${currentStep === step ? 'bg-blue-600 text-white' :
                       ['seats', 'passengers', 'summary', 'confirmation'].indexOf(currentStep) > index ?
-                      'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
-                    }`}>
+                        'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                      }`}>
                       {index + 1}
                     </div>
                     <span className="ml-2 text-sm font-medium capitalize hidden sm:inline">
@@ -187,10 +188,9 @@ export default function TripDetailsPage() {
                     </span>
                   </div>
                   {index < 3 && (
-                    <div className={`flex-1 h-1 mx-2 ${
-                      ['seats', 'passengers', 'summary', 'confirmation'].indexOf(currentStep) > index ?
+                    <div className={`flex-1 h-1 mx-2 ${['seats', 'passengers', 'summary', 'confirmation'].indexOf(currentStep) > index ?
                       'bg-green-500' : 'bg-gray-200'
-                    }`} />
+                      }`} />
                   )}
                 </React.Fragment>
               ))}
@@ -199,82 +199,94 @@ export default function TripDetailsPage() {
         )}
 
         {currentStep === 'details' && (
-          <div className="flex items-start justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <Bus className="h-6 w-6 text-blue-600" />
-                <h1 className="text-2xl font-bold">{trip.from} → {trip.to}</h1>
-              </div>
-              <div className="text-sm text-gray-500 mb-4">{trip.company} • {trip.busType} • {trip.duration}</div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div className="p-3 bg-gray-50 rounded">
-                  <div className="text-xs text-gray-500">Departure</div>
-                  <div className="font-semibold">{trip.departure}</div>
-                  <div className="text-xs text-gray-400">{trip.from}</div>
+          <>
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <Bus className="h-6 w-6 text-blue-600" />
+                  <h1 className="text-2xl font-bold">{trip.from} → {trip.to}</h1>
                 </div>
-                <div className="p-3 bg-gray-50 rounded">
-                  <div className="text-xs text-gray-500">Arrival</div>
-                  <div className="font-semibold">{trip.arrival}</div>
-                  <div className="text-xs text-gray-400">{trip.to}</div>
+                <div className="text-sm text-gray-500 mb-4">{trip.company} • {trip.busType} • {trip.duration}</div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="p-3 bg-gray-50 rounded">
+                    <div className="text-xs text-gray-500">Departure</div>
+                    <div className="font-semibold">{trip.departure}</div>
+                    <div className="text-xs text-gray-400">{trip.from}</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded">
+                    <div className="text-xs text-gray-500">Arrival</div>
+                    <div className="font-semibold">{trip.arrival}</div>
+                    <div className="text-xs text-gray-400">{trip.to}</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded text-right">
+                    <div className="text-xs text-gray-500">Price</div>
+                    <div className="text-2xl font-bold text-blue-600">${trip.price}</div>
+                    <div className="text-xs text-gray-400">{trip.availableSeats}/{trip.totalSeats} seats</div>
+                  </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded text-right">
-                  <div className="text-xs text-gray-500">Price</div>
-                  <div className="text-2xl font-bold text-blue-600">${trip.price}</div>
-                  <div className="text-xs text-gray-400">{trip.availableSeats}/{trip.totalSeats} seats</div>
+
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Route & Stops</h3>
+                  <div className="text-sm text-gray-600">Pickup and dropoff points will be shown here. (Mock data)</div>
+                </div>
+
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Amenities</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {trip.amenities.map((amenity: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded text-sm">
+                        {amenityIcon(amenity)}
+                        <span>{amenity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-2">Policies</h3>
+                  <ul className="text-sm text-gray-600 list-disc pl-5">
+                    <li>Free cancellation up to 24 hours before departure.</li>
+                    <li>Bring valid ID for verification at boarding.</li>
+                    <li>Luggage policy: 1 small bag and 1 checked luggage.</li>
+                  </ul>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Route & Stops</h3>
-                <div className="text-sm text-gray-600">Pickup and dropoff points will be shown here. (Mock data)</div>
-              </div>
-
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Amenities</h3>
-                <div className="flex flex-wrap gap-3">
-                  {trip.amenities.map((amenity: string, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded text-sm">
-                      {amenityIcon(amenity)}
-                      <span>{amenity}</span>
-                    </div>
-                  ))}
+              <div className="w-56">
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <div className="text-xs text-gray-500">Trip Summary</div>
+                  <div className="text-lg font-bold text-blue-600 mt-2">${trip.price}</div>
+                  <div className="text-sm text-gray-600 mt-1">{trip.departure} • {trip.duration}</div>
+                  <div className="mt-3">
+                    <button
+                      onClick={handleBookNowClick}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold"
+                    >
+                      Book Now
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div className="mb-4">
-                <h3 className="font-semibold mb-2">Policies</h3>
-                <ul className="text-sm text-gray-600 list-disc pl-5">
-                  <li>Free cancellation up to 24 hours before departure.</li>
-                  <li>Bring valid ID for verification at boarding.</li>
-                  <li>Luggage policy: 1 small bag and 1 checked luggage.</li>
-                </ul>
+                <div className="bg-white border border-gray-100 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500 mb-2">Driver</div>
+                  <div className="font-medium">Nguyen Van A</div>
+                  <div className="text-xs text-gray-400">License: 30A-12345</div>
+                  <div className="mt-3 text-sm text-gray-500">Vehicle: {trip.company} • Plate: 29B-123.45</div>
+                </div>
               </div>
             </div>
 
-            <div className="w-56">
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <div className="text-xs text-gray-500">Trip Summary</div>
-                <div className="text-lg font-bold text-blue-600 mt-2">${trip.price}</div>
-                <div className="text-sm text-gray-600 mt-1">{trip.departure} • {trip.duration}</div>
-                <div className="mt-3">
-                  <button 
-                    onClick={handleBookNowClick} 
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold"
-                  >
-                    Book Now
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 p-4 rounded-lg">
-                <div className="text-sm text-gray-500 mb-2">Driver</div>
-                <div className="font-medium">Nguyen Van A</div>
-                <div className="text-xs text-gray-400">License: 30A-12345</div>
-                <div className="mt-3 text-sm text-gray-500">Vehicle: {trip.company} • Plate: 29B-123.45</div>
-              </div>
+            {/* Reviews Section */}
+            <div className="mt-6">
+              <TripReviews tripId={trip.id} />
             </div>
-          </div>
+
+            {/* Related Trips Section */}
+            <div className="mt-6">
+              <RelatedTrips tripId={trip.id} />
+            </div>
+          </>
         )}
 
         {currentStep === 'seats' && (

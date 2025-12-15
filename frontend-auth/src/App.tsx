@@ -11,6 +11,7 @@ import PaymentPage from './pages/PaymentPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PaymentFailedPage from './pages/PaymentFailedPage';
 import AnalyticsDashboardPage from './pages/AnalyticsDashboardPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 import RoutesPage from './pages/RoutesPage';
 import FleetPage from './pages/FleetPage';
 import PromotionsPage from './pages/PromotionsPage';
@@ -84,6 +85,16 @@ function App() {
           element={
             <ProtectedRoute>
               <AnalyticsDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Users - protected, requires admin role */}
+        <Route
+          path="admin/users"
+          element={
+            <ProtectedRoute>
+              <AdminUsersPage />
             </ProtectedRoute>
           }
         />
