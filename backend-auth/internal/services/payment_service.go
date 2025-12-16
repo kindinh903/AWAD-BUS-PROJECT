@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 )
 
 // PaymentProvider is an interface that can be implemented by different payment gateways
-// This allows us to swap between mock and real implementations easily
 type PaymentProvider interface {
 	CreatePaymentLink(req CreatePaymentRequest) (*PaymentLinkResponse, error)
 	VerifyWebhookSignature(payload []byte, signature string) (bool, error)
@@ -27,15 +27,16 @@ type PaymentProvider interface {
 
 // CreatePaymentRequest represents a payment link creation request
 type CreatePaymentRequest struct {
-	OrderCode   string  `json:"orderCode"`
-	Amount      float64 `json:"amount"`
-	Description string  `json:"description"`
-	ReturnURL   string  `json:"returnUrl"`
-	CancelURL   string  `json:"cancelUrl"`
-	BuyerName   string  `json:"buyerName,omitempty"`
-	BuyerEmail  string  `json:"buyerEmail,omitempty"`
-	BuyerPhone  string  `json:"buyerPhone,omitempty"`
-	ExpiresAt   int64   `json:"expiredAt,omitempty"` // Unix timestamp
+	OrderCode   int64       `json:"orderCode"`
+	Amount      float64     `json:"amount"`
+	Description string      `json:"description"`
+	ReturnURL   string      `json:"returnUrl"`
+	CancelURL   string      `json:"cancelUrl"`
+	BuyerName   string      `json:"buyerName,omitempty"`
+	BuyerEmail  string      `json:"buyerEmail,omitempty"`
+	BuyerPhone  string      `json:"buyerPhone,omitempty"`
+	ExpiresAt   int64       `json:"expiredAt,omitempty"`
+	Items       []PayOSItem `json:"items"`
 }
 
 // PaymentLinkResponse represents the response from payment link creation
@@ -50,14 +51,13 @@ type PaymentLinkResponse struct {
 // PaymentStatusResponse represents payment status check response
 type PaymentStatusResponse struct {
 	OrderCode     string     `json:"order_code"`
-	Status        string     `json:"status"` // PENDING, PAID, CANCELLED, EXPIRED
+	Status        string     `json:"status"`
 	Amount        float64    `json:"amount"`
 	PaidAt        *time.Time `json:"paid_at,omitempty"`
 	TransactionID string     `json:"transaction_id,omitempty"`
 }
 
 // PayOSService implements PaymentProvider for PayOS gateway
-// This is a real implementation that can be used in production
 type PayOSService struct {
 	clientID    string
 	apiKey      string
@@ -66,8 +66,20 @@ type PayOSService struct {
 	httpClient  *http.Client
 }
 
+type PayOSItem struct {
+	Name     string `json:"name"`
+	Quantity int    `json:"quantity"`
+	Price    int    `json:"price"`
+}
+
 // NewPayOSService creates a new PayOS service
 func NewPayOSService(clientID, apiKey, checksumKey string) PaymentProvider {
+	fmt.Printf("=== PayOS Service Init ===\n")
+	fmt.Printf("Client ID: %s\n", clientID)
+	fmt.Printf("API Key: %s\n", apiKey)
+	fmt.Printf("Checksum Key: %s\n", checksumKey)
+	fmt.Printf("==========================\n")
+
 	return &PayOSService{
 		clientID:    clientID,
 		apiKey:      apiKey,
@@ -81,15 +93,29 @@ func NewPayOSService(clientID, apiKey, checksumKey string) PaymentProvider {
 
 // CreatePaymentLink creates a new payment link via PayOS API
 func (s *PayOSService) CreatePaymentLink(req CreatePaymentRequest) (*PaymentLinkResponse, error) {
-	// Build request payload
-	payload := map[string]interface{}{
-		"orderCode":   req.OrderCode,
-		"amount":      int(req.Amount * 100), // Convert to cents
-		"description": req.Description,
-		"returnUrl":   req.ReturnURL,
+	// Build signature data (only required fields as per PayOS doc)
+	signatureData := map[string]interface{}{
+		"amount":      int(req.Amount),
 		"cancelUrl":   req.CancelURL,
+		"description": req.Description,
+		"orderCode":   req.OrderCode,
+		"returnUrl":   req.ReturnURL,
 	}
 
+	// Generate signature for required fields only
+	signature := s.generateSignature(signatureData)
+
+	// Build full request payload with ALL fields (required + optional)
+	payload := map[string]interface{}{
+		"orderCode":   req.OrderCode,
+		"amount":      int(req.Amount),
+		"description": req.Description,
+		"cancelUrl":   req.CancelURL,
+		"returnUrl":   req.ReturnURL,
+		"signature":   signature, // CRITICAL: signature goes in BODY, not header
+	}
+
+	// Add optional buyer information
 	if req.BuyerName != "" {
 		payload["buyerName"] = req.BuyerName
 	}
@@ -97,19 +123,35 @@ func (s *PayOSService) CreatePaymentLink(req CreatePaymentRequest) (*PaymentLink
 		payload["buyerEmail"] = req.BuyerEmail
 	}
 	if req.BuyerPhone != "" {
-		payload["buyerPhone"] = req.BuyerPhone
+		// Clean phone number
+		cleanedPhone := cleanPhoneForPayOS(req.BuyerPhone)
+		if cleanedPhone != "" {
+			payload["buyerPhone"] = cleanedPhone
+		}
 	}
+
+	// Add expiration time if provided
 	if req.ExpiresAt > 0 {
 		payload["expiredAt"] = req.ExpiresAt
 	}
 
-	// Generate signature for request
-	signature := s.generateSignature(payload)
+	// Add items array if provided
+	if len(req.Items) > 0 {
+		payload["items"] = req.Items
+	}
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
+
+	// Debug logging
+	fmt.Printf("=== PayOS Request Debug ===\n")
+	fmt.Printf("OrderCode: %v\n", req.OrderCode)
+	fmt.Printf("Amount: %v VND\n", int(req.Amount))
+	fmt.Printf("Signature: %s\n", signature)
+	fmt.Printf("JSON Payload: %s\n", string(jsonPayload))
+	fmt.Printf("=========================\n")
 
 	// Make API request
 	request, err := http.NewRequest("POST", s.baseURL+"/v2/payment-requests", bytes.NewBuffer(jsonPayload))
@@ -117,10 +159,10 @@ func (s *PayOSService) CreatePaymentLink(req CreatePaymentRequest) (*PaymentLink
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
+	// Set headers (NO signature in header!)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("x-client-id", s.clientID)
 	request.Header.Set("x-api-key", s.apiKey)
-	request.Header.Set("x-signature", signature)
 
 	resp, err := s.httpClient.Do(request)
 	if err != nil {
@@ -128,19 +170,153 @@ func (s *PayOSService) CreatePaymentLink(req CreatePaymentRequest) (*PaymentLink
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	fmt.Printf("PayOS Response Status: %d\n", resp.StatusCode)
+	fmt.Printf("PayOS Response Body: %s\n", string(body))
+
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("PayOS API error (status %d): %s", resp.StatusCode, string(body))
 	}
 
 	var apiResp struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
+		Code    interface{} `json:"code"`
+		Desc    string      `json:"desc"`
+		Message string      `json:"message"`
 		Data    struct {
 			PaymentLinkID string `json:"paymentLinkId"`
-			OrderCode     string `json:"orderCode"`
+			OrderCode     int64  `json:"orderCode"`
 			CheckoutURL   string `json:"checkoutUrl"`
 			QRCodeURL     string `json:"qrCode"`
+		} `json:"data"`
+	}
+
+	if err := json.Unmarshal(body, &apiResp); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	// Check success code (PayOS returns code "00" for success)
+	codeValue := 1
+	if code, ok := apiResp.Code.(float64); ok {
+		codeValue = int(code)
+	} else if code, ok := apiResp.Code.(string); ok {
+		if code == "0" || code == "00" {
+			codeValue = 0
+		}
+	}
+
+	if codeValue != 0 {
+		errMsg := apiResp.Desc
+		if errMsg == "" {
+			errMsg = apiResp.Message
+		}
+		return nil, fmt.Errorf("PayOS error (code: %v): %s", apiResp.Code, errMsg)
+	}
+
+	return &PaymentLinkResponse{
+		PaymentLinkID: apiResp.Data.PaymentLinkID,
+		OrderCode:     strconv.FormatInt(apiResp.Data.OrderCode, 10),
+		CheckoutURL:   apiResp.Data.CheckoutURL,
+		QRCodeURL:     apiResp.Data.QRCodeURL,
+		ExpiresAt:     req.ExpiresAt,
+	}, nil
+}
+
+// cleanPhoneForPayOS formats phone number for PayOS requirements
+func cleanPhoneForPayOS(phone string) string {
+	// Remove all non-digit characters
+	cleaned := ""
+	for _, c := range phone {
+		if c >= '0' && c <= '9' {
+			cleaned += string(c)
+		}
+	}
+	
+	if cleaned == "" {
+		return ""
+	}
+	
+	// Handle different formats
+	if strings.HasPrefix(cleaned, "84") {
+		// Already has country code (84xxxxxxxxx)
+		withoutCode := strings.TrimPrefix(cleaned, "84")
+		
+		// Vietnamese mobile: 9-10 digits after 84
+		if len(withoutCode) >= 9 && len(withoutCode) <= 10 {
+			// Valid prefixes: 3, 5, 7, 8, 9
+			firstDigit := withoutCode[0]
+			if firstDigit == '3' || firstDigit == '5' || firstDigit == '7' || 
+			   firstDigit == '8' || firstDigit == '9' {
+				return "84" + withoutCode
+			}
+		}
+	} else if strings.HasPrefix(cleaned, "0") {
+		// Local format (0xxxxxxxxx)
+		withoutZero := strings.TrimPrefix(cleaned, "0")
+		
+		// Must be 9 digits after removing leading 0
+		if len(withoutZero) == 9 {
+			firstDigit := withoutZero[0]
+			if firstDigit == '3' || firstDigit == '5' || firstDigit == '7' || 
+			   firstDigit == '8' || firstDigit == '9' {
+				return "84" + withoutZero
+			}
+		}
+	}
+	
+	// Invalid format - return empty to skip this field
+	fmt.Printf("Warning: Invalid phone format '%s', skipping buyerPhone\n", phone)
+	return ""
+}
+
+// VerifyWebhookSignature verifies the webhook signature from PayOS
+func (s *PayOSService) VerifyWebhookSignature(payload []byte, signature string) (bool, error) {
+	// PayOS webhook signature verification
+	var webhookData map[string]interface{}
+	if err := json.Unmarshal(payload, &webhookData); err != nil {
+		return false, fmt.Errorf("failed to parse webhook payload: %w", err)
+	}
+
+	// Extract data section
+	data, ok := webhookData["data"].(map[string]interface{})
+	if !ok {
+		return false, fmt.Errorf("invalid webhook payload structure")
+	}
+
+	// Generate expected signature from data
+	expectedSignature := s.generateSignature(data)
+	
+	return hmac.Equal([]byte(signature), []byte(expectedSignature)), nil
+}
+
+// GetPaymentStatus retrieves payment status from PayOS
+func (s *PayOSService) GetPaymentStatus(orderCode string) (*PaymentStatusResponse, error) {
+	url := fmt.Sprintf("%s/v2/payment-requests/%s", s.baseURL, orderCode)
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	request.Header.Set("x-client-id", s.clientID)
+	request.Header.Set("x-api-key", s.apiKey)
+
+	resp, err := s.httpClient.Do(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var apiResp struct {
+		Code int    `json:"code"`
+		Desc string `json:"desc"`
+		Data struct {
+			OrderCode     int64   `json:"orderCode"`
+			Status        string  `json:"status"`
+			Amount        int     `json:"amount"`
+			TransactionID *string `json:"transactions,omitempty"`
 		} `json:"data"`
 	}
 
@@ -149,69 +325,26 @@ func (s *PayOSService) CreatePaymentLink(req CreatePaymentRequest) (*PaymentLink
 	}
 
 	if apiResp.Code != 0 {
-		return nil, fmt.Errorf("PayOS error: %s", apiResp.Message)
+		return nil, fmt.Errorf("PayOS error: %s", apiResp.Desc)
 	}
 
-	return &PaymentLinkResponse{
-		PaymentLinkID: apiResp.Data.PaymentLinkID,
-		OrderCode:     apiResp.Data.OrderCode,
-		CheckoutURL:   apiResp.Data.CheckoutURL,
-		QRCodeURL:     apiResp.Data.QRCodeURL,
-		ExpiresAt:     req.ExpiresAt,
-	}, nil
-}
-
-// VerifyWebhookSignature verifies the webhook signature from PayOS
-func (s *PayOSService) VerifyWebhookSignature(payload []byte, signature string) (bool, error) {
-	// PayOS uses HMAC-SHA256 for webhook signature
-	mac := hmac.New(sha256.New, []byte(s.checksumKey))
-	mac.Write(payload)
-	expectedSignature := hex.EncodeToString(mac.Sum(nil))
-
-	return hmac.Equal([]byte(signature), []byte(expectedSignature)), nil
-}
-
-// GetPaymentStatus retrieves payment status from PayOS
-func (s *PayOSService) GetPaymentStatus(paymentID string) (*PaymentStatusResponse, error) {
-	request, err := http.NewRequest("GET", s.baseURL+"/v2/payment-requests/"+paymentID, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	request.Header.Set("x-client-id", s.clientID)
-	request.Header.Set("x-api-key", s.apiKey)
-
-	resp, err := s.httpClient.Do(request)
-	if err != nil {
-		return nil, fmt.Errorf("failed to make request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	var apiResp struct {
-		Code int `json:"code"`
-		Data struct {
-			OrderCode     string  `json:"orderCode"`
-			Status        string  `json:"status"`
-			Amount        float64 `json:"amount"`
-			TransactionID string  `json:"transactionId"`
-		} `json:"data"`
-	}
-
-	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
+	transactionID := ""
+	if apiResp.Data.TransactionID != nil {
+		transactionID = *apiResp.Data.TransactionID
 	}
 
 	return &PaymentStatusResponse{
-		OrderCode:     apiResp.Data.OrderCode,
+		OrderCode:     strconv.FormatInt(apiResp.Data.OrderCode, 10),
 		Status:        apiResp.Data.Status,
-		Amount:        apiResp.Data.Amount / 100, // Convert from cents
-		TransactionID: apiResp.Data.TransactionID,
+		Amount:        float64(apiResp.Data.Amount),
+		TransactionID: transactionID,
 	}, nil
 }
 
 // CancelPayment cancels a payment via PayOS
-func (s *PayOSService) CancelPayment(paymentID string) error {
-	request, err := http.NewRequest("DELETE", s.baseURL+"/v2/payment-requests/"+paymentID, nil)
+func (s *PayOSService) CancelPayment(orderCode string) error {
+	url := fmt.Sprintf("%s/v2/payment-requests/%s", s.baseURL, orderCode)
+	request, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -233,32 +366,69 @@ func (s *PayOSService) CancelPayment(paymentID string) error {
 	return nil
 }
 
-// generateSignature creates HMAC signature for PayOS requests
+// generateSignature creates HMAC-SHA256 signature for PayOS requests
+// According to PayOS docs: sort keys alphabetically and format as key1=value1&key2=value2
 func (s *PayOSService) generateSignature(data map[string]interface{}) string {
-	// Sort keys
+	// Sort keys alphabetically
 	keys := make([]string, 0, len(data))
 	for k := range data {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 
-	// Build signature string
+	// Build signature string: key1=value1&key2=value2&...
 	var parts []string
 	for _, k := range keys {
-		parts = append(parts, fmt.Sprintf("%s=%v", k, data[k]))
+		value := data[k]
+		
+		// Convert value to string based on type
+		var strValue string
+		switch v := value.(type) {
+		case string:
+			strValue = v
+		case int, int64, float64:
+			strValue = fmt.Sprintf("%v", v)
+		case []PayOSItem:
+			// Convert items array to JSON string
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				strValue = fmt.Sprintf("%v", v)
+			} else {
+				strValue = string(jsonBytes)
+			}
+		case []interface{}:
+			// Handle generic array
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				strValue = fmt.Sprintf("%v", v)
+			} else {
+				strValue = string(jsonBytes)
+			}
+		default:
+			// Fallback for other types
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				strValue = fmt.Sprintf("%v", v)
+			} else {
+				strValue = string(jsonBytes)
+			}
+		}
+		
+		parts = append(parts, fmt.Sprintf("%s=%s", k, strValue))
 	}
 	signatureData := strings.Join(parts, "&")
 
-	// Generate HMAC
+	fmt.Printf("Signature Data: %s\n", signatureData)
+
+	// Generate HMAC-SHA256
 	mac := hmac.New(sha256.New, []byte(s.checksumKey))
 	mac.Write([]byte(signatureData))
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
 // MockPaymentService is a mock implementation for testing/development
-// This can be used when PayOS credentials are not available
 type MockPaymentService struct {
-	mockPayments map[string]*PaymentStatusResponse // paymentID -> status
+	mockPayments map[string]*PaymentStatusResponse
 }
 
 // NewMockPaymentService creates a new mock payment service
@@ -271,21 +441,20 @@ func NewMockPaymentService() PaymentProvider {
 // CreatePaymentLink creates a mock payment link
 func (m *MockPaymentService) CreatePaymentLink(req CreatePaymentRequest) (*PaymentLinkResponse, error) {
 	paymentID := uuid.New().String()
+	orderCodeStr := strconv.FormatInt(req.OrderCode, 10)
 
-	// Store mock payment
 	m.mockPayments[paymentID] = &PaymentStatusResponse{
-		OrderCode: req.OrderCode,
+		OrderCode: orderCodeStr,
 		Status:    "PENDING",
 		Amount:    req.Amount,
 	}
 
-	// Return mock URL with payment ID as query param
-	checkoutURL := fmt.Sprintf("http://localhost:5173/payment/mock?payment_id=%s&order_code=%s&amount=%.2f",
+	checkoutURL := fmt.Sprintf("http://localhost:5173/payment/mock?payment_id=%s&order_code=%d&amount=%.0f",
 		paymentID, req.OrderCode, req.Amount)
 
 	return &PaymentLinkResponse{
 		PaymentLinkID: paymentID,
-		OrderCode:     req.OrderCode,
+		OrderCode:     orderCodeStr,
 		CheckoutURL:   checkoutURL,
 		QRCodeURL:     "",
 		ExpiresAt:     time.Now().Add(30 * time.Minute).Unix(),
@@ -298,8 +467,8 @@ func (m *MockPaymentService) VerifyWebhookSignature(payload []byte, signature st
 }
 
 // GetPaymentStatus retrieves mock payment status
-func (m *MockPaymentService) GetPaymentStatus(paymentID string) (*PaymentStatusResponse, error) {
-	status, ok := m.mockPayments[paymentID]
+func (m *MockPaymentService) GetPaymentStatus(orderCode string) (*PaymentStatusResponse, error) {
+	status, ok := m.mockPayments[orderCode]
 	if !ok {
 		return nil, fmt.Errorf("payment not found")
 	}
@@ -307,22 +476,16 @@ func (m *MockPaymentService) GetPaymentStatus(paymentID string) (*PaymentStatusR
 }
 
 // CancelPayment cancels a mock payment
-func (m *MockPaymentService) CancelPayment(paymentID string) error {
-	if status, ok := m.mockPayments[paymentID]; ok {
+func (m *MockPaymentService) CancelPayment(orderCode string) error {
+	if status, ok := m.mockPayments[orderCode]; ok {
 		status.Status = "CANCELLED"
 		return nil
 	}
 	return fmt.Errorf("payment not found")
 }
 
-// SimulatePaymentSuccess simulates a successful payment (for testing)
-func (m *MockPaymentService) SimulatePaymentSuccess(paymentID string) error {
-	if status, ok := m.mockPayments[paymentID]; ok {
-		status.Status = "PAID"
-		now := time.Now()
-		status.PaidAt = &now
-		status.TransactionID = "MOCK_TX_" + uuid.New().String()[:8]
-		return nil
-	}
-	return fmt.Errorf("payment not found")
-}
+// Helper function to get environment variable with default
+// func getEnv(key, defaultValue string) string {
+// 	// This is a placeholder - in real implementation, use os.Getenv
+// 	return defaultValue
+// }

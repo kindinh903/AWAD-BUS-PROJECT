@@ -37,6 +37,12 @@ services:
       JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
       JWT_ACCESS_EXPIRY: 15m
       JWT_REFRESH_EXPIRY: 7d
+      PAYOS_CLIENT_ID: fa0c1e3a-d82a-4a13-9b3e-259782be52a3
+      PAYOS_API_KEY: 91cd9d2d-a9ed-45a5-bc5c-edffa971a3b2
+      PAYOS_CHECKSUM_KEY: c68e8c0f0f1a4479c503f9a642ba8854abcc69aa780e1c0708e1e9d11d94d3ff
+      PAYOS_BASE_URL: https://api-merchant.payos.vn
+      USE_MOCK_PAYMENT: "false"
+      FRONTEND_URL: https://awad-bus-project.vercel.app/
     depends_on:
       postgres:
         condition: service_healthy

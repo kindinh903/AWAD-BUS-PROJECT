@@ -75,7 +75,7 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 		Method:      entities.PaymentMethodBankTransfer, // Default method
 		ReturnURL:   returnURL,
 		CancelURL:   cancelURL,
-		Description: "Bus Ticket Payment",
+		Description: "Pay",
 	}
 
 	// Call usecase to create payment

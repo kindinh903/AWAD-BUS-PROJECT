@@ -12,9 +12,6 @@ import (
 	"github.com/yourusername/bus-booking-auth/internal/services"
 )
 
-// PaymentUsecase handles payment business logic
-// Integrates with payment gateway (PayOS), booking, and notification systems
-// Ensures idempotent webhook processing and state consistency
 type PaymentUsecase struct {
 	paymentRepo       repositories.PaymentRepository
 	webhookLogRepo    repositories.PaymentWebhookLogRepository
@@ -25,7 +22,6 @@ type PaymentUsecase struct {
 	templateEngine    *services.NotificationTemplateEngine
 }
 
-// NewPaymentUsecase creates a new payment usecase
 func NewPaymentUsecase(
 	paymentRepo repositories.PaymentRepository,
 	webhookLogRepo repositories.PaymentWebhookLogRepository,
@@ -46,7 +42,6 @@ func NewPaymentUsecase(
 	}
 }
 
-// CreatePaymentRequest represents a payment creation request
 type CreatePaymentRequest struct {
 	BookingID   uuid.UUID
 	Amount      float64
@@ -57,7 +52,6 @@ type CreatePaymentRequest struct {
 	Description string
 }
 
-// CreatePaymentResponse represents the payment creation response
 type CreatePaymentResponse struct {
 	Payment     *entities.Payment
 	CheckoutURL string
@@ -81,20 +75,35 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 		return nil, fmt.Errorf("booking already paid")
 	}
 
-	// Generate unique order code
-	orderCode := fmt.Sprintf("BUS%d%s", time.Now().Unix(), booking.BookingReference[len(booking.BookingReference)-4:])
+	// Use booking's amount if not provided
+	amount := req.Amount
+	if amount == 0 {
+		amount = booking.TotalAmount
+	}
+
+	// Use default currency
+	currency := req.Currency
+	if currency == "" {
+		currency = "VND"
+	}
+
+	// CRITICAL FIX: Generate orderCode as INTEGER (Unix timestamp)
+	// PayOS requires orderCode to be a pure integer
+	orderCode := time.Now().Unix()
+	orderCodeStr := fmt.Sprintf("%d", orderCode)
 
 	// Create payment record
 	now := time.Now()
-	expiresAt := now.Add(30 * time.Minute)
+	expiresAt := now.Add(15 * time.Minute)  // Change from 30 to 15 minutes
+	expiresAtUnix := expiresAt.Unix()
 
 	payment := &entities.Payment{
 		BookingID:         req.BookingID,
-		Amount:            req.Amount,
-		Currency:          req.Currency,
+		Amount:            amount,
+		Currency:          currency,
 		Method:            req.Method,
 		Status:            entities.PaymentTransactionPending,
-		ExternalOrderCode: &orderCode,
+		ExternalOrderCode: &orderCodeStr,
 		Description:       req.Description,
 		InitiatedAt:       now,
 		ExpiresAt:         &expiresAt,
@@ -107,15 +116,22 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 
 	// Create payment link via provider
 	paymentLink, err := uc.paymentProvider.CreatePaymentLink(services.CreatePaymentRequest{
-		OrderCode:   orderCode,
-		Amount:      req.Amount,
+		OrderCode:   orderCode, // Pass as int64
+		Amount:      amount,
 		Description: req.Description,
 		ReturnURL:   req.ReturnURL,
 		CancelURL:   req.CancelURL,
 		BuyerName:   booking.ContactName,
 		BuyerEmail:  booking.ContactEmail,
 		BuyerPhone:  booking.ContactPhone,
-		ExpiresAt:   expiresAt.Unix(),
+		ExpiresAt:   expiresAtUnix,
+		Items: []services.PayOSItem{
+			{
+				Name:     "Bus Ticket",
+				Quantity: 1,
+				Price:    int(amount),
+			},
+		},
 	})
 
 	if err != nil {
@@ -146,7 +162,6 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 }
 
 // ProcessWebhook processes payment webhook from gateway
-// Implements idempotent webhook handling with deduplication
 func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID, eventType, rawPayload, signature string) error {
 	// 1. Log webhook receipt
 	webhookLog := &entities.PaymentWebhookLog{
@@ -164,7 +179,6 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 	// 2. Check for duplicate webhooks
 	existingLogs, err := uc.webhookLogRepo.GetByExternalPaymentID(ctx, externalPaymentID)
 	if err == nil && len(existingLogs) > 1 {
-		// Check if already processed successfully
 		for _, existingLog := range existingLogs {
 			if existingLog.ProcessedStatus == "processed" && existingLog.EventType == eventType {
 				fmt.Printf("Duplicate webhook detected for %s, skipping\n", externalPaymentID)
@@ -185,10 +199,9 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 		return fmt.Errorf(errMsg)
 	}
 
-	// 4. Get payment by external ID
-	payment, err := uc.paymentRepo.GetByExternalID(ctx, externalPaymentID)
+	// 4. Get payment by external order code (not payment link ID)
+	payment, err := uc.paymentRepo.GetByOrderCode(ctx, externalPaymentID)
 	if err != nil {
-		// Payment not found, might be for a different system
 		errMsg := fmt.Sprintf("payment not found: %v", err)
 		webhookLog.ProcessedStatus = "failed"
 		webhookLog.ErrorMessage = &errMsg
@@ -202,7 +215,7 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 
 	// 5. Process webhook based on event type
 	switch eventType {
-	case "payment.completed", "PAID":
+	case "payment.completed", "payment.success", "PAID":
 		err = uc.handlePaymentSuccess(ctx, payment)
 	case "payment.failed", "FAILED":
 		err = uc.handlePaymentFailure(ctx, payment, "payment failed")

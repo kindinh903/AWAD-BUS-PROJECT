@@ -55,7 +55,7 @@ func SeedData(db *gorm.DB) error {
 			Name:         "John Doe",
 			Email:        "user@busproject.com",
 			PasswordHash: string(userPassword),
-			Phone:        "+84907654321",
+			Phone:        "84907654321",
 			Role:         entities.RolePassenger,
 			IsActive:     true,
 			CreatedAt:    time.Now(),
