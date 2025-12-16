@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
-  Bus, LogOut, LayoutDashboard, User, Menu, X,
-  MapPin, Truck, Tag, HelpCircle, Search, ChevronDown
+  Bus, LogOut, LayoutDashboard, Menu, X,
+  MapPin, Truck, Tag, HelpCircle, Search
 } from 'lucide-react';
 import { tokenManager } from '../lib/tokenManager';
 import { authAPI, authEvents } from '../lib/api';
