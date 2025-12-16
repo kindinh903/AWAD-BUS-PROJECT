@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MapPin,
   Calendar,
   Clock,
   User,
@@ -17,6 +16,7 @@ import {
 import { userSummaryCards, BusTrip } from '../lib/mockData';
 import { TripFilters, TripFiltersState, doesTripMatchFilters, sortTrips } from './TripFilters';
 import { tripAPI } from '../lib/api';
+import { CityAutocomplete } from './CityAutocomplete';
 
 // Helper function to calculate duration between two timestamps
 const calculateDuration = (startTime: string, endTime: string): string => {
@@ -299,38 +299,25 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   From
                 </label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Departure city"
-                    value={bookingForm.from}
-                    onChange={e =>
-                      setBookingForm(prev => ({
-                        ...prev,
-                        from: e.target.value,
-                      }))
-                    }
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <CityAutocomplete
+                  value={bookingForm.from}
+                  onChange={(value) => setBookingForm(prev => ({ ...prev, from: value }))}
+                  placeholder="Departure city"
+                  exclude={bookingForm.to}
+                  icon="origin"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   To
                 </label>
-                <div className="relative">
-                  <Navigation className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Destination city"
-                    value={bookingForm.to}
-                    onChange={e =>
-                      setBookingForm(prev => ({ ...prev, to: e.target.value }))
-                    }
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <CityAutocomplete
+                  value={bookingForm.to}
+                  onChange={(value) => setBookingForm(prev => ({ ...prev, to: value }))}
+                  placeholder="Destination city"
+                  exclude={bookingForm.from}
+                  icon="destination"
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

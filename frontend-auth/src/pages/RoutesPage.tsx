@@ -4,6 +4,7 @@ import {
     MapPin, Clock, ArrowRight, Bus, Filter, Calendar
 } from 'lucide-react';
 import { tripAPI } from '../lib/api';
+import { vietnameseCities } from '../config/cities';
 
 interface Trip {
     id: string;
@@ -13,13 +14,6 @@ interface Trip {
     price: number;
     available_seats: number;
 }
-
-// Popular cities
-const cities = [
-    'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hue', 'Nha Trang',
-    'Can Tho', 'Hai Phong', 'Vung Tau', 'Da Lat', 'Quy Nhon',
-    'Phan Thiet', 'Ha Long', 'Sapa', 'Hoi An'
-];
 
 export default function RoutesPage() {
     const [searchParams] = useSearchParams();
@@ -84,7 +78,7 @@ export default function RoutesPage() {
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
                                     >
                                         <option value="">All Cities</option>
-                                        {cities.map((city) => (
+                                        {vietnameseCities.map((city) => (
                                             <option key={city} value={city}>{city}</option>
                                         ))}
                                     </select>
@@ -100,7 +94,7 @@ export default function RoutesPage() {
                                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
                                     >
                                         <option value="">All Cities</option>
-                                        {cities.map((city) => (
+                                        {vietnameseCities.map((city) => (
                                             <option key={city} value={city}>{city}</option>
                                         ))}
                                     </select>
@@ -118,7 +112,7 @@ export default function RoutesPage() {
                             <div className="mt-8">
                                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Popular Cities</h4>
                                 <div className="flex flex-wrap gap-2">
-                                    {cities.slice(0, 6).map((city) => (
+                                    {vietnameseCities.slice(0, 6).map((city) => (
                                         <button
                                             key={city}
                                             onClick={() => setSelectedOrigin(city)}

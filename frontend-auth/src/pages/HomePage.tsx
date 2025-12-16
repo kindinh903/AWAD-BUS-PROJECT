@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Search, MapPin, Calendar, Clock, Bus, Shield, Tag,
+  Search, Calendar, Clock, Bus, Shield, Tag,
   CreditCard, Headphones, ArrowRight, ChevronRight, Sparkles,
-  Users, Zap, Award
+  Users, Zap, Award, MapPin
 } from 'lucide-react';
 import { tripAPI } from '../lib/api';
+import { CityAutocomplete } from '../components/CityAutocomplete';
 
 interface Trip {
   id: string;
@@ -170,26 +171,22 @@ export default function HomePage() {
             {/* Search Form */}
             <form onSubmit={handleSearch} className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4 md:p-6 max-w-3xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="From"
-                    value={origin}
-                    onChange={(e) => setOrigin(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="To"
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+                <CityAutocomplete
+                  value={origin}
+                  onChange={setOrigin}
+                  placeholder="From"
+                  exclude={destination}
+                  icon="origin"
+                  darkMode
+                />
+                <CityAutocomplete
+                  value={destination}
+                  onChange={setDestination}
+                  placeholder="To"
+                  exclude={origin}
+                  icon="destination"
+                  darkMode
+                />
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <input
