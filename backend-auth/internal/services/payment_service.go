@@ -276,6 +276,7 @@ func cleanPhoneForPayOS(phone string) string {
 // According to PayOS documentation, signature is generated from the "data" object
 // signature = HMAC-SHA256(data_string, checksumKey)
 // where data_string is sorted key=value pairs joined by "&"
+// IMPORTANT: Only fields in the "data" object are used for signature, excluding code/desc/signature fields
 func (s *PayOSService) VerifyWebhookSignature(payload []byte, signature string) (bool, error) {
 	fmt.Printf("=== Webhook Signature Verification ===\n")
 	fmt.Printf("Received Signature: %s\n", signature)
@@ -287,15 +288,14 @@ func (s *PayOSService) VerifyWebhookSignature(payload []byte, signature string) 
 		return false, fmt.Errorf("failed to parse webhook payload: %w", err)
 	}
 
-	// Extract data section - PayOS sends the data object
+	// Extract data section - PayOS ONLY uses the "data" object for signature verification
+	// The code, desc, signature fields at root level are NOT part of signature calculation
 	data, ok := webhookData["data"].(map[string]interface{})
 	if !ok {
-		// If no data object, try to use entire payload
-		fmt.Println("Warning: No 'data' object found, attempting to verify entire payload")
-		data = webhookData
+		return false, fmt.Errorf("invalid webhook payload structure: missing 'data' object")
 	}
 
-	// Generate expected signature from data
+	// Generate expected signature from data object
 	expectedSignature := s.generateSignature(data)
 	fmt.Printf("Expected Signature: %s\n", expectedSignature)
 	fmt.Printf("Signature Match: %v\n", hmac.Equal([]byte(signature), []byte(expectedSignature)))
@@ -380,7 +380,10 @@ func (s *PayOSService) CancelPayment(orderCode string) error {
 
 // generateSignature creates HMAC-SHA256 signature for PayOS requests
 // According to PayOS docs: sort keys alphabetically and format as key1=value1&key2=value2
-// IMPORTANT: Numbers must be formatted as integers (not scientific notation)
+// IMPORTANT: 
+// 1. Numbers must be formatted as integers (not scientific notation)
+// 2. null values must be empty string "", not the string "null"
+// 3. All fields in data object are included in signature
 func (s *PayOSService) generateSignature(data map[string]interface{}) string {
 	// Sort keys alphabetically
 	keys := make([]string, 0, len(data))
@@ -428,7 +431,8 @@ func (s *PayOSService) generateSignature(data map[string]interface{}) string {
 				strValue = string(jsonBytes)
 			}
 		case nil:
-			strValue = "null"
+			// CRITICAL: null must be empty string, not "null"
+			strValue = ""
 		default:
 			// Fallback for other types
 			jsonBytes, err := json.Marshal(v)
