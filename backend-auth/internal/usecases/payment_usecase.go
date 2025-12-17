@@ -162,7 +162,10 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 }
 
 // ProcessWebhook processes payment webhook from gateway
+// Handles PayOS webhook events and updates payment/booking status accordingly
 func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID, eventType, rawPayload, signature string) error {
+	log.Printf("[Webhook] Processing event: %s for payment: %s", eventType, externalPaymentID)
+	
 	// 1. Log webhook receipt
 	webhookLog := &entities.PaymentWebhookLog{
 		ExternalPaymentID: externalPaymentID,
@@ -173,15 +176,18 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 	}
 
 	if err := uc.webhookLogRepo.Create(ctx, webhookLog); err != nil {
+		log.Printf("[Webhook] Error logging webhook: %v", err)
 		return fmt.Errorf("failed to log webhook: %w", err)
 	}
+
+	log.Printf("[Webhook] Webhook logged with ID: %s", webhookLog.ID)
 
 	// 2. Check for duplicate webhooks
 	existingLogs, err := uc.webhookLogRepo.GetByExternalPaymentID(ctx, externalPaymentID)
 	if err == nil && len(existingLogs) > 1 {
 		for _, existingLog := range existingLogs {
 			if existingLog.ProcessedStatus == "processed" && existingLog.EventType == eventType {
-				fmt.Printf("Duplicate webhook detected for %s, skipping\n", externalPaymentID)
+				log.Printf("[Webhook] Duplicate webhook detected for %s (event: %s), skipping", externalPaymentID, eventType)
 				webhookLog.ProcessedStatus = "duplicate"
 				uc.webhookLogRepo.Update(ctx, webhookLog)
 				return nil
@@ -193,27 +199,35 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 	verified, err := uc.paymentProvider.VerifyWebhookSignature([]byte(rawPayload), signature)
 	if err != nil || !verified {
 		errMsg := "webhook signature verification failed"
+		log.Printf("[Webhook] Signature verification failed for payment %s: verified=%v, err=%v", externalPaymentID, verified, err)
 		webhookLog.ProcessedStatus = "failed"
 		webhookLog.ErrorMessage = &errMsg
 		uc.webhookLogRepo.Update(ctx, webhookLog)
 		return fmt.Errorf(errMsg)
 	}
 
+	log.Printf("[Webhook] Signature verified successfully for payment %s", externalPaymentID)
+
 	// 4. Get payment by external order code (not payment link ID)
 	payment, err := uc.paymentRepo.GetByOrderCode(ctx, externalPaymentID)
 	if err != nil {
 		errMsg := fmt.Sprintf("payment not found: %v", err)
+		log.Printf("[Webhook] Payment lookup failed for order code %s: %v", externalPaymentID, err)
 		webhookLog.ProcessedStatus = "failed"
 		webhookLog.ErrorMessage = &errMsg
 		uc.webhookLogRepo.Update(ctx, webhookLog)
 		return fmt.Errorf(errMsg)
 	}
+
+	log.Printf("[Webhook] Found payment %s for order code %s", payment.ID, externalPaymentID)
 
 	// Link webhook log to payment
 	webhookLog.PaymentID = &payment.ID
 	uc.webhookLogRepo.Update(ctx, webhookLog)
 
 	// 5. Process webhook based on event type
+	log.Printf("[Webhook] Processing event type: %s", eventType)
+	
 	switch eventType {
 	case "payment.completed", "payment.success", "PAID":
 		err = uc.handlePaymentSuccess(ctx, payment)
@@ -223,13 +237,23 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 		err = uc.handlePaymentCancellation(ctx, payment)
 	case "payment.expired", "EXPIRED":
 		err = uc.handlePaymentExpiry(ctx, payment)
+	case "payment.pending", "PENDING":
+		log.Printf("[Webhook] Payment still pending, no action needed")
+		err = nil
 	default:
-		log.Printf("Unknown webhook event type: %s", eventType)
-		return nil
+		if len(eventType) > 20 && eventType[:14] == "payment.failed:" {
+			// Handle payment.failed:reason format
+			reason := eventType[14:]
+			err = uc.handlePaymentFailure(ctx, payment, reason)
+		} else {
+			log.Printf("[Webhook] Unknown webhook event type: %s, taking no action", eventType)
+			err = nil
+		}
 	}
 
 	// 6. Update webhook log status
 	if err != nil {
+		log.Printf("[Webhook] Error processing webhook: %v", err)
 		webhookLog.ProcessedStatus = "failed"
 		errMsg := err.Error()
 		webhookLog.ErrorMessage = &errMsg
@@ -238,6 +262,7 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 		webhookLog.ProcessedStatus = "processed"
 		now := time.Now()
 		webhookLog.ProcessedAt = &now
+		log.Printf("[Webhook] Webhook processed successfully for payment %s", payment.ID)
 	}
 
 	uc.webhookLogRepo.Update(ctx, webhookLog)
@@ -249,9 +274,11 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 func (uc *PaymentUsecase) handlePaymentSuccess(ctx context.Context, payment *entities.Payment) error {
 	// Check if already processed
 	if payment.Status == entities.PaymentTransactionCompleted {
-		log.Printf("Payment %s already completed, skipping", payment.ID)
+		log.Printf("[Payment] Payment %s already completed, skipping", payment.ID)
 		return nil
 	}
+
+	log.Printf("[Payment] Processing successful payment for payment ID: %s, booking ID: %s", payment.ID, payment.BookingID)
 
 	// Update payment status
 	now := time.Now()
@@ -261,12 +288,16 @@ func (uc *PaymentUsecase) handlePaymentSuccess(ctx context.Context, payment *ent
 	payment.WebhookProcessedAt = &now
 
 	if err := uc.paymentRepo.Update(ctx, payment); err != nil {
+		log.Printf("[Payment] Error updating payment status: %v", err)
 		return fmt.Errorf("failed to update payment: %w", err)
 	}
+
+	log.Printf("[Payment] Payment status updated to completed")
 
 	// Update booking status
 	booking, err := uc.bookingRepo.GetByID(ctx, payment.BookingID)
 	if err != nil {
+		log.Printf("[Payment] Error fetching booking: %v", err)
 		return fmt.Errorf("failed to get booking: %w", err)
 	}
 
@@ -279,13 +310,16 @@ func (uc *PaymentUsecase) handlePaymentSuccess(ctx context.Context, payment *ent
 	booking.PaymentReference = &externalID
 
 	if err := uc.bookingRepo.Update(ctx, booking); err != nil {
+		log.Printf("[Payment] Error updating booking status: %v", err)
 		return fmt.Errorf("failed to update booking: %w", err)
 	}
 
-	// Send payment receipt notification
+	log.Printf("[Payment] Booking %s status updated to confirmed", booking.BookingReference)
+
+	// Send payment receipt notification asynchronously
 	go uc.sendPaymentReceiptNotification(booking, payment)
 
-	log.Printf("Payment %s processed successfully for booking %s", payment.ID, booking.BookingReference)
+	log.Printf("[Payment] Payment %s processed successfully for booking %s", payment.ID, booking.BookingReference)
 
 	return nil
 }

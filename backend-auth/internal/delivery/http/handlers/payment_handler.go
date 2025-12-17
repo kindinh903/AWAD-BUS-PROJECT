@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -163,22 +164,24 @@ type PayOSWebhookRequest struct {
 // ProcessPayOSWebhook handles POST /api/v1/webhooks/payos
 // Processes payment status updates from PayOS gateway
 // This endpoint is called by PayOS and should NOT require authentication
+// PayOS sends: POST with signature in header (X-Signature)
+// Response: Always 200 OK to confirm receipt (errors are logged internally)
 func (h *PaymentHandler) ProcessPayOSWebhook(c *gin.Context) {
-	// Read raw body for signature verification
+	// 1. Read raw body for signature verification
 	bodyBytes, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
 		return
 	}
 
-	// Parse webhook payload
+	// 2. Parse webhook payload
 	var webhookReq PayOSWebhookRequest
 	if err := json.Unmarshal(bodyBytes, &webhookReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON payload"})
 		return
 	}
 
-	// Extract signature from header (PayOS sends it in X-Signature header)
+	// 3. Extract signature (PayOS sends in X-Signature header)
 	signature := c.GetHeader("X-Signature")
 	if signature == "" {
 		// Fallback to signature in body if header not present
@@ -186,46 +189,73 @@ func (h *PaymentHandler) ProcessPayOSWebhook(c *gin.Context) {
 	}
 
 	if signature == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing signature"})
+		// Still no signature - this is critical for verification
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "received",
+			"message": "Webhook received but missing signature",
+		})
 		return
 	}
 
-	// Extract external payment ID from webhook data
-	externalPaymentID, ok := webhookReq.Data["orderCode"].(string)
-	if !ok {
-		// Try alternate field name
-		if orderCode, exists := webhookReq.Data["order_code"].(float64); exists {
-			externalPaymentID = strconv.FormatFloat(orderCode, 'f', 0, 64)
-		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing orderCode in webhook data"})
-			return
-		}
+	// 4. Extract external payment ID (orderCode) from webhook data
+	externalPaymentID := ""
+	
+	// Try different possible field names for order code
+	if orderCode, ok := webhookReq.Data["orderCode"].(string); ok {
+		externalPaymentID = orderCode
+	} else if orderCode, ok := webhookReq.Data["orderCode"].(float64); ok {
+		externalPaymentID = strconv.FormatFloat(orderCode, 'f', 0, 64)
+	} else if orderCode, ok := webhookReq.Data["order_code"].(string); ok {
+		externalPaymentID = orderCode
+	} else if orderCode, ok := webhookReq.Data["order_code"].(float64); ok {
+		externalPaymentID = strconv.FormatFloat(orderCode, 'f', 0, 64)
 	}
 
-	// Determine event type from webhook data
+	if externalPaymentID == "" {
+		// Could not find order code
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "received",
+			"message": "Webhook received but missing orderCode",
+		})
+		return
+	}
+
+	// 5. Determine event type from webhook data
 	eventType := "unknown"
+	
 	if webhookReq.Success {
+		// Check status field for payment result
 		if status, ok := webhookReq.Data["status"].(string); ok {
 			switch status {
 			case "PAID":
 				eventType = "payment.success"
+			case "PENDING":
+				eventType = "payment.pending"
 			case "CANCELLED":
 				eventType = "payment.cancelled"
 			case "EXPIRED":
 				eventType = "payment.expired"
+			case "FAILED":
+				eventType = "payment.failed"
 			}
 		}
 	} else {
-		eventType = "payment.failed"
+		// success=false indicates failure
+		if desc, ok := webhookReq.Data["reason"].(string); ok {
+			eventType = fmt.Sprintf("payment.failed:%s", desc)
+		} else {
+			eventType = "payment.failed"
+		}
 	}
 
-	// Process webhook through usecase
+	// 6. Process webhook through usecase
+	// Always return 200 OK to confirm receipt (prevents PayOS from retrying)
+	// Errors are logged in the webhook log table for manual review
 	if err := h.paymentUsecase.ProcessWebhook(c.Request.Context(), externalPaymentID, eventType, string(bodyBytes), signature); err != nil {
-		// Even if processing fails, return 200 to prevent PayOS from retrying
-		// Errors are logged in the webhook log table for manual review
+		// Log error but still return 200 OK
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "received",
-			"message": "Webhook received but processing failed. Will be retried.",
+			"message": "Webhook received and logged. Processing failed but will be retried.",
 		})
 		return
 	}
@@ -243,10 +273,20 @@ type MockPaymentCallbackRequest struct {
 	Status    string `json:"status" binding:"required"` // success, failed, cancelled
 }
 
-// MockPaymentCallback handles POST /api/v1/mock-payment/callback
+// MockPaymentCallback handles POST /api/v1/webhooks/mock-payment
 // Simulates payment gateway callback for development/testing
-// Only available when USE_MOCK_PAYMENT=true
+// ONLY AVAILABLE IN DEVELOPMENT MODE (when USE_MOCK_PAYMENT=true)
+// DO NOT use in production!
 func (h *PaymentHandler) MockPaymentCallback(c *gin.Context) {
+	// Check if mock payment is enabled
+	mockEnabled := os.Getenv("USE_MOCK_PAYMENT") == "true"
+	if !mockEnabled {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Mock payment endpoint is disabled in this environment",
+		})
+		return
+	}
+
 	var req MockPaymentCallbackRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -346,8 +386,7 @@ func RegisterPaymentRoutes(router *gin.RouterGroup, handler *PaymentHandler, aut
 		// PayOS webhook endpoint (called by payment gateway)
 		webhooks.POST("/payos", handler.ProcessPayOSWebhook)
 
-		// Mock payment callback (for development only)
-		// TODO: Disable in production via environment variable check
+		// Mock payment callback (for development only - disabled in production)
 		webhooks.POST("/mock-payment", handler.MockPaymentCallback)
 	}
 }

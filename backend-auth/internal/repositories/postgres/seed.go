@@ -234,7 +234,7 @@ func SeedData(db *gorm.DB) error {
 				Origin:          "Ho Chi Minh City",
 				Destination:     "Da Nang",
 				DurationMinutes: 720, // 12 hours
-				BasePrice:       350000, // 350,000 VND
+				BasePrice:       5000, // 350,000 VND
 				IsActive:        true,
 				CreatedAt:       time.Now(),
 				UpdatedAt:       time.Now(),

@@ -1,7 +1,7 @@
 # Payment Flow Test Script
 # This script tests the complete payment workflow using PowerShell
 
-$BaseUrl = "http://localhost:8080/api/v1"
+$BaseUrl = "https://awad-bus-project-production.up.railway.app/api/v1"
 $FrontendUrl = "https://awad-bus-project.vercel.app"
 $testEmail = "user@busproject.com"
 $testPassword = "user123"
@@ -101,7 +101,8 @@ try {
     }
     
     $bookingId = $booking.id
-    $amount = $booking.total_amount
+    # $amount = $booking.total_amount
+    $amount = 5000  # Hardcoded amount for testing purposes
     Write-Host "Amount: $amount"
     
 } catch {

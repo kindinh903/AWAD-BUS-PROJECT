@@ -1,0 +1,78 @@
+### Payment Flow Test
+### This file tests the complete payment workflow
+
+@baseUrl = https://awad-bus-project-production.up.railway.app/
+@frontendUrl = http://localhost:5173
+
+### Variables for storing responses
+@token = 
+@userId = 
+@bookingId = 
+@paymentId = 
+
+### ==========================================
+### STEP 1: Login to get JWT token
+### ==========================================
+### Test with default test user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@busproject.com",
+  "password": "user123"
+}
+
+### ==========================================
+### STEP 2: Get user's bookings
+### ==========================================
+### Note: Replace {{token}} with actual token from login response
+GET {{baseUrl}}/bookings
+Authorization: Bearer {{token}}
+
+### ==========================================
+### STEP 3: Create a payment for a booking
+### ==========================================
+### Note: Replace {{bookingId}} with actual booking ID from step 2
+POST {{baseUrl}}/payments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "booking_id": "{{bookingId}}",
+  "return_url": "{{frontendUrl}}/payment/success",
+  "cancel_url": "{{frontendUrl}}/payment/failed"
+}
+
+### ==========================================
+### STEP 4: Get payment status
+### ==========================================
+### Note: Replace {{paymentId}} with actual payment ID from step 3
+GET {{baseUrl}}/payments/{{paymentId}}/status
+Authorization: Bearer {{token}}
+
+### ==========================================
+### STEP 5: Get all payments for a booking
+### ==========================================
+GET {{baseUrl}}/bookings/{{bookingId}}/payments
+Authorization: Bearer {{token}}
+
+### ==========================================
+### STEP 6: Simulate payment webhook (mock - for testing only)
+### ==========================================
+### This simulates PayOS sending a webhook after successful payment
+POST {{baseUrl}}/webhooks/mock-payment
+Content-Type: application/json
+
+{
+  "payment_id": "{{paymentId}}",
+  "booking_id": "{{bookingId}}",
+  "status": "PAID",
+  "amount": 100.0,
+  "transaction_id": "mock-payment-{{$timestamp}}"
+}
+
+### ==========================================
+### STEP 7: Verify payment was updated to completed
+### ==========================================
+GET {{baseUrl}}/payments/{{paymentId}}/status
+Authorization: Bearer {{token}}
