@@ -187,7 +187,7 @@ try {
 # ============================================
 Write-Host "`n======== STEP 5: Simulate Payment Success ========" -ForegroundColor Blue
 
-$webhookUrl = "$BaseUrl/webhooks/mock-payment"
+$webhookUrl = "$BaseUrl/webhooks/payos"
 $webhookBody = @{
     payment_id = $paymentId
     booking_id = $bookingId

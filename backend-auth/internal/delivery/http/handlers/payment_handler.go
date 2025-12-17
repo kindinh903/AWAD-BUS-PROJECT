@@ -221,12 +221,23 @@ func (h *PaymentHandler) ProcessPayOSWebhook(c *gin.Context) {
 	}
 
 	// 5. Determine event type from webhook data
+	// PayOS may send different status field names and formats
 	eventType := "unknown"
 	
 	if webhookReq.Success {
-		// Check status field for payment result
+		// If success=true, it's typically a successful payment
+		// Check for various possible status fields
+		var statusValue string
+		
 		if status, ok := webhookReq.Data["status"].(string); ok {
-			switch status {
+			statusValue = status
+		}
+		
+		// If no explicit status, but success=true, treat as payment.success
+		if statusValue == "" {
+			eventType = "payment.success"
+		} else {
+			switch statusValue {
 			case "PAID":
 				eventType = "payment.success"
 			case "PENDING":
@@ -237,11 +248,15 @@ func (h *PaymentHandler) ProcessPayOSWebhook(c *gin.Context) {
 				eventType = "payment.expired"
 			case "FAILED":
 				eventType = "payment.failed"
+			default:
+				eventType = "payment.success" // Default to success if success=true
 			}
 		}
 	} else {
 		// success=false indicates failure
 		if desc, ok := webhookReq.Data["reason"].(string); ok {
+			eventType = fmt.Sprintf("payment.failed:%s", desc)
+		} else if desc, ok := webhookReq.Data["desc"].(string); ok {
 			eventType = fmt.Sprintf("payment.failed:%s", desc)
 		} else {
 			eventType = "payment.failed"

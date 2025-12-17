@@ -380,6 +380,7 @@ func (s *PayOSService) CancelPayment(orderCode string) error {
 
 // generateSignature creates HMAC-SHA256 signature for PayOS requests
 // According to PayOS docs: sort keys alphabetically and format as key1=value1&key2=value2
+// IMPORTANT: Numbers must be formatted as integers (not scientific notation)
 func (s *PayOSService) generateSignature(data map[string]interface{}) string {
 	// Sort keys alphabetically
 	keys := make([]string, 0, len(data))
@@ -398,8 +399,18 @@ func (s *PayOSService) generateSignature(data map[string]interface{}) string {
 		switch v := value.(type) {
 		case string:
 			strValue = v
-		case int, int64, float64:
+		case bool:
 			strValue = fmt.Sprintf("%v", v)
+		case float64:
+			// CRITICAL: Format as integer if it's a whole number to avoid scientific notation
+			// This is needed for orderCode and amount fields
+			if v == float64(int64(v)) {
+				strValue = fmt.Sprintf("%d", int64(v))
+			} else {
+				strValue = fmt.Sprintf("%f", v)
+			}
+		case int, int64:
+			strValue = fmt.Sprintf("%d", v)
 		case []PayOSItem:
 			// Convert items array to JSON string
 			jsonBytes, err := json.Marshal(v)
@@ -416,6 +427,8 @@ func (s *PayOSService) generateSignature(data map[string]interface{}) string {
 			} else {
 				strValue = string(jsonBytes)
 			}
+		case nil:
+			strValue = "null"
 		default:
 			// Fallback for other types
 			jsonBytes, err := json.Marshal(v)
@@ -430,12 +443,14 @@ func (s *PayOSService) generateSignature(data map[string]interface{}) string {
 	}
 	signatureData := strings.Join(parts, "&")
 
-	fmt.Printf("Signature Data: %s\n", signatureData)
+	fmt.Printf("[Signature] Data: %s\n", signatureData)
 
 	// Generate HMAC-SHA256
 	mac := hmac.New(sha256.New, []byte(s.checksumKey))
 	mac.Write([]byte(signatureData))
-	return hex.EncodeToString(mac.Sum(nil))
+	signature := hex.EncodeToString(mac.Sum(nil))
+	fmt.Printf("[Signature] Generated: %s\n", signature)
+	return signature
 }
 
 // MockPaymentService is a mock implementation for testing/development
