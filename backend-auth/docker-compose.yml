@@ -43,6 +43,13 @@ services:
       PAYOS_BASE_URL: https://api-merchant.payos.vn
       USE_MOCK_PAYMENT: "false"
       FRONTEND_URL: https://awad-bus-project.vercel.app/
+      # SMTP Configuration for Email Service
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USERNAME: busapp276@gmail.com
+      SMTP_PASSWORD: joixewcpgzxoxeni
+      FROM_EMAIL: busapp276@gmail.com
+      FROM_NAME: Bus Booking System
     depends_on:
       postgres:
         condition: service_healthy
