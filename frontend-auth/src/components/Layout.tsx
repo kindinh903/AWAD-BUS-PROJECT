@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import Chatbot from './Chatbot';
 import { authEvents } from '../lib/api';
 
 export default function Layout() {
@@ -25,6 +26,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <Chatbot />
     </div>
   );
 }

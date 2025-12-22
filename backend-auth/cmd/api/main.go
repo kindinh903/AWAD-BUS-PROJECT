@@ -187,31 +187,32 @@ func runMigrations(db *gorm.DB) error {
 
 type Container struct {
 	// Repositories
-	UserRepo               repositories.UserRepository
-	RefreshTokenRepo       repositories.RefreshTokenRepository
-	BusRepo                repositories.BusRepository
-	RouteRepo              repositories.RouteRepository
-	TripRepo               repositories.TripRepository
-	RouteStopRepo          repositories.RouteStopRepository
-	SeatMapRepo            repositories.SeatMapRepository
-	BookingRepo            repositories.BookingRepository
-	PassengerRepo          repositories.PassengerRepository
-	SeatReservationRepo    repositories.SeatReservationRepository
-	TicketRepo             repositories.TicketRepository
-	PaymentRepo            repositories.PaymentRepository
-	PaymentWebhookLogRepo  repositories.PaymentWebhookLogRepository
-	NotificationRepo       repositories.NotificationRepository
-	NotificationPrefRepo   repositories.NotificationPreferenceRepository
-	BookingAnalyticsRepo   repositories.BookingAnalyticsRepository
-	RouteAnalyticsRepo     repositories.RouteAnalyticsRepository
-	ReviewRepo             repositories.ReviewRepository
+	UserRepo              repositories.UserRepository
+	RefreshTokenRepo      repositories.RefreshTokenRepository
+	BusRepo               repositories.BusRepository
+	RouteRepo             repositories.RouteRepository
+	TripRepo              repositories.TripRepository
+	RouteStopRepo         repositories.RouteStopRepository
+	SeatMapRepo           repositories.SeatMapRepository
+	BookingRepo           repositories.BookingRepository
+	PassengerRepo         repositories.PassengerRepository
+	SeatReservationRepo   repositories.SeatReservationRepository
+	TicketRepo            repositories.TicketRepository
+	PaymentRepo           repositories.PaymentRepository
+	PaymentWebhookLogRepo repositories.PaymentWebhookLogRepository
+	NotificationRepo      repositories.NotificationRepository
+	NotificationPrefRepo  repositories.NotificationPreferenceRepository
+	BookingAnalyticsRepo  repositories.BookingAnalyticsRepository
+	RouteAnalyticsRepo    repositories.RouteAnalyticsRepository
+	ReviewRepo            repositories.ReviewRepository
 
 	// Services
-	PaymentProvider          services.PaymentProvider
-	EmailService             *services.EmailService
-	NotificationTemplateEng  *services.NotificationTemplateEngine
-	NotificationQueue        *services.NotificationQueue
-	BackgroundJobScheduler   *services.BackgroundJobScheduler
+	PaymentProvider         services.PaymentProvider
+	EmailService            *services.EmailService
+	NotificationTemplateEng *services.NotificationTemplateEngine
+	NotificationQueue       *services.NotificationQueue
+	BackgroundJobScheduler  *services.BackgroundJobScheduler
+	ChatbotService          *services.ChatbotService
 
 	// Usecases
 	AuthUsecase      *usecases.AuthUsecase
@@ -301,12 +302,19 @@ func initDependencies(db *gorm.DB) *Container {
 		tripRepo,
 		routeRepo,
 	)
-	
+
 	reviewUsecase := usecases.NewReviewUsecase(
 		reviewRepo,
 		bookingRepo,
 		tripRepo,
 	)
+
+	// Chatbot service
+	chatbotService, err := services.NewChatbotService()
+	if err != nil {
+		log.Printf("Warning: Failed to initialize chatbot service: %v", err)
+		log.Println("Chatbot features will be unavailable")
+	}
 
 	// Background job scheduler
 	backgroundJobs := services.NewBackgroundJobScheduler(
@@ -323,38 +331,39 @@ func initDependencies(db *gorm.DB) *Container {
 	)
 
 	return &Container{
-		UserRepo:               userRepo,
-		RefreshTokenRepo:       refreshTokenRepo,
-		BusRepo:                busRepo,
-		RouteRepo:              routeRepo,
-		TripRepo:               tripRepo,
-		RouteStopRepo:          routeStopRepo,
-		SeatMapRepo:            seatMapRepo,
-		BookingRepo:            bookingRepo,
-		PassengerRepo:          passengerRepo,
-		SeatReservationRepo:    seatReservationRepo,
-		TicketRepo:             ticketRepo,
-		PaymentRepo:            paymentRepo,
-		PaymentWebhookLogRepo:  paymentWebhookLogRepo,
-		NotificationRepo:       notificationRepo,
-		NotificationPrefRepo:   notificationPrefRepo,
-		BookingAnalyticsRepo:   bookingAnalyticsRepo,
-		RouteAnalyticsRepo:     routeAnalyticsRepo,
-		ReviewRepo:             reviewRepo,
-		PaymentProvider:        paymentProvider,
-		EmailService:           emailService,
+		UserRepo:                userRepo,
+		RefreshTokenRepo:        refreshTokenRepo,
+		BusRepo:                 busRepo,
+		RouteRepo:               routeRepo,
+		TripRepo:                tripRepo,
+		RouteStopRepo:           routeStopRepo,
+		SeatMapRepo:             seatMapRepo,
+		BookingRepo:             bookingRepo,
+		PassengerRepo:           passengerRepo,
+		SeatReservationRepo:     seatReservationRepo,
+		TicketRepo:              ticketRepo,
+		PaymentRepo:             paymentRepo,
+		PaymentWebhookLogRepo:   paymentWebhookLogRepo,
+		NotificationRepo:        notificationRepo,
+		NotificationPrefRepo:    notificationPrefRepo,
+		BookingAnalyticsRepo:    bookingAnalyticsRepo,
+		RouteAnalyticsRepo:      routeAnalyticsRepo,
+		ReviewRepo:              reviewRepo,
+		PaymentProvider:         paymentProvider,
+		EmailService:            emailService,
 		NotificationTemplateEng: notificationTemplateEng,
-		NotificationQueue:      notificationQueue,
-		BackgroundJobScheduler: backgroundJobs,
-		AuthUsecase:            authUsecase,
-		TripUsecase:            tripUsecase,
-		RouteStopUsecase:       routeStopUsecase,
-		SeatMapUsecase:         seatMapUsecase,
-		BookingUsecase:         bookingUsecase,
-		PaymentUsecase:         paymentUsecase,
-		AnalyticsUsecase:       analyticsUsecase,
-		ReviewUsecase:          reviewUsecase,
-		JWTSecret:              jwtSecret,
+		NotificationQueue:       notificationQueue,
+		BackgroundJobScheduler:  backgroundJobs,
+		ChatbotService:          chatbotService,
+		AuthUsecase:             authUsecase,
+		TripUsecase:             tripUsecase,
+		RouteStopUsecase:        routeStopUsecase,
+		SeatMapUsecase:          seatMapUsecase,
+		BookingUsecase:          bookingUsecase,
+		PaymentUsecase:          paymentUsecase,
+		AnalyticsUsecase:        analyticsUsecase,
+		ReviewUsecase:           reviewUsecase,
+		JWTSecret:               jwtSecret,
 	}
 }
 
@@ -465,7 +474,7 @@ func setupRouter(container *Container) *gin.Engine {
 				// Analytics routes (admin only)
 				analyticsHandler := handlers.NewAnalyticsHandler(container.AnalyticsUsecase)
 				handlers.RegisterAnalyticsRoutes(admin, analyticsHandler, middleware.RequireRole("admin"))
-				
+
 				// User management (admin only)
 				userMgmtHandler := handlers.NewUserManagementHandler(container.AuthUsecase)
 				admin.GET("/users", userMgmtHandler.ListAdmins)
@@ -473,14 +482,14 @@ func setupRouter(container *Container) *gin.Engine {
 				admin.GET("/users/:id", userMgmtHandler.GetUser)
 				admin.PUT("/users/:id", userMgmtHandler.UpdateUser)
 				admin.DELETE("/users/:id", userMgmtHandler.DeactivateUser)
-				
+
 				// Trip operations (admin only)
 				tripOpHandler := handlers.NewTripHandler(container.TripUsecase)
 				admin.PUT("/trips/:id/status", tripOpHandler.UpdateTripStatus)
 				admin.GET("/trips/:id/passengers", adminHandler.GetTripPassengers)
 				admin.POST("/trips/:id/passengers/:passengerId/check-in", adminHandler.CheckInPassenger)
 			}
-			
+
 			// Protected review routes (authenticated users)
 			reviewHandler := handlers.NewReviewHandler(container.ReviewUsecase)
 			authorized.POST("/trips/:id/reviews", reviewHandler.CreateReview)
@@ -505,14 +514,14 @@ func setupRouter(container *Container) *gin.Engine {
 		{
 			tripHandler := handlers.NewTripHandler(container.TripUsecase)
 			reviewHandler := handlers.NewReviewHandler(container.ReviewUsecase)
-			
+
 			trips.GET("/search", tripHandler.SearchTrips)
 			trips.GET("/:id", tripHandler.GetTripByID)
 			trips.GET("/:id/related", tripHandler.GetRelatedTrips)
-			
+
 			// Reviews (GET is public, POST requires auth)
 			trips.GET("/:id/reviews", reviewHandler.GetTripReviews)
-			
+
 			// Booking-related trip endpoints
 			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
 			trips.GET("/:id/seats", bookingHandler.GetAvailableSeats)
@@ -538,6 +547,16 @@ func setupRouter(container *Container) *gin.Engine {
 		{
 			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
 			tickets.GET("/:id/download", bookingHandler.DownloadTicket)
+		}
+
+		// Chatbot routes (public)
+		if container.ChatbotService != nil && container.ChatbotService.IsEnabled() {
+			chatbot := v1.Group("/chatbot")
+			{
+				chatbotHandler := handlers.NewChatbotHandler(container.ChatbotService)
+				chatbot.POST("/message", chatbotHandler.SendMessage)
+				chatbot.GET("/health", chatbotHandler.HealthCheck)
+			}
 		}
 
 		// Protected booking routes (authenticated users)

@@ -50,6 +50,13 @@ services:
       SMTP_PASSWORD: joixewcpgzxoxeni
       FROM_EMAIL: busapp276@gmail.com
       FROM_NAME: Bus Booking System
+      # AI Chatbot Configuration
+      AI_PROVIDER: gemini
+      AI_ENABLED: "true"
+      GEMINI_API_KEY: AIzaSyBd0cgw8jF7VZaNrIhIjzkzeEejWkOlwc0
+      GEMINI_MODEL: gemini-3-flash-preview
+      GEMINI_MAX_TOKENS: "1024"
+      GEMINI_TEMPERATURE: "0.7"
     depends_on:
       postgres:
         condition: service_healthy
