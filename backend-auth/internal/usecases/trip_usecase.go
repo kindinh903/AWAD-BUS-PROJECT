@@ -2,19 +2,23 @@ package usecases
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/yourusername/bus-booking-auth/internal/entities"
 	"github.com/yourusername/bus-booking-auth/internal/repositories"
+	"github.com/yourusername/bus-booking-auth/internal/services"
 )
 
 // TripUsecase handles business logic for trip and bus assignment
 type TripUsecase struct {
-	tripRepo  repositories.TripRepository
-	busRepo   repositories.BusRepository
-	routeRepo repositories.RouteRepository
+	tripRepo     repositories.TripRepository
+	busRepo      repositories.BusRepository
+	routeRepo    repositories.RouteRepository
+	cacheService *services.CacheService
 }
 
 // NewTripUsecase creates a new trip usecase
@@ -22,11 +26,13 @@ func NewTripUsecase(
 	tripRepo repositories.TripRepository,
 	busRepo repositories.BusRepository,
 	routeRepo repositories.RouteRepository,
+	cacheService *services.CacheService,
 ) *TripUsecase {
 	return &TripUsecase{
-		tripRepo:  tripRepo,
-		busRepo:   busRepo,
-		routeRepo: routeRepo,
+		tripRepo:     tripRepo,
+		busRepo:      busRepo,
+		routeRepo:    routeRepo,
+		cacheService: cacheService,
 	}
 }
 
@@ -76,7 +82,38 @@ func (u *TripUsecase) GetAllBuses(ctx context.Context) ([]*entities.Bus, error) 
 
 // SearchTrips searches trips using provided options with pagination
 func (u *TripUsecase) SearchTrips(ctx context.Context, opts repositories.TripSearchOptions) (*repositories.PaginatedTrips, error) {
-	return u.tripRepo.SearchTrips(ctx, opts)
+	// Generate cache key from search options
+	cacheKey := generateTripSearchCacheKey(opts)
+
+	// Try to get from cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		var cachedResult repositories.PaginatedTrips
+		if err := u.cacheService.Get(ctx, cacheKey, &cachedResult); err == nil {
+			// Cache hit
+			return &cachedResult, nil
+		}
+	}
+
+	// Cache miss - fetch from database
+	result, err := u.tripRepo.SearchTrips(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Store in cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Set(ctx, cacheKey, result, "trips")
+	}
+
+	return result, nil
+}
+
+// generateTripSearchCacheKey creates a unique cache key from search options
+func generateTripSearchCacheKey(opts repositories.TripSearchOptions) string {
+	// Create a deterministic hash of the search options
+	data, _ := json.Marshal(opts)
+	hash := md5.Sum(data)
+	return fmt.Sprintf("trip:search:%x", hash)
 }
 
 // GetAllRoutes returns all routes
@@ -111,7 +148,18 @@ func (u *TripUsecase) CreateTrip(ctx context.Context, trip *entities.Trip) error
 		}
 	}
 
-	return u.tripRepo.Create(ctx, trip)
+	// Create the trip
+	err = u.tripRepo.Create(ctx, trip)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate trip search cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "trip:search:*")
+	}
+
+	return nil
 }
 
 // GetRelatedTrips returns similar trips on the same route
@@ -129,5 +177,17 @@ func (u *TripUsecase) UpdateTripStatus(ctx context.Context, tripIDStr string, st
 	if err != nil {
 		return fmt.Errorf("invalid trip ID format: %w", err)
 	}
-	return u.tripRepo.UpdateStatus(ctx, tripID, entities.TripStatus(status))
+
+	// Update status
+	err = u.tripRepo.UpdateStatus(ctx, tripID, entities.TripStatus(status))
+	if err != nil {
+		return err
+	}
+
+	// Invalidate trip search cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "trip:search:*")
+	}
+
+	return nil
 }

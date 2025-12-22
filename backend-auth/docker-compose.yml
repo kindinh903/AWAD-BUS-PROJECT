@@ -20,6 +20,22 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: bus_auth_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - bus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
   auth-service:
     build: .
     container_name: bus_auth_service
@@ -34,6 +50,14 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: bus_booking
       DB_SSL_MODE: disable
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      CACHE_ENABLED: "true"
+      CACHE_TTL_TRIPS: 300
+      CACHE_TTL_SEATS: 120
       JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
       JWT_ACCESS_EXPIRY: 15m
       JWT_REFRESH_EXPIRY: 7d
@@ -60,11 +84,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - bus-network
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   bus-network:

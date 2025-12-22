@@ -207,6 +207,7 @@ type Container struct {
 	ReviewRepo            repositories.ReviewRepository
 
 	// Services
+	CacheService            *services.CacheService
 	PaymentProvider         services.PaymentProvider
 	EmailService            *services.EmailService
 	NotificationTemplateEng *services.NotificationTemplateEngine
@@ -249,6 +250,15 @@ func initDependencies(db *gorm.DB) *Container {
 	routeAnalyticsRepo := postgres.NewRouteAnalyticsRepository(db)
 	reviewRepo := postgres.NewReviewRepository(db)
 
+	// Initialize Cache Service
+	cacheService, err := services.NewCacheService()
+	if err != nil {
+		log.Printf("Warning: Failed to initialize cache service: %v", err)
+		cacheService = &services.CacheService{} // Create disabled cache service
+	} else if cacheService.IsEnabled() {
+		log.Println("Cache service initialized successfully")
+	}
+
 	// Configuration
 	jwtSecret := getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production")
 
@@ -282,7 +292,7 @@ func initDependencies(db *gorm.DB) *Container {
 
 	// Usecases
 	authUsecase := usecases.NewAuthUsecase(userRepo, refreshTokenRepo, jwtSecret, accessTokenExpiry, refreshTokenExpiry)
-	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo)
+	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo, cacheService)
 	routeStopUsecase := usecases.NewRouteStopUsecase(routeStopRepo, routeRepo)
 	seatMapUsecase := usecases.NewSeatMapUsecase(seatMapRepo, busRepo)
 	bookingUsecase := usecases.NewBookingUsecase(bookingRepo, passengerRepo, seatReservationRepo, ticketRepo, tripRepo, seatMapRepo)
@@ -349,6 +359,7 @@ func initDependencies(db *gorm.DB) *Container {
 		BookingAnalyticsRepo:    bookingAnalyticsRepo,
 		RouteAnalyticsRepo:      routeAnalyticsRepo,
 		ReviewRepo:              reviewRepo,
+		CacheService:            cacheService,
 		PaymentProvider:         paymentProvider,
 		EmailService:            emailService,
 		NotificationTemplateEng: notificationTemplateEng,
