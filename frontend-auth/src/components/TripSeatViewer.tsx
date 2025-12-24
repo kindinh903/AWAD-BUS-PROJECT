@@ -41,7 +41,7 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
     setIsLoading(true);
     setError(null);
     try {
-      const response = await tripAPI.getSeats(tripId);
+      const response = await tripAPI.getSeatsWithStatus(tripId);
       setSeats(response.data.data || []);
     } catch (err: any) {
       console.error('Failed to fetch seats:', err);

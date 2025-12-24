@@ -396,6 +396,100 @@ func (uc *BookingUsecase) GetAvailableSeats(ctx context.Context, tripID uuid.UUI
 	return availableSeats, nil
 }
 
+// SeatWithStatus represents a seat with its booking status
+type SeatWithStatus struct {
+	*entities.Seat
+	Status           string  `json:"status"` // available, booked, reserved, unavailable
+	BookingReference *string `json:"booking_reference,omitempty"`
+	PassengerName    *string `json:"passenger_name,omitempty"`
+}
+
+// GetSeatsWithStatus gets all seats for a trip with their booking status
+func (uc *BookingUsecase) GetSeatsWithStatus(ctx context.Context, tripID uuid.UUID) ([]*SeatWithStatus, error) {
+	// Get trip
+	trip, err := uc.tripRepo.GetByID(ctx, tripID)
+	if err != nil {
+		return nil, fmt.Errorf("trip not found: %w", err)
+	}
+
+	if trip.Bus == nil || trip.Bus.SeatMapID == nil {
+		return nil, errors.New("bus or seat map not assigned to trip")
+	}
+
+	// Get seat map with all seats
+	seatMap, err := uc.seatMapRepo.GetWithSeats(ctx, *trip.Bus.SeatMapID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get seat map: %w", err)
+	}
+
+	// Get booked seats with booking info
+	bookings, err := uc.bookingRepo.GetByTripID(ctx, tripID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get bookings: %w", err)
+	}
+
+	bookedSeatsInfo := make(map[uuid.UUID]struct {
+		BookingRef    string
+		PassengerName string
+	})
+
+	for _, booking := range bookings {
+		// Only include confirmed or pending bookings
+		if booking.Status == "cancelled" {
+			continue
+		}
+
+		passengers, _ := uc.passengerRepo.GetByBookingID(ctx, booking.ID)
+		for _, p := range passengers {
+			bookedSeatsInfo[p.SeatID] = struct {
+				BookingRef    string
+				PassengerName string
+			}{
+				BookingRef:    booking.BookingReference,
+				PassengerName: p.FullName,
+			}
+		}
+	}
+
+	// Get reserved seats
+	reservations, err := uc.reservationRepo.GetByTripID(ctx, tripID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get reservations: %w", err)
+	}
+
+	reservedSeatIDs := make(map[uuid.UUID]bool)
+	for _, r := range reservations {
+		if !r.IsExpired() {
+			reservedSeatIDs[r.SeatID] = true
+		}
+	}
+
+	// Build seats with status
+	seatsWithStatus := make([]*SeatWithStatus, 0, len(seatMap.Seats))
+	for _, seat := range seatMap.Seats {
+		seatStatus := &SeatWithStatus{
+			Seat: seat,
+		}
+
+		// Determine status
+		if !seat.IsBookable || seat.SeatType == entities.SeatTypeAisle {
+			seatStatus.Status = "unavailable"
+		} else if bookingInfo, isBooked := bookedSeatsInfo[seat.ID]; isBooked {
+			seatStatus.Status = "booked"
+			seatStatus.BookingReference = &bookingInfo.BookingRef
+			seatStatus.PassengerName = &bookingInfo.PassengerName
+		} else if reservedSeatIDs[seat.ID] {
+			seatStatus.Status = "reserved"
+		} else {
+			seatStatus.Status = "available"
+		}
+
+		seatsWithStatus = append(seatsWithStatus, seatStatus)
+	}
+
+	return seatsWithStatus, nil
+}
+
 // Helper functions
 func generateBookingReference() string {
 	now := time.Now()
@@ -908,21 +1002,21 @@ func (uc *BookingUsecase) AddPassengerToBooking(ctx context.Context, bookingID u
 
 // TripPassengerInfo represents a passenger with their ticket and check-in status
 type TripPassengerInfo struct {
-	PassengerID      uuid.UUID `json:"passenger_id"`
-	BookingID        uuid.UUID `json:"booking_id"`
-	BookingReference string    `json:"booking_reference"`
-	FullName         string    `json:"full_name"`
-	SeatNumber       string    `json:"seat_number"`
-	SeatType         string    `json:"seat_type"`
-	Phone            *string   `json:"phone,omitempty"`
-	Email            *string   `json:"email,omitempty"`
-	TicketID         uuid.UUID `json:"ticket_id"`
-	TicketNumber     string    `json:"ticket_number"`
-	CheckedIn        bool      `json:"checked_in"`
+	PassengerID      uuid.UUID  `json:"passenger_id"`
+	BookingID        uuid.UUID  `json:"booking_id"`
+	BookingReference string     `json:"booking_reference"`
+	FullName         string     `json:"full_name"`
+	SeatNumber       string     `json:"seat_number"`
+	SeatType         string     `json:"seat_type"`
+	Phone            *string    `json:"phone,omitempty"`
+	Email            *string    `json:"email,omitempty"`
+	TicketID         uuid.UUID  `json:"ticket_id"`
+	TicketNumber     string     `json:"ticket_number"`
+	CheckedIn        bool       `json:"checked_in"`
 	CheckedInAt      *time.Time `json:"checked_in_at,omitempty"`
-	ContactName      string    `json:"contact_name"`
-	ContactEmail     string    `json:"contact_email"`
-	ContactPhone     string    `json:"contact_phone"`
+	ContactName      string     `json:"contact_name"`
+	ContactEmail     string     `json:"contact_email"`
+	ContactPhone     string     `json:"contact_phone"`
 }
 
 // GetTripPassengers retrieves all passengers for a specific trip with their check-in status

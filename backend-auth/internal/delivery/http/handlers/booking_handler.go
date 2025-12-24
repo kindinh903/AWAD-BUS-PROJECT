@@ -420,6 +420,28 @@ func (h *BookingHandler) GetAvailableSeats(c *gin.Context) {
 	})
 }
 
+// GetSeatsWithStatus handles GET /api/v1/trips/:id/seats/status
+// Returns all seats for a trip with their booking status (available, booked, reserved)
+func (h *BookingHandler) GetSeatsWithStatus(c *gin.Context) {
+	tripIDStr := c.Param("id")
+	tripID, err := uuid.Parse(tripIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid trip ID"})
+		return
+	}
+
+	seats, err := h.bookingUsecase.GetSeatsWithStatus(c.Request.Context(), tripID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, SuccessResponse{
+		Message: "Seats with status retrieved successfully",
+		Data:    seats,
+	})
+}
+
 // UpdatePassengerInfo handles PUT /api/v1/bookings/:id/passengers/:passenger_id
 // Updates passenger information for a booking
 func (h *BookingHandler) UpdatePassengerInfo(c *gin.Context) {

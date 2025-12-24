@@ -134,6 +134,8 @@ export const tripAPI = {
     api.get('/trips/search', { params }),
   getSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
+  getSeatsWithStatus: (tripId: string) =>
+    api.get(`/trips/${tripId}/seats/status`),
   getAvailableSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
   getById: (tripId: string) =>

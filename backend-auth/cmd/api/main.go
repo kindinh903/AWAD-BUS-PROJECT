@@ -536,6 +536,7 @@ func setupRouter(container *Container) *gin.Engine {
 			// Booking-related trip endpoints
 			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
 			trips.GET("/:id/seats", bookingHandler.GetAvailableSeats)
+			trips.GET("/:id/seats/status", bookingHandler.GetSeatsWithStatus)
 		}
 
 		// Booking routes (public - supports guest checkout)
