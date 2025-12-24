@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentAPI, bookingAPI } from '../lib/api';
+import QRCode from 'qrcode';
 
 interface PaymentData {
     payment_id: string;
@@ -43,6 +44,7 @@ export default function PaymentPage() {
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [polling, setPolling] = useState(false);
+    const [qrDataURL, setQrDataURL] = useState<string | null>(null);
 
     // Check if we're returning from payment gateway
     const paymentId = searchParams.get('payment_id');
@@ -50,27 +52,50 @@ export default function PaymentPage() {
     // Fetch booking details
     useEffect(() => {
         const fetchBooking = async () => {
-            if (!bookingId) return;
+            if (!bookingId) {
+                setError('No booking ID provided');
+                setLoading(false);
+                return;
+            }
 
             try {
-                // First try to get payments for this booking
-                const paymentsRes = await paymentAPI.getBookingPayments(bookingId);
-                if (paymentsRes.data?.payments?.length > 0) {
-                    const existingPayment = paymentsRes.data.payments[0];
-                    setPayment({
-                        payment_id: existingPayment.id,
-                        checkout_url: existingPayment.checkout_url,
-                        status: existingPayment.status,
-                    });
+                // Get booking reference from URL
+                const reference = searchParams.get('ref') || localStorage.getItem('lastBookingRef');
+                
+                if (reference) {
+                    // Fetch booking by reference
+                    const res = await bookingAPI.getByReference(reference);
+                    console.log('Full API response:', res.data);
+                    
+                    // API returns {booking: {...}, passengers: [...], tickets: [...]}
+                    const apiData = res.data?.data || res.data;
+                    const bookingData = apiData?.booking || apiData;
+                    
+                    console.log('Booking data:', bookingData);
+                    console.log('Total amount:', bookingData?.total_amount);
+                    setBooking(bookingData);
+                } else {
+                    setError('No booking reference found');
                 }
 
-                // Get booking reference from URL or localStorage
-                const reference = searchParams.get('ref') || localStorage.getItem('lastBookingRef');
-                if (reference) {
-                    const res = await bookingAPI.getByReference(reference);
-                    setBooking(res.data?.booking);
+                // Try to get existing payments for this booking
+                try {
+                    const paymentsRes = await paymentAPI.getBookingPayments(bookingId);
+                    if (paymentsRes.data?.payments?.length > 0) {
+                        const existingPayment = paymentsRes.data.payments[0];
+                        setPayment({
+                            payment_id: existingPayment.id,
+                            checkout_url: existingPayment.checkout_url,
+                            qr_code_url: existingPayment.qr_code_url,
+                            status: existingPayment.status,
+                        });
+                    }
+                } catch (paymentError) {
+                    console.log('No existing payments found');
                 }
+                
             } catch (err: any) {
+                console.error('Fetch booking error:', err);
                 setError(err.response?.data?.error || 'Failed to load booking');
             } finally {
                 setLoading(false);
@@ -80,6 +105,36 @@ export default function PaymentPage() {
         fetchBooking();
     }, [bookingId, searchParams]);
 
+    // Generate QR code image when payment data changes
+    useEffect(() => {
+        if (payment?.qr_code_url) {
+            // Check if it's already a URL (starts with http)
+            if (payment.qr_code_url.startsWith('http')) {
+                setQrDataURL(payment.qr_code_url);
+            } else {
+                // It's raw QR data, generate QR code image
+                QRCode.toDataURL(payment.qr_code_url, {
+                    width: 300,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                })
+                    .then(url => {
+                        setQrDataURL(url);
+                    })
+                    .catch(err => {
+                        console.error('Failed to generate QR code:', err);
+                        setQrDataURL(null);
+                    });
+            }
+        } else {
+            setQrDataURL(null);
+        }
+    }, [payment?.qr_code_url]);
+
+    // 
     // Poll payment status when we have a payment_id
     useEffect(() => {
         if (!paymentId || !polling) return;
@@ -116,15 +171,23 @@ export default function PaymentPage() {
             const cancelUrl = window.location.origin + '/payment/failed';
 
             const res = await paymentAPI.createPayment(bookingId, returnUrl, cancelUrl);
-            const { checkout_url, payment } = res.data;
+            const { checkout_url, qr_code_url, payment } = res.data;
 
             if (checkout_url) {
-                // Redirect to payment gateway
-                window.location.href = checkout_url;
+                // Set payment data with QR code
+                setPayment({
+                    payment_id: payment.id,
+                    checkout_url: checkout_url,
+                    qr_code_url: qr_code_url,
+                    status: payment.status,
+                });
+                // Don't auto-redirect - let user choose between QR or redirect
+                setPolling(true);
             } else if (payment) {
                 setPayment({
                     payment_id: payment.id,
                     checkout_url: payment.checkout_url || '',
+                    qr_code_url: payment.qr_code_url,
                     status: payment.status,
                 });
                 setPolling(true);
@@ -170,7 +233,7 @@ export default function PaymentPage() {
                             <div className="flex justify-between">
                                 <span className="text-gray-600 dark:text-gray-400">Reference</span>
                                 <span className="font-mono font-semibold text-gray-900 dark:text-white">
-                                    {booking.booking_reference}
+                                    {booking.booking_reference || 'N/A'}
                                 </span>
                             </div>
                             {booking.trip?.route && (
@@ -191,7 +254,13 @@ export default function PaymentPage() {
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Amount</span>
                                     <span className="text-2xl font-bold text-blue-600">
-                                        {booking.total_amount?.toLocaleString('vi-VN')} ₫
+                                        {booking.total_amount 
+                                            ? booking.total_amount.toLocaleString('vi-VN') + ' ₫'
+                                            : (booking.total_price 
+                                                ? booking.total_price.toLocaleString('vi-VN') + ' ₫'
+                                                : 'N/A'
+                                            )
+                                        }
                                     </span>
                                 </div>
                             </div>
@@ -210,15 +279,44 @@ export default function PaymentPage() {
 
                 {/* Payment Status */}
                 {payment && (
-                    <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-6">
-                        <p className="text-blue-700 dark:text-blue-400">
-                            Payment Status: <span className="font-semibold">{payment.status}</span>
-                        </p>
-                        {polling && (
-                            <p className="text-sm text-blue-600 dark:text-blue-500 mt-1">
-                                Waiting for payment confirmation...
-                            </p>
-                        )}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-6 rounded-lg mb-6 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0">
+                                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-blue-900 dark:text-blue-300 font-semibold mb-1">
+                                    Payment Status: <span className="capitalize">{payment.status}</span>
+                                </div>
+                                {polling && (
+                                    <div className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        Waiting for payment confirmation...
+                                    </div>
+                                )}
+                                
+                                {/* QR Code Display */}
+                                {qrDataURL && (
+                                    <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700">
+                                        <div className="text-sm text-gray-700 dark:text-gray-300 mb-3 text-center font-medium">
+                                            📱 Scan QR Code to Pay
+                                        </div>
+                                        <div className="flex justify-center">
+                                            <img 
+                                                src={qrDataURL} 
+                                                alt="Payment QR Code" 
+                                                className="w-64 h-64 object-contain rounded-lg shadow-md"
+                                            />
+                                        </div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
+                                            Use your banking app to scan and complete payment
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
 

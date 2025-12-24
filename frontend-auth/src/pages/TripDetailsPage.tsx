@@ -171,11 +171,15 @@ export default function TripDetailsPage() {
       });
 
       const bookingData = response.data.data;
-      setBookingId(bookingData.booking.id);
-      setBookingReference(bookingData.booking.booking_reference);
-      setCurrentStep('confirmation');
-
-      alert('Booking created! Reference: ' + bookingData.booking.booking_reference);
+      const createdBookingId = bookingData.booking.id;
+      const reference = bookingData.booking.booking_reference;
+      
+      // Store booking reference in localStorage for payment page
+      localStorage.setItem('lastBookingRef', reference);
+      
+      // Redirect to payment page instead of showing confirmation
+      navigate(`/payment/${createdBookingId}?ref=${reference}`);
+      
     } catch (error: any) {
       console.error('Booking failed:', error);
       const errorMessage = error.response?.data?.error || error.message || 'Unknown error occurred';
@@ -439,27 +443,30 @@ export default function TripDetailsPage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Please save this reference number. You can use it to view your booking details.
                 </p>
+                <p className="text-sm text-orange-600 font-semibold mb-2">
+                  ⚠️ Payment Required
+                </p>
                 <p className="text-sm text-gray-600">
-                  Your e-tickets have been sent to your email address.
+                  Your booking will be confirmed after payment is completed.
                 </p>
               </div>
 
               <div className="flex gap-4 justify-center flex-wrap">
                 <button
-                  onClick={() => bookingId && bookingAPI.downloadBookingTickets(bookingId)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  onClick={() => navigate(`/payment/${bookingId}?ref=${bookingReference}`)}
+                  className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-semibold text-lg shadow-lg"
                   disabled={!bookingId}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
-                  Download Tickets
+                  Proceed to Payment
                 </button>
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Back to Dashboard
+                  Pay Later
                 </button>
               </div>
             </div>
