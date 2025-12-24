@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Bus, Wifi, Snowflake, UsbIcon, Coffee, Bed, ArrowLeft } from 'lucide-react';
 import { BusTrip } from '../lib/mockData';
 import SeatMap from '../components/SeatMap';
@@ -16,6 +16,7 @@ type BookingStep = 'details' | 'seats' | 'passengers' | 'summary' | 'confirmatio
 export default function TripDetailsPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id: tripId } = useParams<{ id: string }>();
 
   const [currentStep, setCurrentStep] = useState<BookingStep>('details');
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -25,15 +26,60 @@ export default function TripDetailsPage() {
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [trip] = useState<BusTrip | null>(location.state?.trip || null);
-  const [tripLoading] = useState(!location.state?.trip);
+  const [trip, setTrip] = useState<BusTrip | null>(location.state?.trip || null);
+  const [tripLoading, setTripLoading] = useState(!location.state?.trip);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [tripError, setTripError] = useState<string | null>(null);
 
+  // Fetch trip data if not available in location state
   useEffect(() => {
-    if (!trip && !tripLoading) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [trip, tripLoading, navigate]);
+    const fetchTrip = async () => {
+      if (!tripId) {
+        setTripError('No trip ID provided');
+        setTripLoading(false);
+        return;
+      }
+
+      if (trip) {
+        // Trip already loaded from location state
+        setTripLoading(false);
+        return;
+      }
+
+      try {
+        setTripLoading(true);
+        setTripError(null);
+        const response = await tripAPI.getById(tripId);
+        const apiTrip = response.data.data;
+        
+        // Transform API response to match BusTrip interface
+        const normalizedTrip: BusTrip = {
+          id: apiTrip.id,
+          from: apiTrip.route?.origin || '',
+          to: apiTrip.route?.destination || '',
+          departure: new Date(apiTrip.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          arrival: new Date(apiTrip.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          duration: `${Math.floor((apiTrip.route?.duration_minutes || 0) / 60)}h ${(apiTrip.route?.duration_minutes || 0) % 60}m`,
+          price: apiTrip.price / 1000, // Convert from VND to display format
+          busType: apiTrip.bus?.bus_type || 'Standard',
+          company: 'Bus Booking System',
+          availableSeats: apiTrip.available_seats || 0,
+          totalSeats: apiTrip.bus?.total_seats || 0,
+          amenities: ['WiFi', 'AC', 'Comfortable Seats'], // Default amenities
+          rating: 4.5, // Default rating
+        };
+        
+        setTrip(normalizedTrip);
+      } catch (error: any) {
+        console.error('Failed to fetch trip:', error);
+        setTripError(error.response?.data?.error || 'Failed to load trip details');
+      } finally {
+        setTripLoading(false);
+      }
+    };
+
+    fetchTrip();
+  }, [tripId, trip]);
 
   useEffect(() => {
     if (trip && currentStep === 'seats' && seats.length === 0) {
@@ -137,12 +183,25 @@ export default function TripDetailsPage() {
     }
   };
 
-  if (!trip) {
+  if (tripLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="bg-white p-8 rounded-xl shadow-md text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading trip details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (tripError || !trip) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="bg-white p-8 rounded-xl shadow-md text-center">
           <h2 className="text-xl font-bold mb-2">Trip not found</h2>
-          <p className="text-gray-600 mb-4">The trip you're looking for doesn't exist or may have been removed.</p>
+          <p className="text-gray-600 mb-4">
+            {tripError || "The trip you're looking for doesn't exist or may have been removed."}
+          </p>
           <button onClick={() => navigate(-1)} className="px-4 py-2 bg-blue-600 text-white rounded">Go back</button>
         </div>
       </div>

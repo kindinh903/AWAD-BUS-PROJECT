@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Plus,
   Edit,
@@ -13,7 +13,10 @@ import {
   X,
   Search,
   Filter,
+  Eye,
 } from 'lucide-react';
+import { TripSeatViewer } from './TripSeatViewer';
+import { adminAPI } from '../lib/api';
 
 // Extended trip interface for scheduling
 export interface ScheduledTrip {
@@ -121,9 +124,11 @@ const amenitiesOptions = [
 ];
 
 export const TripScheduler: React.FC = () => {
-  const [trips, setTrips] = useState<ScheduledTrip[]>(initialTrips);
+  const [trips, setTrips] = useState<ScheduledTrip[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<ScheduledTrip | null>(null);
+  const [viewingTripSeats, setViewingTripSeats] = useState<ScheduledTrip | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [formData, setFormData] = useState<Partial<ScheduledTrip>>({
@@ -142,6 +147,48 @@ export const TripScheduler: React.FC = () => {
     busPlate: '',
     status: 'scheduled',
   });
+
+  // Fetch trips from API
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  const fetchTrips = async () => {
+    setIsLoading(true);
+    try {
+      const response = await adminAPI.getAllTrips();
+      const apiTrips = response.data.data || [];
+      
+      // Transform API response to ScheduledTrip format
+      const transformedTrips: ScheduledTrip[] = apiTrips.map((trip: any) => ({
+        id: trip.id,
+        from: trip.route?.origin || 'Unknown',
+        to: trip.route?.destination || 'Unknown',
+        departure: new Date(trip.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        arrival: new Date(trip.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        date: new Date(trip.start_time).toISOString().split('T')[0],
+        duration: trip.route?.duration || '0h 00m',
+        price: trip.price || 0,
+        busType: (trip.bus?.bus_type || 'Standard') as 'Standard' | 'VIP' | 'Sleeper',
+        company: trip.bus?.name || 'Unknown',
+        availableSeats: trip.available_seats || 0,
+        totalSeats: trip.total_seats || 0,
+        amenities: trip.bus?.amenities || [],
+        rating: 4.5,
+        status: (trip.status || 'scheduled') as 'scheduled' | 'active' | 'completed' | 'cancelled',
+        driverName: trip.driver_name || 'N/A',
+        busPlate: trip.bus?.license_plate || 'N/A',
+        createdAt: new Date(trip.created_at),
+        updatedAt: new Date(trip.updated_at),
+      }));
+      
+      setTrips(transformedTrips);
+    } catch (error) {
+      console.error('Failed to fetch trips:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter trips based on search and status
   const filteredTrips = trips.filter(trip => {
@@ -456,6 +503,13 @@ export const TripScheduler: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => setViewingTripSeats(trip)}
+                        className="text-green-600 hover:text-green-800 p-1 rounded"
+                        title="View Seats"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => openModal(trip)}
                         className="text-blue-600 hover:text-blue-800 p-1 rounded"
                         title="Edit Trip"
@@ -476,7 +530,14 @@ export const TripScheduler: React.FC = () => {
             </tbody>
           </table>
           
-          {filteredTrips.length === 0 && (
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading trips...</p>
+            </div>
+          )}
+          
+          {!isLoading && filteredTrips.length === 0 && (
             <div className="text-center py-8">
               <Bus className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">No trips found matching your criteria.</p>
@@ -744,6 +805,21 @@ export const TripScheduler: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Seat Viewer Modal */}
+      {viewingTripSeats && (
+        <TripSeatViewer
+          tripId={viewingTripSeats.id}
+          tripInfo={{
+            from: viewingTripSeats.from,
+            to: viewingTripSeats.to,
+            departure: viewingTripSeats.departure,
+            date: viewingTripSeats.date,
+            busType: viewingTripSeats.busType,
+          }}
+          onClose={() => setViewingTripSeats(null)}
+        />
       )}
     </div>
   );

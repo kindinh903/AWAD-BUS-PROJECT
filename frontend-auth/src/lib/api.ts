@@ -132,6 +132,8 @@ export interface TripSearchParams {
 export const tripAPI = {
   search: (params: TripSearchParams) =>
     api.get('/trips/search', { params }),
+  getSeats: (tripId: string) =>
+    api.get(`/trips/${tripId}/seats`),
   getAvailableSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
   getById: (tripId: string) =>

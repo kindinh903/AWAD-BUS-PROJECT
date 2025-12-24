@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Users,
   DollarSign,
@@ -10,7 +10,7 @@ import {
   Grid,
   Bus,
 } from 'lucide-react';
-import { adminSummaryCards, mockActivities } from '../lib/mockData';
+import { analyticsAPI } from '../lib/api';
 import { TripScheduler } from './TripScheduler';
 import { SeatMapList } from './SeatMapList';
 import { SeatMapEditor } from './SeatMapEditor';
@@ -19,34 +19,80 @@ interface AdminDashboardProps {
   user: any;
 }
 
+interface DashboardData {
+  total_bookings: number;
+  total_revenue: number;
+  active_users: number;
+  system_status: string;
+  booking_change?: number;
+  revenue_change?: number;
+  users_change?: number;
+}
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
-  const [summaryData, setSummaryData] = useState(adminSummaryCards);
-  const [activities] = useState(mockActivities.slice(0, 6));
-  const [isLoading, setIsLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
   
   // Seat map editor state
   const [editingSeatMapId, setEditingSeatMapId] = useState<string | null>(null);
   const [isCreatingSeatMap, setIsCreatingSeatMap] = useState(false);
 
-  // Simulate data refresh
-  const refreshData = async () => {
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Update some values randomly
-    const updatedData = summaryData.map(card => ({
-      ...card,
-      value:
-        typeof card.value === 'number'
-          ? Math.floor(card.value + Math.random() * 100 - 50)
-          : card.value,
-      change: card.change ? Math.random() * 20 - 10 : undefined,
-    }));
-
-    setSummaryData(updatedData);
-    setIsLoading(false);
+    try {
+      const dashboardResponse = await analyticsAPI.getDashboard();
+      setDashboardData(dashboardResponse.data.dashboard);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const refreshData = () => {
+    fetchDashboardData();
+  };
+
+  // Transform API data to display format
+  const summaryData = dashboardData ? [
+    {
+      id: 'total-bookings',
+      title: 'Total Bookings',
+      value: dashboardData.total_bookings || 0,
+      change: dashboardData.booking_change,
+      icon: '📅',
+      color: 'blue' as const,
+    },
+    {
+      id: 'revenue',
+      title: 'Revenue',
+      value: `${(dashboardData.total_revenue / 1000).toFixed(1)}K VND`,
+      change: dashboardData.revenue_change,
+      icon: '💰',
+      color: 'green' as const,
+    },
+    {
+      id: 'active-users',
+      title: 'Active Users',
+      value: dashboardData.active_users || 0,
+      change: dashboardData.users_change,
+      icon: '👥',
+      color: 'orange' as const,
+    },
+    {
+      id: 'system-status',
+      title: 'System Status',
+      value: dashboardData.system_status || 'Healthy',
+      icon: '✅',
+      color: 'green' as const,
+    },
+  ] : [];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -162,67 +208,50 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Activity className="h-6 w-6 text-blue-600" />
-            Recent Activities
+            System Overview
           </h2>
-          <div className="space-y-3">
-            {activities.map(activity => {
-              const statusColors = {
-                success: 'bg-green-50 border-green-200 text-green-800',
-                pending: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-                failed: 'bg-red-50 border-red-200 text-red-800',
-              };
-
-              const typeIcons = {
-                booking: '📅',
-                payment: '💰',
-                cancellation: '❌',
-                registration: '👤',
-              };
-
-              return (
-                <div
-                  key={activity.id}
-                  className={`p-4 rounded-lg border ${statusColors[activity.status]}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg">{typeIcons[activity.type]}</span>
-                      <div>
-                        <div className="font-semibold">
-                          {activity.description}
-                        </div>
-                        <div className="text-sm opacity-75">
-                          by {activity.user}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm">
-                        {activity.timestamp.toLocaleTimeString()}
-                      </div>
-                      <div
-                        className={`text-xs px-2 py-1 rounded-full mt-1 ${
-                          activity.status === 'success'
-                            ? 'bg-green-100 text-green-800'
-                            : activity.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {activity.status}
-                      </div>
-                    </div>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+              <p className="text-gray-500 mt-2">Loading data...</p>
+            </div>
+          ) : dashboardData ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                  <div className="text-sm text-gray-600 mb-1">Today's Bookings</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {dashboardData.bookings_today || 0}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 text-center">
-            <button className="text-blue-600 hover:text-blue-800 font-medium">
-              View All Activities
-            </button>
-          </div>
+                <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                  <div className="text-sm text-gray-600 mb-1">Today's Revenue</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {((dashboardData.revenue_today || 0) / 1000).toFixed(0)}K VND
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                  <div className="text-sm text-gray-600 mb-1">Active Routes</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {dashboardData.active_routes || 0}
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+                  <div className="text-sm text-gray-600 mb-1">Avg Occupancy</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {dashboardData.avg_occupancy_rate?.toFixed(1) || 0}%
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6 text-center text-sm text-gray-500">
+                Showing real-time analytics from database
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No data available
+            </div>
+          )}
         </div>
       )}
 

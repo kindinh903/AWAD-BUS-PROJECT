@@ -15,7 +15,7 @@ import (
 // SeedData creates default admin and user accounts, and sample buses, routes, and trips
 func SeedData(db *gorm.DB) error {
 	ctx := context.Background()
-	
+
 	// Check if admin user already exists
 	var adminCount int64
 	db.Model(&entities.User{}).Where("role = ?", entities.RoleAdmin).Count(&adminCount)
@@ -74,7 +74,7 @@ func SeedData(db *gorm.DB) error {
 	// Seed Seat Maps first (needed for buses)
 	var seatMapCount int64
 	db.Model(&entities.SeatMap{}).Count(&seatMapCount)
-	
+
 	var seatMaps []entities.SeatMap
 	if seatMapCount == 0 {
 		seatMaps = []entities.SeatMap{
@@ -120,7 +120,7 @@ func SeedData(db *gorm.DB) error {
 			if err := db.WithContext(ctx).Create(&seatMaps[i]).Error; err != nil {
 				return err
 			}
-			
+
 			// Generate seats for each seat map
 			seats := generateSeatsForMap(&seatMaps[i])
 			for _, seat := range seats {
@@ -138,7 +138,7 @@ func SeedData(db *gorm.DB) error {
 	// Seed Buses
 	var busCount int64
 	db.Model(&entities.Bus{}).Count(&busCount)
-	
+
 	var buses []entities.Bus
 	if busCount == 0 {
 		// Get seat map IDs
@@ -155,6 +155,7 @@ func SeedData(db *gorm.DB) error {
 		}
 
 		buses = []entities.Bus{
+			// VIP Buses
 			{
 				ID:          uuid.New(),
 				Name:        "VIP Express 01",
@@ -162,28 +163,6 @@ func SeedData(db *gorm.DB) error {
 				TotalSeats:  32,
 				BusType:     "VIP",
 				SeatMapID:   vipMapID,
-				Status:      entities.BusStatusActive,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
-			},
-			{
-				ID:          uuid.New(),
-				Name:        "Standard Bus A1",
-				PlateNumber: "30A-456.78",
-				TotalSeats:  40,
-				BusType:     "Standard",
-				SeatMapID:   standardMapID,
-				Status:      entities.BusStatusActive,
-				CreatedAt:   time.Now(),
-				UpdatedAt:   time.Now(),
-			},
-			{
-				ID:          uuid.New(),
-				Name:        "Sleeper Luxury 05",
-				PlateNumber: "51C-789.01",
-				TotalSeats:  24,
-				BusType:     "Sleeper",
-				SeatMapID:   sleeperMapID,
 				Status:      entities.BusStatusActive,
 				CreatedAt:   time.Now(),
 				UpdatedAt:   time.Now(),
@@ -201,11 +180,112 @@ func SeedData(db *gorm.DB) error {
 			},
 			{
 				ID:          uuid.New(),
-				Name:        "Standard Bus B2",
-				PlateNumber: "51D-345.67",
+				Name:        "VIP Express 03",
+				PlateNumber: "29B-345.67",
+				TotalSeats:  32,
+				BusType:     "VIP",
+				SeatMapID:   vipMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "VIP Express 04",
+				PlateNumber: "51D-456.78",
+				TotalSeats:  32,
+				BusType:     "VIP",
+				SeatMapID:   vipMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			// Standard Buses
+			{
+				ID:          uuid.New(),
+				Name:        "Standard Bus A1",
+				PlateNumber: "30A-111.11",
 				TotalSeats:  40,
 				BusType:     "Standard",
 				SeatMapID:   standardMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Standard Bus A2",
+				PlateNumber: "30A-222.22",
+				TotalSeats:  40,
+				BusType:     "Standard",
+				SeatMapID:   standardMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Standard Bus B1",
+				PlateNumber: "51D-333.33",
+				TotalSeats:  40,
+				BusType:     "Standard",
+				SeatMapID:   standardMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Standard Bus B2",
+				PlateNumber: "51D-444.44",
+				TotalSeats:  40,
+				BusType:     "Standard",
+				SeatMapID:   standardMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Standard Bus C1",
+				PlateNumber: "30A-555.55",
+				TotalSeats:  40,
+				BusType:     "Standard",
+				SeatMapID:   standardMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			// Sleeper Buses
+			{
+				ID:          uuid.New(),
+				Name:        "Sleeper Luxury 01",
+				PlateNumber: "51C-111.11",
+				TotalSeats:  24,
+				BusType:     "Sleeper",
+				SeatMapID:   sleeperMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Sleeper Luxury 02",
+				PlateNumber: "51C-222.22",
+				TotalSeats:  24,
+				BusType:     "Sleeper",
+				SeatMapID:   sleeperMapID,
+				Status:      entities.BusStatusActive,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Sleeper Luxury 03",
+				PlateNumber: "29B-333.33",
+				TotalSeats:  24,
+				BusType:     "Sleeper",
+				SeatMapID:   sleeperMapID,
 				Status:      entities.BusStatusActive,
 				CreatedAt:   time.Now(),
 				UpdatedAt:   time.Now(),
@@ -225,36 +305,27 @@ func SeedData(db *gorm.DB) error {
 	// Seed Routes with VND prices
 	var routeCount int64
 	db.Model(&entities.Route{}).Count(&routeCount)
-	
+
 	var routes []entities.Route
 	if routeCount == 0 {
 		routes = []entities.Route{
+			// Ho Chi Minh City routes
+			{
+				ID:              uuid.New(),
+				Origin:          "Ho Chi Minh City",
+				Destination:     "Hanoi",
+				DurationMinutes: 1920,   // 32 hours
+				BasePrice:       800000, // 800,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
 			{
 				ID:              uuid.New(),
 				Origin:          "Ho Chi Minh City",
 				Destination:     "Da Nang",
-				DurationMinutes: 720, // 12 hours
-				BasePrice:       5000, // 350,000 VND
-				IsActive:        true,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
-			},
-			{
-				ID:              uuid.New(),
-				Origin:          "Hanoi",
-				Destination:     "Hai Phong",
-				DurationMinutes: 150, // 2.5 hours
-				BasePrice:       120000, // 120,000 VND
-				IsActive:        true,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
-			},
-			{
-				ID:              uuid.New(),
-				Origin:          "Da Nang",
-				Destination:     "Hue",
-				DurationMinutes: 180, // 3 hours
-				BasePrice:       80000, // 80,000 VND
+				DurationMinutes: 720,    // 12 hours
+				BasePrice:       350000, // 350,000 VND
 				IsActive:        true,
 				CreatedAt:       time.Now(),
 				UpdatedAt:       time.Now(),
@@ -263,18 +334,8 @@ func SeedData(db *gorm.DB) error {
 				ID:              uuid.New(),
 				Origin:          "Ho Chi Minh City",
 				Destination:     "Vung Tau",
-				DurationMinutes: 120, // 2 hours
+				DurationMinutes: 120,   // 2 hours
 				BasePrice:       90000, // 90,000 VND
-				IsActive:        true,
-				CreatedAt:       time.Now(),
-				UpdatedAt:       time.Now(),
-			},
-			{
-				ID:              uuid.New(),
-				Origin:          "Hanoi",
-				Destination:     "Ha Long",
-				DurationMinutes: 240, // 4 hours
-				BasePrice:       150000, // 150,000 VND
 				IsActive:        true,
 				CreatedAt:       time.Now(),
 				UpdatedAt:       time.Now(),
@@ -283,7 +344,7 @@ func SeedData(db *gorm.DB) error {
 				ID:              uuid.New(),
 				Origin:          "Ho Chi Minh City",
 				Destination:     "Can Tho",
-				DurationMinutes: 210, // 3.5 hours
+				DurationMinutes: 210,    // 3.5 hours
 				BasePrice:       130000, // 130,000 VND
 				IsActive:        true,
 				CreatedAt:       time.Now(),
@@ -293,7 +354,7 @@ func SeedData(db *gorm.DB) error {
 				ID:              uuid.New(),
 				Origin:          "Ho Chi Minh City",
 				Destination:     "Da Lat",
-				DurationMinutes: 420, // 7 hours
+				DurationMinutes: 420,    // 7 hours
 				BasePrice:       200000, // 200,000 VND
 				IsActive:        true,
 				CreatedAt:       time.Now(),
@@ -303,8 +364,181 @@ func SeedData(db *gorm.DB) error {
 				ID:              uuid.New(),
 				Origin:          "Ho Chi Minh City",
 				Destination:     "Nha Trang",
-				DurationMinutes: 540, // 9 hours
+				DurationMinutes: 540,    // 9 hours
 				BasePrice:       280000, // 280,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Ho Chi Minh City",
+				Destination:     "Phan Thiet",
+				DurationMinutes: 270,    // 4.5 hours
+				BasePrice:       160000, // 160,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Ho Chi Minh City",
+				Destination:     "Mui Ne",
+				DurationMinutes: 300,    // 5 hours
+				BasePrice:       180000, // 180,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			// Hanoi routes
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Ho Chi Minh City",
+				DurationMinutes: 1920,   // 32 hours
+				BasePrice:       800000, // 800,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Da Nang",
+				DurationMinutes: 900,    // 15 hours
+				BasePrice:       450000, // 450,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Hai Phong",
+				DurationMinutes: 150,    // 2.5 hours
+				BasePrice:       120000, // 120,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Ha Long",
+				DurationMinutes: 240,    // 4 hours
+				BasePrice:       150000, // 150,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Sapa",
+				DurationMinutes: 420,    // 7 hours
+				BasePrice:       250000, // 250,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Ninh Binh",
+				DurationMinutes: 180,    // 3 hours
+				BasePrice:       110000, // 110,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hanoi",
+				Destination:     "Hue",
+				DurationMinutes: 780,    // 13 hours
+				BasePrice:       400000, // 400,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			// Da Nang routes
+			{
+				ID:              uuid.New(),
+				Origin:          "Da Nang",
+				Destination:     "Hanoi",
+				DurationMinutes: 900,    // 15 hours
+				BasePrice:       450000, // 450,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Da Nang",
+				Destination:     "Ho Chi Minh City",
+				DurationMinutes: 720,    // 12 hours
+				BasePrice:       350000, // 350,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Da Nang",
+				Destination:     "Hue",
+				DurationMinutes: 180,   // 3 hours
+				BasePrice:       80000, // 80,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Da Nang",
+				Destination:     "Hoi An",
+				DurationMinutes: 45,    // 45 min
+				BasePrice:       50000, // 50,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Da Nang",
+				Destination:     "Nha Trang",
+				DurationMinutes: 600,    // 10 hours
+				BasePrice:       300000, // 300,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			// Additional popular routes
+			{
+				ID:              uuid.New(),
+				Origin:          "Nha Trang",
+				Destination:     "Da Lat",
+				DurationMinutes: 240,    // 4 hours
+				BasePrice:       180000, // 180,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Hue",
+				Destination:     "Hoi An",
+				DurationMinutes: 210,    // 3.5 hours
+				BasePrice:       100000, // 100,000 VND
+				IsActive:        true,
+				CreatedAt:       time.Now(),
+				UpdatedAt:       time.Now(),
+			},
+			{
+				ID:              uuid.New(),
+				Origin:          "Can Tho",
+				Destination:     "Phu Quoc",
+				DurationMinutes: 360,    // 6 hours
+				BasePrice:       220000, // 220,000 VND
 				IsActive:        true,
 				CreatedAt:       time.Now(),
 				UpdatedAt:       time.Now(),
@@ -333,24 +567,24 @@ func SeedData(db *gorm.DB) error {
 		// Create trips for today, tomorrow, and next week
 		now := time.Now()
 		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-		
+
 		var trips []entities.Trip
-		
+
 		// Create multiple trips per route
 		departureHours := []int{6, 8, 10, 14, 18, 22} // Different departure times
-		
+
 		for _, route := range routes {
 			for dayOffset := 0; dayOffset <= 7; dayOffset++ {
 				tripDate := today.AddDate(0, 0, dayOffset)
-				
+
 				for i, hour := range departureHours {
 					// Assign buses in rotation
 					busIndex := (i + dayOffset) % len(buses)
 					busID := buses[busIndex].ID
-					
+
 					startTime := tripDate.Add(time.Duration(hour) * time.Hour)
 					endTime := startTime.Add(time.Duration(route.DurationMinutes) * time.Minute)
-					
+
 					// Add price variation based on bus type
 					priceMultiplier := 1.0
 					switch buses[busIndex].BusType {
@@ -359,7 +593,7 @@ func SeedData(db *gorm.DB) error {
 					case "Sleeper":
 						priceMultiplier = 2.0
 					}
-					
+
 					trip := entities.Trip{
 						ID:        uuid.New(),
 						RouteID:   route.ID,
@@ -389,7 +623,7 @@ func SeedData(db *gorm.DB) error {
 	db.Model(&entities.RouteStop{}).Count(&routeStopCount)
 	if routeStopCount == 0 && len(routes) > 0 {
 		routeStops := []entities.RouteStop{}
-		
+
 		for _, route := range routes {
 			// Add pickup and dropoff stops for each route
 			routeStops = append(routeStops, entities.RouteStop{
@@ -455,7 +689,7 @@ func generateSeatsForMap(sm *entities.SeatMap) []*entities.Seat {
 			// Determine seat type and price multiplier
 			seatType := entities.SeatTypeStandard
 			priceMultiplier := 1.0
-			
+
 			// First row gets premium pricing
 			if row == 1 {
 				seatType = entities.SeatTypeVIP

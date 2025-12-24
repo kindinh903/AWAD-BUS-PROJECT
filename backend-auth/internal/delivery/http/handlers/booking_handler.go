@@ -395,13 +395,13 @@ func (h *BookingHandler) GetGuestBookings(c *gin.Context) {
 // @Tags Booking
 // @Accept json
 // @Produce json
-// @Param trip_id path string true "Trip ID"
+// @Param id path string true "Trip ID"
 // @Success 200 {object} SuccessResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
-// @Router /trips/{trip_id}/seats [get]
+// @Router /trips/{id}/seats [get]
 func (h *BookingHandler) GetAvailableSeats(c *gin.Context) {
-	tripIDStr := c.Param("trip_id")
+	tripIDStr := c.Param("id")
 	tripID, err := uuid.Parse(tripIDStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Invalid trip ID"})
