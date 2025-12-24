@@ -20,13 +20,29 @@ interface AdminDashboardProps {
 }
 
 interface DashboardData {
-  total_bookings: number;
-  total_revenue: number;
-  active_users: number;
-  system_status: string;
-  booking_change?: number;
-  revenue_change?: number;
-  users_change?: number;
+  today: {
+    total_bookings: number;
+    confirmed_bookings: number;
+    total_revenue: number;
+  };
+  this_week: {
+    total_bookings: number;
+    confirmed_bookings: number;
+    total_revenue: number;
+  };
+  this_month: {
+    total_bookings: number;
+    confirmed_bookings: number;
+    total_revenue: number;
+    conversion_rate: number;
+  };
+  top_routes: Array<{
+    route_id: string;
+    origin: string;
+    destination: string;
+    total_bookings: number;
+    total_revenue: number;
+  }>;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
@@ -43,7 +59,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     setIsLoading(true);
     try {
       const dashboardResponse = await analyticsAPI.getDashboard();
-      setDashboardData(dashboardResponse.data.dashboard);
+      console.log('Dashboard API response:', dashboardResponse.data);
+      setDashboardData(dashboardResponse.data.dashboard || dashboardResponse.data);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -64,31 +81,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     {
       id: 'total-bookings',
       title: 'Total Bookings',
-      value: dashboardData.total_bookings || 0,
-      change: dashboardData.booking_change,
+      value: dashboardData.this_month?.total_bookings || 0,
+      change: undefined,
       icon: '📅',
       color: 'blue' as const,
     },
     {
       id: 'revenue',
       title: 'Revenue',
-      value: `${(dashboardData.total_revenue / 1000).toFixed(1)}K VND`,
-      change: dashboardData.revenue_change,
+      value: `${((dashboardData.this_month?.total_revenue || 0) / 1000000).toFixed(1)}M VND`,
+      change: undefined,
       icon: '💰',
       color: 'green' as const,
     },
     {
       id: 'active-users',
       title: 'Active Users',
-      value: dashboardData.active_users || 0,
-      change: dashboardData.users_change,
+      value: 0, // Not in API
+      change: undefined,
       icon: '👥',
       color: 'orange' as const,
     },
     {
       id: 'system-status',
       title: 'System Status',
-      value: dashboardData.system_status || 'Healthy',
+      value: 'Healthy',
       icon: '✅',
       color: 'green' as const,
     },
@@ -221,28 +238,66 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                   <div className="text-sm text-gray-600 mb-1">Today's Bookings</div>
                   <div className="text-2xl font-bold text-blue-600">
-                    {dashboardData.bookings_today || 0}
+                    {dashboardData.today?.total_bookings || 0}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {dashboardData.today?.confirmed_bookings || 0} confirmed
                   </div>
                 </div>
                 <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
                   <div className="text-sm text-gray-600 mb-1">Today's Revenue</div>
                   <div className="text-2xl font-bold text-green-600">
-                    {((dashboardData.revenue_today || 0) / 1000).toFixed(0)}K VND
+                    {((dashboardData.today?.total_revenue || 0) / 1000000).toFixed(2)}M VND
                   </div>
                 </div>
                 <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
-                  <div className="text-sm text-gray-600 mb-1">Active Routes</div>
+                  <div className="text-sm text-gray-600 mb-1">This Month's Bookings</div>
                   <div className="text-2xl font-bold text-purple-600">
-                    {dashboardData.active_routes || 0}
+                    {dashboardData.this_month?.total_bookings || 0}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Conversion: {(dashboardData.this_month?.conversion_rate || 0).toFixed(1)}%
                   </div>
                 </div>
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
-                  <div className="text-sm text-gray-600 mb-1">Avg Occupancy</div>
+                  <div className="text-sm text-gray-600 mb-1">This Month's Revenue</div>
                   <div className="text-2xl font-bold text-orange-600">
-                    {dashboardData.avg_occupancy_rate?.toFixed(1) || 0}%
+                    {((dashboardData.this_month?.total_revenue || 0) / 1000000).toFixed(2)}M VND
                   </div>
                 </div>
               </div>
+              
+              {/* Top Routes */}
+              {dashboardData.top_routes && dashboardData.top_routes.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Top Routes This Month</h3>
+                  <div className="space-y-2">
+                    {dashboardData.top_routes.map((route, idx) => (
+                      <div key={route.route_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-semibold text-sm">
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {route.origin} → {route.destination}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {route.total_bookings} bookings
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-green-600">
+                            {(route.total_revenue / 1000000).toFixed(2)}M ₫
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="mt-6 text-center text-sm text-gray-500">
                 Showing real-time analytics from database
               </div>
