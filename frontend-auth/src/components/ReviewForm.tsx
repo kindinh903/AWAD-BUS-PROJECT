@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Star, Send, X } from 'lucide-react';
+import StarIcon from '@mui/icons-material/Star';
+import SendIcon from '@mui/icons-material/Send';
+import CloseIcon from '@mui/icons-material/Close';
 import { reviewAPI } from '../lib/api';
 
 interface ReviewFormProps {
@@ -48,7 +50,7 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                 <h3 className="text-lg font-semibold">Write a Review</h3>
                 {onCancel && (
                     <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
-                        <X className="h-5 w-5" />
+                        <CloseIcon sx={{ fontSize: 20 }} />
                     </button>
                 )}
             </div>
@@ -74,8 +76,9 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                             onMouseLeave={() => setHoverRating(0)}
                             className="focus:outline-none transition-transform hover:scale-110"
                         >
-                            <Star
-                                className={`h-8 w-8 ${star <= (hoverRating || rating)
+                            <StarIcon
+                                sx={{ fontSize: 32 }}
+                                className={`${star <= (hoverRating || rating)
                                         ? 'fill-yellow-400 text-yellow-400'
                                         : 'text-gray-300'
                                     }`}
@@ -143,7 +146,7 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                         </>
                     ) : (
                         <>
-                            <Send className="h-4 w-4" />
+                            <SendIcon sx={{ fontSize: 16 }} />
                             Submit Review
                         </>
                     )}

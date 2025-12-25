@@ -3,7 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { authAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
-import { Loader2, Mail, Lock, User, Phone, UserPlus } from 'lucide-react';
+import CircularProgress from '@mui/material/CircularProgress';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import PersonIcon from '@mui/icons-material/Person';
+import PhoneIcon from '@mui/icons-material/Phone';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { GoogleLoginButton } from '../components/GoogleLoginButton';
 
 export default function RegisterPage() {
@@ -130,7 +135,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400" />
+                  <PersonIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="name"
@@ -157,7 +162,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <EmailIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="email"
@@ -184,7 +189,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-gray-400" />
+                  <PhoneIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="phone"
@@ -210,7 +215,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="password"
@@ -237,7 +242,7 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -287,12 +292,12 @@ export default function RegisterPage() {
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <CircularProgress size={20} sx={{ mr: 1 }} className="text-white" />
                   Creating account...
                 </>
               ) : (
                 <>
-                  <UserPlus className="h-5 w-5 mr-2" />
+                  <PersonAddIcon sx={{ fontSize: 20, mr: 1 }} />
                   Create account
                 </>
               )}

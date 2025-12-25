@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import Chatbot from './Chatbot';
+import { PageTransition } from './PageTransition';
 import { authEvents } from '../lib/api';
 
 export default function Layout() {
@@ -23,7 +24,9 @@ export default function Layout() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1">
-        <Outlet />
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
       </main>
       <Footer />
       <Chatbot />

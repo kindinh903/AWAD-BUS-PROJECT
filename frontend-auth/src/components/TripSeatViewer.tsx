@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Users, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
+import CloseIcon from '@mui/icons-material/Close';
+import PeopleIcon from '@mui/icons-material/People';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CancelIcon from '@mui/icons-material/Cancel';
+import ErrorIcon from '@mui/icons-material/Error';
 import { tripAPI } from '../lib/api';
 
 interface Seat {
@@ -86,13 +91,13 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
     }
     switch (seat.status) {
       case 'available':
-        return <CheckCircle className="h-3 w-3 text-green-600" />;
+        return <CheckCircleIcon sx={{ fontSize: 12 }} className="text-green-600" />;
       case 'booked':
-        return <XCircle className="h-3 w-3 text-red-600" />;
+        return <CancelIcon sx={{ fontSize: 12 }} className="text-red-600" />;
       case 'reserved':
-        return <Clock className="h-3 w-3 text-yellow-600" />;
+        return <AccessTimeIcon sx={{ fontSize: 12 }} className="text-yellow-600" />;
       case 'unavailable':
-        return <AlertCircle className="h-3 w-3 text-gray-600" />;
+        return <ErrorIcon sx={{ fontSize: 12 }} className="text-gray-600" />;
       default:
         return null;
     }
@@ -131,7 +136,7 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
               onClick={onClose}
               className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
             >
-              <X className="h-6 w-6" />
+              <CloseIcon sx={{ fontSize: 24 }} />
             </button>
           </div>
 
@@ -165,7 +170,7 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+              <ErrorIcon sx={{ fontSize: 48 }} className="text-red-500 mx-auto mb-4" />
               <p className="text-red-600">{error}</p>
               <button
                 onClick={fetchSeats}
@@ -271,7 +276,7 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
         {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 border-t flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            <Users className="inline h-4 w-4 mr-1" />
+            <PeopleIcon sx={{ fontSize: 16, mr: 0.5 }} className="inline" />
             Occupancy: {stats.total > 0 ? ((stats.booked / stats.total) * 100).toFixed(1) : 0}%
           </div>
           <button

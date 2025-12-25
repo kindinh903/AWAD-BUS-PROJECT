@@ -1,4 +1,5 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import { SummaryCard as SummaryCardType } from '../lib/mockData';
 
 interface SummaryCardsProps {
@@ -71,9 +72,9 @@ export default function SummaryCards({ cards }: SummaryCardsProps) {
                 }`}
               >
                 {card.change >= 0 ? (
-                  <TrendingUp size={16} />
+                  <TrendingUpIcon sx={{ fontSize: 16 }} />
                 ) : (
-                  <TrendingDown size={16} />
+                  <TrendingDownIcon sx={{ fontSize: 16 }} />
                 )}
                 {Math.abs(card.change)}%
               </div>

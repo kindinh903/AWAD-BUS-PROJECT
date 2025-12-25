@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
-import {
-    Calendar, Clock, Ticket, ChevronDown, ChevronUp,
-    Star, CheckCircle, XCircle, AlertCircle, Users, Download
-} from 'lucide-react';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import StarIcon from '@mui/icons-material/Star';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import ErrorIcon from '@mui/icons-material/Error';
+import PeopleIcon from '@mui/icons-material/People';
+import DownloadIcon from '@mui/icons-material/Download';
 import { bookingAPI, reviewAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
 import ReviewForm from '../components/ReviewForm';
@@ -148,10 +155,10 @@ export default function BookingHistoryPage() {
 
     const getStatusIcon = (status: string) => {
         switch (status.toLowerCase()) {
-            case 'confirmed': return <CheckCircle className="h-4 w-4" />;
-            case 'pending': return <AlertCircle className="h-4 w-4" />;
-            case 'cancelled': return <XCircle className="h-4 w-4" />;
-            case 'completed': return <CheckCircle className="h-4 w-4" />;
+            case 'confirmed': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+            case 'pending': return <ErrorIcon sx={{ fontSize: 16 }} />;
+            case 'cancelled': return <CancelIcon sx={{ fontSize: 16 }} />;
+            case 'completed': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
             default: return null;
         }
     };
@@ -176,7 +183,7 @@ export default function BookingHistoryPage() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
-                    <Users className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                    <PeopleIcon sx={{ fontSize: 64 }} className="mx-auto mb-4 text-gray-300" />
                     <h2 className="text-xl font-semibold text-gray-700 mb-2">Sign In Required</h2>
                     <p className="text-gray-500">Please sign in to view your booking history</p>
                 </div>
@@ -207,7 +214,7 @@ export default function BookingHistoryPage() {
                 {/* Bookings List */}
                 {bookings.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                        <Ticket className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                        <ConfirmationNumberIcon sx={{ fontSize: 64 }} className="mx-auto mb-4 text-gray-300" />
                         <h3 className="text-lg font-medium text-gray-700 mb-2">No Bookings Yet</h3>
                         <p className="text-gray-500">
                             You haven't made any bookings yet. Start exploring our routes!
@@ -235,23 +242,23 @@ export default function BookingHistoryPage() {
                                             </div>
                                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                                                 <span className="flex items-center gap-1">
-                                                    <Ticket className="h-4 w-4" />
+                                                    <ConfirmationNumberIcon sx={{ fontSize: 16 }} />
                                                     {booking.booking_reference}
                                                 </span>
                                                 {booking.trip?.start_time && (
                                                     <>
                                                         <span className="flex items-center gap-1">
-                                                            <Calendar className="h-4 w-4" />
+                                                            <CalendarTodayIcon sx={{ fontSize: 16 }} />
                                                             {formatDate(booking.trip.start_time)}
                                                         </span>
                                                         <span className="flex items-center gap-1">
-                                                            <Clock className="h-4 w-4" />
+                                                            <AccessTimeIcon sx={{ fontSize: 16 }} />
                                                             {formatTime(booking.trip.start_time)}
                                                         </span>
                                                     </>
                                                 )}
                                                 <span className="flex items-center gap-1">
-                                                    <Users className="h-4 w-4" />
+                                                    <PeopleIcon sx={{ fontSize: 16 }} />
                                                     {booking.total_seats} seat(s)
                                                 </span>
                                             </div>
@@ -261,9 +268,9 @@ export default function BookingHistoryPage() {
                                                 ${booking.total_amount?.toFixed(2)}
                                             </span>
                                             {expandedBookings.has(booking.id) ? (
-                                                <ChevronUp className="h-5 w-5 text-gray-400" />
+                                                <ExpandLessIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                                             ) : (
-                                                <ChevronDown className="h-5 w-5 text-gray-400" />
+                                                <ExpandMoreIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                                             )}
                                         </div>
                                     </div>
@@ -302,7 +309,7 @@ export default function BookingHistoryPage() {
                                                     }}
                                                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                                                 >
-                                                    <Download className="h-4 w-4" />
+                                                    <DownloadIcon sx={{ fontSize: 16 }} />
                                                     Download Tickets
                                                 </button>
                                             )}
@@ -310,7 +317,7 @@ export default function BookingHistoryPage() {
                                             {/* Review Section */}
                                             {hasReview(booking.id) ? (
                                                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                                                    <StarIcon sx={{ fontSize: 16 }} className="text-yellow-500 fill-yellow-500" />
                                                     <span>Your rating: {getBookingReview(booking.id)?.rating}/5</span>
                                                 </div>
                                             ) : canReview(booking) && isTripCompleted(booking) ? (
@@ -321,7 +328,7 @@ export default function BookingHistoryPage() {
                                                     }}
                                                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600"
                                                 >
-                                                    <Star className="h-4 w-4" />
+                                                    <StarIcon sx={{ fontSize: 16 }} />
                                                     Write Review
                                                 </button>
                                             ) : null}

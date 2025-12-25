@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, User, Key } from 'lucide-react';
+import ShieldIcon from '@mui/icons-material/Shield';
+import PersonIcon from '@mui/icons-material/Person';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 
 export const DemoAccounts: React.FC = () => {
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
       <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-        <Key className="h-5 w-5" />
+        <VpnKeyIcon sx={{ fontSize: 20 }} />
         Demo Accounts
       </h3>
       <p className="text-blue-700 mb-4 text-sm">
@@ -17,7 +19,7 @@ export const DemoAccounts: React.FC = () => {
         {/* Admin Account */}
         <div className="bg-white border border-red-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Shield className="h-5 w-5 text-red-600" />
+            <ShieldIcon sx={{ fontSize: 20 }} className="text-red-600" />
             <span className="font-semibold text-red-700">Admin Account</span>
           </div>
           <div className="text-sm space-y-1">
@@ -39,7 +41,7 @@ export const DemoAccounts: React.FC = () => {
         {/* User Account */}
         <div className="bg-white border border-blue-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
-            <User className="h-5 w-5 text-blue-600" />
+            <PersonIcon sx={{ fontSize: 20 }} className="text-blue-600" />
             <span className="font-semibold text-blue-700">User Account</span>
           </div>
           <div className="text-sm space-y-1">

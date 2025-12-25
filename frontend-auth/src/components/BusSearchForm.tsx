@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  Search,
-  MapPin,
-  Navigation,
-  Calendar,
-  ArrowRight,
-  Clock,
-} from 'lucide-react';
+import SearchIcon from '@mui/icons-material/Search';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ExploreIcon from '@mui/icons-material/Explore';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import PeopleIcon from '@mui/icons-material/People';
 
 // Vietnam cities for autocomplete
 const vietnameseCities = [
@@ -248,7 +246,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
     <div className={`bg-white rounded-2xl shadow-2xl p-8 ${className}`}>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-          <Search className="h-6 w-6 text-blue-600" />
+          <SearchIcon sx={{ fontSize: 24 }} className="text-blue-600" />
           Find Your Perfect Bus Trip
         </h2>
         <p className="text-gray-600">
@@ -265,7 +263,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
               Departure City
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
+              <LocationOnIcon sx={{ fontSize: 20 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
               <input
                 ref={fromInputRef}
                 type="text"
@@ -300,7 +298,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
                         index === fromSuggestions.length - 1 ? 'rounded-b-xl' : ''
                       }`}
                     >
-                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <LocationOnIcon sx={{ fontSize: 16 }} className="text-gray-400" />
                       <span className="font-medium">{city}</span>
                     </div>
                   ))}
@@ -317,7 +315,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
               className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-colors border-4 border-white"
               title="Swap cities"
             >
-              <ArrowRight className="h-4 w-4 transform rotate-90 md:rotate-0" />
+              <ArrowForwardIcon sx={{ fontSize: 16 }} className="transform rotate-90 md:rotate-0" />
             </button>
           </div>
 
@@ -327,7 +325,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
               Destination City
             </label>
             <div className="relative">
-              <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
+              <ExploreIcon sx={{ fontSize: 20 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
               <input
                 ref={toInputRef}
                 type="text"
@@ -362,7 +360,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
                         index === toSuggestions.length - 1 ? 'rounded-b-xl' : ''
                       }`}
                     >
-                      <Navigation className="h-4 w-4 text-gray-400" />
+                      <ExploreIcon sx={{ fontSize: 16 }} className="text-gray-400" />
                       <span className="font-medium">{city}</span>
                     </div>
                   ))}
@@ -379,7 +377,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
               title="Swap cities"
             >
-              <ArrowRight className="h-4 w-4 transform rotate-90" />
+              <ArrowForwardIcon sx={{ fontSize: 16 }} className="transform rotate-90" />
               Swap
             </button>
           </div>
@@ -392,7 +390,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
               Departure Date
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <CalendarTodayIcon sx={{ fontSize: 20 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="date"
                 value={searchData.date}
@@ -408,7 +406,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
               Passengers
             </label>
             <div className="relative">
-              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <PeopleIcon sx={{ fontSize: 20 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <select
                 value={searchData.passengers}
                 onChange={(e) => setSearchData(prev => ({ ...prev, passengers: parseInt(e.target.value) }))}
@@ -429,7 +427,7 @@ export const BusSearchForm: React.FC<SearchFormProps> = ({
           type="submit"
           className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
         >
-          <Search className="h-5 w-5" />
+          <SearchIcon sx={{ fontSize: 20 }} />
           Search Buses
         </button>
       </form>

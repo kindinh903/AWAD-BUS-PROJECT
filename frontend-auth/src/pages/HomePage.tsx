@@ -1,10 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  Search, Calendar, Clock, Bus, Shield, Tag,
-  CreditCard, Headphones, ArrowRight, ChevronRight, Sparkles,
-  Users, Zap, Award, MapPin
-} from 'lucide-react';
+import SearchIcon from '@mui/icons-material/Search';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import ShieldIcon from '@mui/icons-material/Shield';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PeopleIcon from '@mui/icons-material/People';
+import BoltIcon from '@mui/icons-material/Bolt';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { Container, Section } from '../components/ui/Container';
+import { StaggerItem, StaggerGrid } from '../components/ui/Stagger';
+import { CardSkeleton } from '../components/ui/Skeleton';
 import { tripAPI } from '../lib/api';
 import { CityAutocomplete } from '../components/CityAutocomplete';
 
@@ -154,7 +170,7 @@ export default function HomePage() {
         <div className="relative container mx-auto px-4 py-16 md:py-24">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <Sparkles className="h-4 w-4 text-yellow-300" />
+              <AutoAwesomeIcon sx={{ fontSize: 16 }} className="text-yellow-300" />
               <span className="text-sm font-medium">Book your journey with confidence</span>
             </div>
 
@@ -188,7 +204,7 @@ export default function HomePage() {
                   darkMode
                 />
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <CalendarTodayIcon sx={{ fontSize: 20 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                   <input
                     type="date"
                     value={date}
@@ -196,28 +212,28 @@ export default function HomePage() {
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-                <button
+                <Button
                   type="submit"
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  size="lg"
+                  leftIcon={<SearchIcon sx={{ fontSize: 20 }} />}
                 >
-                  <Search className="h-5 w-5" />
                   Search
-                </button>
+                </Button>
               </div>
             </form>
 
             {/* Quick stats */}
             <div className="flex flex-wrap justify-center gap-8 mt-10 text-sm">
               <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-yellow-300" />
+                <PeopleIcon sx={{ fontSize: 20 }} className="text-yellow-300" />
                 <span>2M+ Happy Travelers</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-yellow-300" />
+                <LocationOnIcon sx={{ fontSize: 20 }} className="text-yellow-300" />
                 <span>500+ Destinations</span>
               </div>
               <div className="flex items-center gap-2">
-                <Bus className="h-5 w-5 text-yellow-300" />
+                <DirectionsBusIcon sx={{ fontSize: 20 }} className="text-yellow-300" />
                 <span>1000+ Daily Trips</span>
               </div>
             </div>
@@ -226,8 +242,8 @@ export default function HomePage() {
       </section>
 
       {/* Available Buses Today */}
-      <section className="py-16 bg-white dark:bg-gray-800">
-        <div className="container mx-auto px-4">
+      <Section background="default">
+        <Container>
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
@@ -239,78 +255,92 @@ export default function HomePage() {
             </div>
             <Link
               to="/routes"
-              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
             >
-              View All <ChevronRight className="h-4 w-4" />
+              View All <ChevronRightIcon sx={{ fontSize: 16 }} />
             </Link>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StaggerGrid cols={3}>
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-2xl h-48 animate-pulse"></div>
+                <StaggerItem key={i}>
+                  <CardSkeleton />
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGrid>
           ) : availableTrips.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <StaggerGrid cols={3}>
               {availableTrips.map((trip) => (
-                <Link
-                  key={trip.id}
-                  to={`/trips/${trip.id}`}
-                  className="group bg-gray-50 dark:bg-gray-700 rounded-2xl p-5 hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-600 hover:border-blue-200 dark:hover:border-blue-500"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white">
-                        <span>{trip.route?.origin || 'Origin'}</span>
-                        <ArrowRight className="h-4 w-4 text-blue-500" />
-                        <span>{trip.route?.destination || 'Destination'}</span>
-                      </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {trip.bus?.name || 'Bus'} • {trip.bus?.bus_type || 'Standard'}
-                      </p>
-                    </div>
-                    <span className="text-lg font-bold text-blue-600">
-                      {formatPrice(trip.price)}
-                    </span>
-                  </div>
+                <StaggerItem key={trip.id}>
+                  <Card variant="default" hover className="h-full">
+                    <CardContent className="p-6">
+                      <Link
+                        to={`/trips/${trip.id}`}
+                        className="block group"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
+                              <span>{trip.route?.origin || 'Origin'}</span>
+                              <ArrowForwardIcon sx={{ fontSize: 16 }} className="text-blue-500" />
+                              <span>{trip.route?.destination || 'Destination'}</span>
+                            </div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {trip.bus?.name || 'Bus'} • {trip.bus?.bus_type || 'Standard'}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-blue-600">
+                              {formatPrice(trip.price)}
+                            </p>
+                          </div>
+                        </div>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {formatTime(trip.start_time)}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      {trip.available_seats} seats left
-                    </div>
-                  </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          <div className="flex items-center gap-1">
+                            <AccessTimeIcon sx={{ fontSize: 16 }} />
+                            <span>{formatTime(trip.start_time)}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <PeopleIcon sx={{ fontSize: 16 }} />
+                            <span>{trip.available_seats} seats</span>
+                          </div>
+                        </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${trip.available_seats > 10
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                      }`}>
-                      {trip.available_seats > 10 ? 'Available' : 'Filling Fast'}
-                    </span>
-                    <span className="text-sm text-blue-600 font-medium group-hover:underline">
-                      Book Now →
-                    </span>
-                  </div>
-                </Link>
+                        <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                          <Badge
+                            variant={trip.available_seats > 10 ? 'success' : 'warning'}
+                            size="sm"
+                          >
+                            {trip.available_seats > 10 ? 'Available' : 'Filling Fast'}
+                          </Badge>
+                          <span className="text-sm text-blue-600 font-medium group-hover:underline flex items-center gap-1">
+                            Book Now
+                            <ArrowForwardIcon sx={{ fontSize: 14 }} />
+                          </span>
+                        </div>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </StaggerItem>
               ))}
-            </div>
+            </StaggerGrid>
           ) : (
-            <div className="text-center py-12 bg-gray-50 dark:bg-gray-700 rounded-2xl">
-              <Bus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No trips available today. Check back tomorrow!</p>
-              <Link to="/routes" className="mt-4 inline-block text-blue-600 hover:underline">
-                Browse all routes →
-              </Link>
-            </div>
+            <Card className="text-center py-12">
+              <CardContent>
+                <DirectionsBusIcon sx={{ fontSize: 48 }} className="text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 mb-4">No trips available today. Check back tomorrow!</p>
+                <Button variant="outline" asChild>
+                  <Link to="/routes">
+                    Browse all routes
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           )}
-        </div>
-      </section>
+        </Container>
+      </Section>
 
       {/* Popular Routes */}
       <section className="py-16 bg-gray-50 dark:bg-gray-900">
@@ -358,7 +388,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <LocationOnIcon sx={{ fontSize: 48 }} className="text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 dark:text-gray-400">No popular routes available yet.</p>
               <Link to="/routes" className="mt-4 inline-block text-blue-600 hover:underline">
                 Browse all routes →
@@ -371,7 +401,7 @@ export default function HomePage() {
               to="/routes"
               className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
             >
-              Explore All Routes <ArrowRight className="h-4 w-4" />
+              Explore All Routes <ArrowForwardIcon sx={{ fontSize: 16 }} />
             </Link>
           </div>
         </div>
@@ -402,12 +432,12 @@ export default function HomePage() {
                 <p className="text-blue-600 font-medium mb-4">{bus.price}</p>
                 <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <li className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
+                    <PeopleIcon sx={{ fontSize: 16 }} />
                     {bus.seats} seats
                   </li>
                   {bus.amenities.map((amenity, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <BoltIcon sx={{ fontSize: 16 }} className="text-yellow-500" />
                       {amenity}
                     </li>
                   ))}
@@ -421,7 +451,7 @@ export default function HomePage() {
               to="/fleet"
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
-              View Full Fleet Details <ChevronRight className="h-4 w-4" />
+              View Full Fleet Details <ChevronRightIcon sx={{ fontSize: 16 }} />
             </Link>
           </div>
         </div>
@@ -438,28 +468,28 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8" />
+                <ShieldIcon sx={{ fontSize: 32 }} />
               </div>
               <h3 className="font-semibold mb-2">Safe Travel</h3>
               <p className="text-sm text-blue-100">All buses meet safety standards</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <CreditCard className="h-8 w-8" />
+                <CreditCardIcon sx={{ fontSize: 32 }} />
               </div>
               <h3 className="font-semibold mb-2">Easy Payment</h3>
               <p className="text-sm text-blue-100">Multiple payment options</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Headphones className="h-8 w-8" />
+                <HeadsetMicIcon sx={{ fontSize: 32 }} />
               </div>
               <h3 className="font-semibold mb-2">24/7 Support</h3>
               <p className="text-sm text-blue-100">Always here to help</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Award className="h-8 w-8" />
+                <EmojiEventsIcon sx={{ fontSize: 32 }} />
               </div>
               <h3 className="font-semibold mb-2">Best Prices</h3>
               <p className="text-sm text-blue-100">Price match guarantee</p>
@@ -476,7 +506,7 @@ export default function HomePage() {
             <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1 mb-4">
-                  <Tag className="h-4 w-4" />
+                  <LocalOfferIcon sx={{ fontSize: 16 }} />
                   <span className="text-sm font-medium">Limited Time Offer</span>
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold mb-2">

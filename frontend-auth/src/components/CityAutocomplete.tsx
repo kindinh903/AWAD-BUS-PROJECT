@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Navigation } from 'lucide-react';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ExploreIcon from '@mui/icons-material/Explore';
 import { vietnameseCities } from '../config/cities';
 
 interface CityAutocompleteProps {
@@ -105,7 +106,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [inputRef]);
 
-  const Icon = icon === 'destination' ? Navigation : MapPin;
+  const Icon = icon === 'destination' ? ExploreIcon : LocationOnIcon;
 
   const baseInputClass = darkMode
     ? 'w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -129,7 +130,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+      <Icon sx={{ fontSize: 16 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
       <input
         ref={inputRef as React.RefObject<HTMLInputElement>}
         type="text"
@@ -149,7 +150,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
               onClick={() => selectSuggestion(city)}
               className={getItemClass(index)}
             >
-              <Icon className="h-3 w-3 text-gray-400" />
+              <Icon sx={{ fontSize: 12 }} className="text-gray-400" />
               <span className="text-sm">{city}</span>
             </div>
           ))}

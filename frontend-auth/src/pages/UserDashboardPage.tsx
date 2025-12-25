@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-    Calendar, Clock, MapPin, Ticket, Download, Mail,
-    ChevronRight, User, CheckCircle, AlertCircle, XCircle,
-    ArrowRight, FileText, Printer
-} from 'lucide-react';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import DownloadIcon from '@mui/icons-material/Download';
+import EmailIcon from '@mui/icons-material/Email';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import PersonIcon from '@mui/icons-material/Person';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import CancelIcon from '@mui/icons-material/Cancel';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DescriptionIcon from '@mui/icons-material/Description';
+import PrintIcon from '@mui/icons-material/Print';
 import { bookingAPI, reviewAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
 
@@ -131,10 +140,10 @@ export default function UserDashboardPage() {
 
     const getStatusIcon = (status: string) => {
         switch (status.toLowerCase()) {
-            case 'confirmed': return <CheckCircle className="h-4 w-4" />;
-            case 'pending': return <AlertCircle className="h-4 w-4" />;
-            case 'cancelled': return <XCircle className="h-4 w-4" />;
-            case 'completed': return <CheckCircle className="h-4 w-4" />;
+            case 'confirmed': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+            case 'pending': return <ErrorIcon sx={{ fontSize: 16 }} />;
+            case 'cancelled': return <CancelIcon sx={{ fontSize: 16 }} />;
+            case 'completed': return <CheckCircleIcon sx={{ fontSize: 16 }} />;
             default: return null;
         }
     };
@@ -167,7 +176,7 @@ export default function UserDashboardPage() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                 <div className="text-center">
-                    <User className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" />
+                    <PersonIcon sx={{ fontSize: 64 }} className="mx-auto mb-4 text-gray-300 dark:text-gray-700" />
                     <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Sign In Required</h2>
                     <p className="text-gray-500 dark:text-gray-400 mb-4">Please sign in to view your dashboard</p>
                     <Link
@@ -175,7 +184,7 @@ export default function UserDashboardPage() {
                         className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Sign In
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowForwardIcon sx={{ fontSize: 16 }} />
                     </Link>
                 </div>
             </div>
@@ -211,7 +220,7 @@ export default function UserDashboardPage() {
                                 <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalBookings}</p>
                             </div>
                             <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                <DescriptionIcon sx={{ fontSize: 24 }} className="text-blue-600 dark:text-blue-400" />
                             </div>
                         </div>
                     </div>
@@ -223,7 +232,7 @@ export default function UserDashboardPage() {
                                 <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.upcomingTrips}</p>
                             </div>
                             <div className="h-12 w-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                                <Ticket className="h-6 w-6 text-green-600 dark:text-green-400" />
+                                <ConfirmationNumberIcon sx={{ fontSize: 24 }} className="text-green-600 dark:text-green-400" />
                             </div>
                         </div>
                     </div>
@@ -235,7 +244,7 @@ export default function UserDashboardPage() {
                                 <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.completedTrips}</p>
                             </div>
                             <div className="h-12 w-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                <CheckCircle className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                                <CheckCircleIcon sx={{ fontSize: 24 }} className="text-gray-600 dark:text-gray-400" />
                             </div>
                         </div>
                     </div>
@@ -251,14 +260,14 @@ export default function UserDashboardPage() {
                                     onClick={handleDownloadAllTickets}
                                     className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                                 >
-                                    <Download className="h-4 w-4" />
+                                    <DownloadIcon sx={{ fontSize: 16 }} />
                                     Download All
                                 </button>
                                 <button
                                     onClick={handlePrintAllTickets}
                                     className="flex items-center gap-2 px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                                 >
-                                    <Printer className="h-4 w-4" />
+                                    <PrintIcon sx={{ fontSize: 16 }} />
                                     Print All
                                 </button>
                             </div>
@@ -267,7 +276,7 @@ export default function UserDashboardPage() {
 
                     {upcomingBookings.length === 0 ? (
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-12 text-center border border-gray-200 dark:border-gray-700">
-                            <Ticket className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" />
+                            <ConfirmationNumberIcon sx={{ fontSize: 64 }} className="mx-auto mb-4 text-gray-300 dark:text-gray-700" />
                             <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No Upcoming Trips</h3>
                             <p className="text-gray-500 dark:text-gray-400 mb-4">
                                 You don't have any upcoming trips. Start planning your next journey!
@@ -277,7 +286,7 @@ export default function UserDashboardPage() {
                                 className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                             >
                                 Book a Trip
-                                <ArrowRight className="h-4 w-4" />
+                                <ArrowForwardIcon sx={{ fontSize: 16 }} />
                             </Link>
                         </div>
                     ) : (
@@ -315,7 +324,7 @@ export default function UserDashboardPage() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                             <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                                <CalendarTodayIcon sx={{ fontSize: 20 }} className="text-blue-600 dark:text-blue-400 mt-0.5" />
                                                 <div>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Departure Date</p>
                                                     <p className="font-semibold text-gray-900 dark:text-white">
@@ -325,7 +334,7 @@ export default function UserDashboardPage() {
                                             </div>
 
                                             <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                                                <AccessTimeIcon sx={{ fontSize: 20 }} className="text-blue-600 dark:text-blue-400 mt-0.5" />
                                                 <div>
                                                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Departure Time</p>
                                                     <p className="font-semibold text-gray-900 dark:text-white">
@@ -339,7 +348,7 @@ export default function UserDashboardPage() {
                                         {booking.passengers && booking.passengers.length > 0 && (
                                             <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                                                 <h4 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                                                    <User className="h-4 w-4" />
+                                                    <PersonIcon sx={{ fontSize: 16 }} />
                                                     Passengers
                                                 </h4>
                                                 <div className="grid gap-2">
@@ -365,7 +374,7 @@ export default function UserDashboardPage() {
                                                     onClick={() => handleDownloadTickets(booking.id)}
                                                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                                                 >
-                                                    <Download className="h-4 w-4" />
+                                                    <DownloadIcon sx={{ fontSize: 16 }} />
                                                     Download Tickets
                                                 </button>
                                             )}
@@ -374,7 +383,7 @@ export default function UserDashboardPage() {
                                                 className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
                                             >
                                                 View Details
-                                                <ChevronRight className="h-4 w-4" />
+                                                <ChevronRightIcon sx={{ fontSize: 16 }} />
                                             </button>
                                         </div>
                                     </div>
@@ -393,7 +402,7 @@ export default function UserDashboardPage() {
                             className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm"
                         >
                             View All Bookings
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRightIcon sx={{ fontSize: 16 }} />
                         </Link>
                     </div>
 
@@ -412,7 +421,7 @@ export default function UserDashboardPage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4 flex-1">
                                             <div className="h-10 w-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                <Ticket className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                                <ConfirmationNumberIcon sx={{ fontSize: 20 }} className="text-blue-600 dark:text-blue-400" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-medium text-gray-900 dark:text-white truncate">
@@ -430,7 +439,7 @@ export default function UserDashboardPage() {
                                                 {getStatusIcon(booking.status)}
                                                 {booking.status}
                                             </span>
-                                            <ChevronRight className="h-5 w-5 text-gray-400 dark:text-gray-600" />
+                                            <ChevronRightIcon sx={{ fontSize: 20 }} className="text-gray-400 dark:text-gray-600" />
                                         </div>
                                     </div>
                                 </div>

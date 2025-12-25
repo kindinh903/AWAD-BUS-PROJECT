@@ -4,7 +4,10 @@ import { AxiosError } from 'axios';
 import { authAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
 import { GoogleLoginButton } from '../components/GoogleLoginButton';
-import { Loader2, Mail, Lock, LogIn } from 'lucide-react';
+import CircularProgress from '@mui/material/CircularProgress';
+import EmailIcon from '@mui/icons-material/Email';
+import LockIcon from '@mui/icons-material/Lock';
+import LoginIcon from '@mui/icons-material/Login';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -111,7 +114,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <EmailIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="email"
@@ -138,7 +141,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 </div>
                 <input
                   id="password"
@@ -191,12 +194,12 @@ export default function LoginPage() {
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <CircularProgress size={20} sx={{ mr: 1 }} className="text-white" />
                   Signing in...
                 </>
               ) : (
                 <>
-                  <LogIn className="h-5 w-5 mr-2" />
+                  <LoginIcon sx={{ fontSize: 20, mr: 1 }} />
                   Sign in
                 </>
               )}

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bus, Clock, ArrowRight } from 'lucide-react';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { tripAPI } from '../lib/api';
 
 interface Trip {
@@ -119,7 +121,7 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-                <Bus className="h-5 w-5 text-blue-600" />
+                <DirectionsBusIcon sx={{ fontSize: 20 }} className="text-blue-600" />
                 <h3 className="font-semibold text-lg">Other Trips on This Route</h3>
             </div>
 
@@ -132,7 +134,7 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
                     >
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <Clock className="h-4 w-4" />
+                                <AccessTimeIcon sx={{ fontSize: 16 }} />
                                 <span>{formatDate(trip.start_time)}</span>
                             </div>
                             <span className="text-lg font-bold text-blue-600">
@@ -142,7 +144,7 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
 
                         <div className="flex items-center gap-2 mb-2">
                             <span className="font-medium">{formatTime(trip.start_time)}</span>
-                            <ArrowRight className="h-4 w-4 text-gray-400" />
+                            <ArrowForwardIcon sx={{ fontSize: 16 }} className="text-gray-400" />
                             <span className="font-medium">{formatTime(trip.end_time)}</span>
                             <span className="text-sm text-gray-400 ml-2">
                                 ({calculateDuration(trip.start_time, trip.end_time)})

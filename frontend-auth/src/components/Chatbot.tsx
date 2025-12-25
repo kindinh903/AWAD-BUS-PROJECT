@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, MessageCircle, Minimize2 } from 'lucide-react';
+import SendIcon from '@mui/icons-material/Send';
+import CloseIcon from '@mui/icons-material/Close';
+import ChatIcon from '@mui/icons-material/Chat';
+import MinimizeIcon from '@mui/icons-material/Minimize';
 import api from '../lib/api';
 
 interface Message {
@@ -125,7 +128,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
           <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 text-blue-600" />
+                <ChatIcon sx={{ fontSize: 24 }} className="text-blue-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">Bus Booking Assistant</h3>
@@ -138,14 +141,14 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                 className="p-1 hover:bg-blue-500 rounded-lg transition-colors"
                 aria-label="Minimize"
               >
-                <Minimize2 className="w-5 h-5" />
+                <MinimizeIcon sx={{ fontSize: 20 }} />
               </button>
               <button
                 onClick={toggleChat}
                 className="p-1 hover:bg-blue-500 rounded-lg transition-colors"
                 aria-label="Close chat"
               >
-                <X className="w-5 h-5" />
+                <CloseIcon sx={{ fontSize: 20 }} />
               </button>
             </div>
           </div>
@@ -161,7 +164,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                   >
                     {message.role === 'assistant' && (
                       <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
-                        <MessageCircle className="w-5 h-5 text-white" />
+                        <ChatIcon sx={{ fontSize: 20 }} className="text-white" />
                       </div>
                     )}
                     <div
@@ -190,7 +193,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                 {isLoading && (
                   <div className="flex justify-start">
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-2">
-                      <MessageCircle className="w-5 h-5 text-white" />
+                      <ChatIcon sx={{ fontSize: 20 }} className="text-white" />
                     </div>
                     <div className="bg-white text-gray-800 rounded-2xl rounded-bl-md shadow-sm px-4 py-3">
                       <div className="flex space-x-2">
@@ -229,7 +232,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                     className="bg-blue-600 text-white p-2.5 rounded-full hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex-shrink-0"
                     aria-label="Send message"
                   >
-                    <Send className="w-5 h-5" />
+                    <SendIcon sx={{ fontSize: 20 }} />
                   </button>
                 </div>
                 <p className="text-xs text-gray-400 mt-2 text-center">
@@ -249,7 +252,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
           className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-200 flex items-center justify-center group"
           aria-label="Open chat"
         >
-          <MessageCircle className="w-7 h-7 group-hover:animate-pulse" />
+          <ChatIcon sx={{ fontSize: 28 }} className="group-hover:animate-pulse" />
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
             AI
           </span>

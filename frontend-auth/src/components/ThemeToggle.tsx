@@ -1,5 +1,6 @@
 // jsx runtime handles React import; avoid unused import lint errors
-import { Sun, Moon } from 'lucide-react';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { useTheme } from '../context/ThemeContext';
 
 export default function ThemeToggle() {
@@ -14,7 +15,7 @@ export default function ThemeToggle() {
         aria-label="Toggle theme"
         className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700 transition"
       >
-        {isDark ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        {isDark ? <DarkModeIcon sx={{ fontSize: 20 }} /> : <LightModeIcon sx={{ fontSize: 20 }} />}
       </button>
 
       {/* small selector to choose explicit mode */}

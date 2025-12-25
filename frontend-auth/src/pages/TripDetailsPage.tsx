@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { Bus, Wifi, Snowflake, UsbIcon, Coffee, Bed, ArrowLeft } from 'lucide-react';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import WifiIcon from '@mui/icons-material/Wifi';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
+import UsbIcon from '@mui/icons-material/Usb';
+import LocalCafeIcon from '@mui/icons-material/LocalCafe';
+import HotelIcon from '@mui/icons-material/Hotel';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Button } from '../components/ui/Button';
 import { BusTrip } from '../lib/mockData';
 import SeatMap from '../components/SeatMap';
 import PassengerForm from '../components/PassengerForm';
@@ -214,11 +221,11 @@ export default function TripDetailsPage() {
 
   const amenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
-      case 'wifi': return <Wifi className="h-5 w-5" />;
-      case 'ac': return <Snowflake className="h-5 w-5" />;
-      case 'usb charging': return <UsbIcon className="h-5 w-5" />;
-      case 'snacks': return <Coffee className="h-5 w-5" />;
-      case 'sleeper beds': return <Bed className="h-5 w-5" />;
+      case 'wifi': return <WifiIcon sx={{ fontSize: 20 }} />;
+      case 'ac': return <AcUnitIcon sx={{ fontSize: 20 }} />;
+      case 'usb charging': return <UsbIcon sx={{ fontSize: 20 }} />;
+      case 'snacks': return <LocalCafeIcon sx={{ fontSize: 20 }} />;
+      case 'sleeper beds': return <HotelIcon sx={{ fontSize: 20 }} />;
       default: return <span className="h-5 w-5">•</span>;
     }
   };
@@ -230,7 +237,7 @@ export default function TripDetailsPage() {
           onClick={() => currentStep === 'details' ? navigate('/dashboard') : setCurrentStep('details')}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowBackIcon sx={{ fontSize: 16 }} />
           {currentStep === 'details' ? 'Back to Dashboard' : 'Back'}
         </button>
 
@@ -266,7 +273,7 @@ export default function TripDetailsPage() {
             <div className="flex items-start justify-between gap-6">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <Bus className="h-6 w-6 text-blue-600" />
+                  <DirectionsBusIcon sx={{ fontSize: 24 }} className="text-blue-600" />
                   <h1 className="text-2xl font-bold">{trip.from} → {trip.to}</h1>
                 </div>
                 <div className="text-sm text-gray-500 mb-4">{trip.company} • {trip.busType} • {trip.duration}</div>

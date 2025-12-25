@@ -14,7 +14,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { ChevronDown } from 'lucide-react';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   revenueChartData,
   bookingStatusData,
@@ -215,8 +215,8 @@ export default function StatisticChart({ role }: StatisticChartProps) {
                 </option>
               ))}
             </select>
-            <ChevronDown
-              size={16}
+            <ExpandMoreIcon
+              sx={{ fontSize: 16 }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
             />
           </div>

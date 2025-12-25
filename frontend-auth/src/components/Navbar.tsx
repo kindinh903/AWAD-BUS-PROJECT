@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import {
-  Bus, LogOut, LayoutDashboard, Menu, X,
-  MapPin, Truck, Tag, HelpCircle, Search, Ticket
-} from 'lucide-react';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import LogoutIcon from '@mui/icons-material/Logout';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import HelpIcon from '@mui/icons-material/Help';
+import SearchIcon from '@mui/icons-material/Search';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import { tokenManager } from '../lib/tokenManager';
 import { authAPI, authEvents } from '../lib/api';
 import ThemeToggle from './ThemeToggle';
@@ -74,10 +81,10 @@ export default function Navbar() {
 
   // Navigation categories
   const navCategories = [
-    { to: '/routes', icon: <MapPin className="h-4 w-4" />, label: 'Routes' },
-    { to: '/fleet', icon: <Truck className="h-4 w-4" />, label: 'Fleet' },
-    { to: '/promotions', icon: <Tag className="h-4 w-4" />, label: 'Promotions' },
-    { to: '/help', icon: <HelpCircle className="h-4 w-4" />, label: 'Help' },
+    { to: '/routes', icon: <LocationOnIcon sx={{ fontSize: 16 }} />, label: 'Routes' },
+    { to: '/fleet', icon: <LocalShippingIcon sx={{ fontSize: 16 }} />, label: 'Fleet' },
+    { to: '/promotions', icon: <LocalOfferIcon sx={{ fontSize: 16 }} />, label: 'Promotions' },
+    { to: '/help', icon: <HelpIcon sx={{ fontSize: 16 }} />, label: 'Help' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -101,7 +108,7 @@ export default function Navbar() {
             className="flex items-center gap-2 font-bold text-xl"
           >
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-lg">
-              <Bus className="h-6 w-6" />
+              <DirectionsBusIcon sx={{ fontSize: 24 }} />
             </div>
             <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               BusBooking
@@ -127,7 +134,7 @@ export default function Navbar() {
               className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               title="Search Trips"
             >
-              <Search className="h-5 w-5" />
+              <SearchIcon sx={{ fontSize: 20 }} />
             </Link>
 
             <ThemeToggle />
@@ -156,7 +163,7 @@ export default function Navbar() {
                     to="/dashboard"
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <LayoutDashboard className="h-4 w-4" />
+                    <DashboardIcon sx={{ fontSize: 16 }} />
                     <span className="hidden xl:inline">Admin</span>
                   </Link>
                 ) : (
@@ -164,7 +171,7 @@ export default function Navbar() {
                     to="/my-tickets"
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                   >
-                    <Ticket className="h-4 w-4" />
+                    <ConfirmationNumberIcon sx={{ fontSize: 16 }} />
                     <span className="hidden xl:inline">My Tickets</span>
                   </Link>
                 )}
@@ -173,7 +180,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogoutIcon sx={{ fontSize: 16 }} />
                   <span className="hidden xl:inline">Logout</span>
                 </button>
               </div>
@@ -199,7 +206,7 @@ export default function Navbar() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? <CloseIcon sx={{ fontSize: 24 }} /> : <MenuIcon sx={{ fontSize: 24 }} />}
             </button>
           </div>
         </div>
@@ -246,7 +253,7 @@ export default function Navbar() {
                     to="/dashboard"
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <LayoutDashboard className="h-5 w-5" />
+                    <DashboardIcon sx={{ fontSize: 20 }} />
                     Admin Dashboard
                   </Link>
                 ) : (
@@ -254,7 +261,7 @@ export default function Navbar() {
                     to="/my-tickets"
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <Ticket className="h-5 w-5" />
+                    <ConfirmationNumberIcon sx={{ fontSize: 20 }} />
                     My Tickets
                   </Link>
                 )}
@@ -262,14 +269,14 @@ export default function Navbar() {
                   to="/booking-history"
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
-                  <LayoutDashboard className="h-5 w-5" />
+                  <DashboardIcon sx={{ fontSize: 20 }} />
                   Booking History
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
-                  <LogOut className="h-5 w-5" />
+                  <LogoutIcon sx={{ fontSize: 20 }} />
                   Logout
                 </button>
               </>

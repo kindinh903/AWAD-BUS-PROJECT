@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Star, MessageCircle, User, ChevronDown, ChevronUp } from 'lucide-react';
+import StarIcon from '@mui/icons-material/Star';
+import ChatIcon from '@mui/icons-material/Chat';
+import PersonIcon from '@mui/icons-material/Person';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { reviewAPI } from '../lib/api';
 
 interface Review {
@@ -59,13 +63,14 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
     };
 
     const renderStars = (rating: number, size: 'sm' | 'md' = 'sm') => {
-        const sizeClass = size === 'sm' ? 'h-4 w-4' : 'h-5 w-5';
+        const fontSize = size === 'sm' ? 16 : 20;
         return (
             <div className="flex gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
+                    <StarIcon
                         key={star}
-                        className={`${sizeClass} ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                        sx={{ fontSize }}
+                        className={`${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
                             }`}
                     />
                 ))}
@@ -121,7 +126,7 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                 className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
             >
                 <div className="flex items-center gap-3">
-                    <MessageCircle className="h-5 w-5 text-blue-600" />
+                    <ChatIcon sx={{ fontSize: 20 }} className="text-blue-600" />
                     <h3 className="font-semibold text-lg">Customer Reviews</h3>
                     {stats && (
                         <span className="text-sm text-gray-500">
@@ -130,9 +135,9 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                     )}
                 </div>
                 {expanded ? (
-                    <ChevronUp className="h-5 w-5 text-gray-400" />
+                    <ExpandLessIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                    <ExpandMoreIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                 )}
             </button>
 
@@ -179,7 +184,7 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                                                     className="w-full h-full rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <User className="h-5 w-5 text-gray-400" />
+                                                <PersonIcon sx={{ fontSize: 20 }} className="text-gray-400" />
                                             )}
                                         </div>
                                         <div className="flex-1">
@@ -228,7 +233,7 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                         </div>
                     ) : (
                         <div className="text-center py-8 text-gray-500">
-                            <MessageCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                            <ChatIcon sx={{ fontSize: 48 }} className="mx-auto mb-3 text-gray-300" />
                             <p>No reviews yet for this trip.</p>
                             <p className="text-sm mt-1">Be the first to share your experience!</p>
                         </div>

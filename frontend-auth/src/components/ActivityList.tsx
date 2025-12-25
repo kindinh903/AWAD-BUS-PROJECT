@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
-import { ChevronDown, RotateCw, Search } from 'lucide-react';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SearchIcon from '@mui/icons-material/Search';
 import { Activity } from '../lib/mockData';
 
 interface ActivityListProps {
@@ -103,8 +105,8 @@ export default function ActivityList({
             disabled={isRefreshing}
             className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
           >
-            <RotateCw
-              size={16}
+            <RefreshIcon
+              sx={{ fontSize: 16 }}
               className={isRefreshing ? 'animate-spin' : ''}
             />
             Refresh
@@ -116,8 +118,8 @@ export default function ActivityList({
           {/* Search */}
           <div className="lg:col-span-2">
             <div className="relative">
-              <Search
-                size={18}
+              <SearchIcon
+                sx={{ fontSize: 18 }}
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               />
               <input
@@ -143,8 +145,8 @@ export default function ActivityList({
               <option value="cancellation">Cancellation</option>
               <option value="registration">Registration</option>
             </select>
-            <ChevronDown
-              size={18}
+            <ExpandMoreIcon
+              sx={{ fontSize: 18 }}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
             />
           </div>
@@ -161,8 +163,8 @@ export default function ActivityList({
               <option value="pending">Pending</option>
               <option value="failed">Failed</option>
             </select>
-            <ChevronDown
-              size={18}
+            <ExpandMoreIcon
+              sx={{ fontSize: 18 }}
               className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
             />
           </div>

@@ -1,18 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Calendar,
-  Clock,
-  User,
-  Bus,
-  Star,
-  Ticket,
-  Navigation,
-  Wifi,
-  Snowflake,
-  UsbIcon,
-  Coffee,
-} from 'lucide-react';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PersonIcon from '@mui/icons-material/Person';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import StarIcon from '@mui/icons-material/Star';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import ExploreIcon from '@mui/icons-material/Explore';
+import WifiIcon from '@mui/icons-material/Wifi';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
+import UsbIcon from '@mui/icons-material/Usb';
+import LocalCafeIcon from '@mui/icons-material/LocalCafe';
 import { userSummaryCards, BusTrip } from '../lib/mockData';
 import { TripFilters, TripFiltersState, doesTripMatchFilters, sortTrips } from './TripFilters';
 import { tripAPI } from '../lib/api';
@@ -213,13 +211,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   const getAmenityIcon = (amenity: string) => {
     switch (amenity.toLowerCase()) {
       case 'wifi':
-        return <Wifi className="h-4 w-4" />;
+        return <WifiIcon sx={{ fontSize: 16 }} />;
       case 'ac':
-        return <Snowflake className="h-4 w-4" />;
+        return <AcUnitIcon sx={{ fontSize: 16 }} />;
       case 'usb charging':
-        return <UsbIcon className="h-4 w-4" />;
+        return <UsbIcon sx={{ fontSize: 16 }} />;
       case 'snacks':
-        return <Coffee className="h-4 w-4" />;
+        return <LocalCafeIcon sx={{ fontSize: 16 }} />;
       default:
         return <span className="text-xs">•</span>;
     }
@@ -232,7 +230,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
-              <User className="h-8 w-8" />
+              <PersonIcon sx={{ fontSize: 32 }} />
               My Travel Dashboard
             </h1>
             <p className="text-blue-100 mt-2">
@@ -252,11 +250,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {summaryData.map(card => {
           const IconMap: { [key: string]: any } = {
-            'total-bookings': Bus,
-            'upcoming-trips': Navigation,
-            'total-spent': Star,
+            'total-bookings': DirectionsBusIcon,
+            'upcoming-trips': ExploreIcon,
+            'total-spent': StarIcon,
           };
-          const IconComponent = IconMap[card.id] || Bus;
+          const IconComponent = IconMap[card.id] || DirectionsBusIcon;
           const colorClasses = {
             blue: 'border-blue-500 text-blue-500',
             green: 'border-green-500 text-green-500',
@@ -277,7 +275,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                   </p>
                 </div>
                 <IconComponent
-                  className={`h-8 w-8 ${colorClasses[card.color].split(' ')[1]}`}
+                  sx={{ fontSize: 32 }}
+                  className={colorClasses[card.color].split(' ')[1]}
                 />
               </div>
             </div>
@@ -290,7 +289,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         {/* Book New Trip */}
         <div className="bg-white p-6 rounded-xl shadow-md">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Ticket className="h-6 w-6 text-blue-600" />
+            <ConfirmationNumberIcon sx={{ fontSize: 24 }} className="text-blue-600" />
             Book Your Next Trip
           </h2>
           <div className="space-y-4">
@@ -326,7 +325,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                   Date
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <CalendarTodayIcon sx={{ fontSize: 16 }} className="absolute left-3 top-3 text-gray-400" />
                   <input
                     type="date"
                     value={bookingForm.date}
@@ -345,7 +344,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                   Time
                 </label>
                 <div className="relative">
-                  <Clock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <AccessTimeIcon sx={{ fontSize: 16 }} className="absolute left-3 top-3 text-gray-400" />
                   <select
                     value={bookingForm.time}
                     onChange={e =>
@@ -379,7 +378,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         {/* Recent Activity */}
         <div className="bg-white p-6 rounded-xl shadow-md">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Clock className="h-6 w-6 text-green-600" />
+            <AccessTimeIcon sx={{ fontSize: 24 }} className="text-green-600" />
             Recent Bookings
           </h2>
           <div className="space-y-3">
@@ -448,7 +447,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                 ← New Search
               </button>
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <Bus className="h-6 w-6 text-blue-600" />
+                <DirectionsBusIcon sx={{ fontSize: 24 }} className="text-blue-600" />
                 Available Buses ({filteredTrips.length} results)
               </h2>
             </div>
@@ -468,7 +467,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
           <div className="space-y-4">
             {filteredTrips.length === 0 ? (
               <div className="text-center py-8">
-                <Bus className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <DirectionsBusIcon sx={{ fontSize: 48 }} className="text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500">
                   No buses found for your search criteria.
                 </p>
@@ -538,7 +537,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                           </span>
 
                           <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                            <StarIcon sx={{ fontSize: 16 }} className="text-yellow-400 fill-current" />
                             <span className="text-sm font-medium">
                               {trip.rating}
                             </span>
@@ -602,7 +601,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
               onClick={() => alert('Loyalty program: You have 2,450 points!')}
               className="p-4 bg-gradient-to-br from-green-100 to-green-200 rounded-lg hover:from-green-200 hover:to-green-300 transition-all duration-200 text-center"
             >
-              <Star className="h-8 w-8 text-green-600 mx-auto mb-2" />
+              <StarIcon sx={{ fontSize: 32 }} className="text-green-600 mx-auto mb-2" />
               <div className="font-semibold text-green-700">
                 Loyalty Program
               </div>
@@ -615,7 +614,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
               onClick={() => alert('Profile settings feature coming soon!')}
               className="p-4 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg hover:from-orange-200 hover:to-orange-300 transition-all duration-200 text-center"
             >
-              <User className="h-8 w-8 text-orange-600 mx-auto mb-2" />
+              <PersonIcon sx={{ fontSize: 32 }} className="text-orange-600 mx-auto mb-2" />
               <div className="font-semibold text-orange-700">
                 Profile Settings
               </div>
