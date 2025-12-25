@@ -252,6 +252,17 @@ export const adminAPI = {
   checkInPassenger: (tripId: string, passengerId: string) =>
     api.post(`/admin/trips/${tripId}/passengers/${passengerId}/check-in`),
 
+  // Analytics
+  getDashboardSummary: () => api.get('/admin/analytics/dashboard'),
+  getBookingTrends: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/bookings/trends', { params: { start_date: startDate, end_date: endDate } }),
+  getRevenueSummary: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/revenue', { params: { start_date: startDate, end_date: endDate } }),
+  getPopularRoutes: (startDate: string, endDate: string, limit = 5) =>
+    api.get('/admin/analytics/routes/popular', { params: { start_date: startDate, end_date: endDate, limit } }),
+  getConversionRate: (startDate: string, endDate: string) =>
+    api.get('/admin/analytics/conversion-rate', { params: { start_date: startDate, end_date: endDate } }),
+
   // User Management
   listAdmins: () => api.get('/admin/users'),
   getUser: (userId: string) => api.get(`/admin/users/${userId}`),

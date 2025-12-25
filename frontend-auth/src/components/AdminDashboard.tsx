@@ -16,6 +16,7 @@ import { RouteManager } from './RouteManager';
 import { BusManager } from './BusManager';
 import { SeatMapList } from './SeatMapList';
 import { SeatMapEditor } from './SeatMapEditor';
+import { ReportsAnalytics } from './ReportsAnalytics';
 
 interface AdminDashboardProps {
   user: any;
@@ -365,13 +366,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       )}
 
       {selectedTab === 'reports' && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Activity className="h-6 w-6 text-blue-600" />
-            Reports & Analytics
-          </h2>
-          <p className="text-gray-600">Reports and analytics features coming soon...</p>
-        </div>
+        <ReportsAnalytics />
       )}
     </div>
   );
