@@ -35,23 +35,49 @@ type UpdateUserRequest struct {
 	Name     *string `json:"name"`
 	Phone    *string `json:"phone"`
 	IsActive *bool   `json:"is_active"`
+	Role     *string `json:"role"`
 }
 
 // ListAdmins godoc
 // @Summary List admin users
-// @Description Get list of all admin users
+// @Description Get list of all admin users or filter by role
 // @Tags admin-users
 // @Produce json
 // @Security BearerAuth
+// @Param role query string false "Filter by role: admin, user, or empty for all"
 // @Success 200 {object} map[string]interface{}
 // @Failure 401 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /admin/users [get]
 func (h *UserManagementHandler) ListAdmins(c *gin.Context) {
-	admins, err := h.authUsecase.GetAdminUsers(c.Request.Context())
+	roleFilter := c.Query("role")
+
+	var users []*entities.User
+	var err error
+
+	if roleFilter == "" {
+		// Get all users if no filter
+		users, err = h.authUsecase.GetAllUsers(c.Request.Context())
+	} else {
+		// Filter by specific role
+		var role entities.Role
+		switch roleFilter {
+		case "admin":
+			role = entities.RoleAdmin
+		case "user":
+			role = entities.RolePassenger
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid role. Must be 'admin' or 'user'",
+			})
+			return
+		}
+		users, err = h.authUsecase.GetUsersByRole(c.Request.Context(), role)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "Failed to get admin users",
+			"error":   "Failed to get users",
 			"details": err.Error(),
 		})
 		return
@@ -59,8 +85,8 @@ func (h *UserManagementHandler) ListAdmins(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"data":    admins,
-		"count":   len(admins),
+		"data":    users,
+		"count":   len(users),
 	})
 }
 
@@ -184,10 +210,29 @@ func (h *UserManagementHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// Validate role if provided
+	var rolePtr *entities.Role
+	if req.Role != nil {
+		var role entities.Role
+		switch *req.Role {
+		case "admin":
+			role = entities.RoleAdmin
+		case "user":
+			role = entities.RolePassenger
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid role. Must be 'admin' or 'user'",
+			})
+			return
+		}
+		rolePtr = &role
+	}
+
 	user, err := h.authUsecase.UpdateUser(c.Request.Context(), userID, usecases.UpdateUserInput{
 		Name:     req.Name,
 		Phone:    req.Phone,
 		IsActive: req.IsActive,
+		Role:     rolePtr,
 	})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

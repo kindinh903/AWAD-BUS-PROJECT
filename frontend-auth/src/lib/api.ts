@@ -264,11 +264,11 @@ export const adminAPI = {
     api.get('/admin/analytics/conversion-rate', { params: { start_date: startDate, end_date: endDate } }),
 
   // User Management
-  listAdmins: () => api.get('/admin/users'),
+  listAdmins: (params?: { role?: string }) => api.get('/admin/users', { params }),
   getUser: (userId: string) => api.get(`/admin/users/${userId}`),
   createAdmin: (data: { name: string; email: string; password: string; phone?: string }) =>
     api.post('/admin/users', data),
-  updateUser: (userId: string, data: { name?: string; phone?: string; is_active?: boolean }) =>
+  updateUser: (userId: string, data: { name?: string; phone?: string; is_active?: boolean; role?: string }) =>
     api.put(`/admin/users/${userId}`, data),
   deactivateUser: (userId: string) => api.delete(`/admin/users/${userId}`),
 };

@@ -232,8 +232,8 @@ func (uc *AuthUsecase) RefreshAccessToken(ctx context.Context, refreshToken stri
 	// This prevents duplicate token errors when multiple refresh calls happen at once
 	timeUntilExpiry := storedToken.ExpiresAt.Sub(time.Now())
 	shouldRotateRefreshToken := timeUntilExpiry < 1*time.Minute
-	
-	log.Printf("[Auth] RefreshAccessToken for user %s, refresh token expires in %v, should rotate: %v", 
+
+	log.Printf("[Auth] RefreshAccessToken for user %s, refresh token expires in %v, should rotate: %v",
 		userID, timeUntilExpiry, shouldRotateRefreshToken)
 
 	var newRefreshToken string
@@ -294,9 +294,9 @@ func (uc *AuthUsecase) generateRefreshToken(user *entities.User) (string, error)
 // storeRefreshToken saves a refresh token to the database
 func (uc *AuthUsecase) storeRefreshToken(ctx context.Context, userID uuid.UUID, tokenString string) error {
 	expiresAt := time.Now().Add(uc.refreshTokenExpiry)
-	log.Printf("[Auth] Storing refresh token for user %s, expires_at: %v (now: %v, expiry duration: %v)", 
+	log.Printf("[Auth] Storing refresh token for user %s, expires_at: %v (now: %v, expiry duration: %v)",
 		userID, expiresAt, time.Now(), uc.refreshTokenExpiry)
-	
+
 	refreshToken := &entities.RefreshToken{
 		ID:        uuid.New(),
 		UserID:    userID,
@@ -416,6 +416,7 @@ type UpdateUserInput struct {
 	Name     *string
 	Phone    *string
 	IsActive *bool
+	Role     *entities.Role
 }
 
 // GetAdminUsers returns all admin users
@@ -423,6 +424,32 @@ func (uc *AuthUsecase) GetAdminUsers(ctx context.Context) ([]*entities.User, err
 	users, err := uc.userRepo.GetByRole(ctx, entities.RoleAdmin)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get admin users: %w", err)
+	}
+	// Remove password hashes from response
+	for _, u := range users {
+		u.PasswordHash = ""
+	}
+	return users, nil
+}
+
+// GetAllUsers returns all users
+func (uc *AuthUsecase) GetAllUsers(ctx context.Context) ([]*entities.User, error) {
+	users, err := uc.userRepo.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all users: %w", err)
+	}
+	// Remove password hashes from response
+	for _, u := range users {
+		u.PasswordHash = ""
+	}
+	return users, nil
+}
+
+// GetUsersByRole returns users filtered by role
+func (uc *AuthUsecase) GetUsersByRole(ctx context.Context, role entities.Role) ([]*entities.User, error) {
+	users, err := uc.userRepo.GetByRole(ctx, role)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users by role: %w", err)
 	}
 	// Remove password hashes from response
 	for _, u := range users {
@@ -493,6 +520,9 @@ func (uc *AuthUsecase) UpdateUser(ctx context.Context, userID uuid.UUID, input U
 	}
 	if input.IsActive != nil {
 		user.IsActive = *input.IsActive
+	}
+	if input.Role != nil {
+		user.Role = *input.Role
 	}
 	user.UpdatedAt = time.Now()
 
