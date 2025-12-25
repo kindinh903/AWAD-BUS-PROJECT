@@ -8,6 +8,7 @@ import (
 
 	"github.com/yourusername/bus-booking-auth/internal/entities"
 	"github.com/yourusername/bus-booking-auth/internal/repositories"
+	"github.com/yourusername/bus-booking-auth/internal/services"
 )
 
 // AnalyticsUsecase handles analytics business logic
@@ -18,6 +19,7 @@ type AnalyticsUsecase struct {
 	routeAnalyticsRepo   repositories.RouteAnalyticsRepository
 	tripRepo             repositories.TripRepository
 	routeRepo            repositories.RouteRepository
+	cacheService         *services.CacheService
 }
 
 // NewAnalyticsUsecase creates a new analytics usecase
@@ -27,6 +29,7 @@ func NewAnalyticsUsecase(
 	routeAnalyticsRepo repositories.RouteAnalyticsRepository,
 	tripRepo repositories.TripRepository,
 	routeRepo repositories.RouteRepository,
+	cacheService *services.CacheService,
 ) *AnalyticsUsecase {
 	return &AnalyticsUsecase{
 		bookingRepo:          bookingRepo,
@@ -34,6 +37,7 @@ func NewAnalyticsUsecase(
 		routeAnalyticsRepo:   routeAnalyticsRepo,
 		tripRepo:             tripRepo,
 		routeRepo:            routeRepo,
+		cacheService:         cacheService,
 	}
 }
 
@@ -49,6 +53,16 @@ type BookingTrendData struct {
 // GetBookingTrends returns booking trends for a date range
 // Used for trend charts showing bookings over time
 func (u *AnalyticsUsecase) GetBookingTrends(ctx context.Context, startDate, endDate time.Time) ([]BookingTrendData, error) {
+	cacheKey := fmt.Sprintf("analytics:trends:%s:%s", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+
+	// Try cache first
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		var cached []BookingTrendData
+		if err := u.cacheService.Get(ctx, cacheKey, &cached); err == nil {
+			return cached, nil
+		}
+	}
+
 	analytics, err := u.bookingAnalyticsRepo.GetByDateRange(ctx, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get booking analytics: %w", err)
@@ -63,6 +77,11 @@ func (u *AnalyticsUsecase) GetBookingTrends(ctx context.Context, startDate, endD
 			TotalRevenue:      a.TotalRevenue,
 			ConversionRate:    a.ConversionRate,
 		}
+	}
+
+	// Cache the result
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Set(ctx, cacheKey, trends, "analytics")
 	}
 
 	return trends, nil
@@ -80,6 +99,16 @@ type RevenueSummary struct {
 
 // GetRevenueSummary returns revenue summary for a date range
 func (u *AnalyticsUsecase) GetRevenueSummary(ctx context.Context, startDate, endDate time.Time) (*RevenueSummary, error) {
+	cacheKey := fmt.Sprintf("analytics:revenue:%s:%s", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
+
+	// Try cache first
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		var cached RevenueSummary
+		if err := u.cacheService.Get(ctx, cacheKey, &cached); err == nil {
+			return &cached, nil
+		}
+	}
+
 	analytics, err := u.bookingAnalyticsRepo.GetByDateRange(ctx, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get analytics: %w", err)
@@ -104,14 +133,21 @@ func (u *AnalyticsUsecase) GetRevenueSummary(ctx context.Context, startDate, end
 		avgPerBooking = totalRevenue / float64(totalBookings)
 	}
 
-	return &RevenueSummary{
+	result := &RevenueSummary{
 		StartDate:         startDate,
 		EndDate:           endDate,
 		TotalRevenue:      totalRevenue,
 		AveragePerDay:     avgPerDay,
 		AveragePerBooking: avgPerBooking,
 		TotalBookings:     totalBookings,
-	}, nil
+	}
+
+	// Cache the result
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Set(ctx, cacheKey, result, "analytics")
+	}
+
+	return result, nil
 }
 
 // ConversionRateData represents conversion rate metrics
@@ -169,6 +205,16 @@ type PopularRouteData struct {
 // GetPopularRoutes returns top routes by revenue or booking count
 // orderBy can be "revenue" or "bookings"
 func (u *AnalyticsUsecase) GetPopularRoutes(ctx context.Context, startDate, endDate time.Time, limit int, orderBy string) ([]PopularRouteData, error) {
+	cacheKey := fmt.Sprintf("analytics:popular:%s:%s:%d:%s", startDate.Format("2006-01-02"), endDate.Format("2006-01-02"), limit, orderBy)
+
+	// Try cache first
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		var cached []PopularRouteData
+		if err := u.cacheService.Get(ctx, cacheKey, &cached); err == nil {
+			return cached, nil
+		}
+	}
+
 	var routeAnalytics []*entities.RouteAnalytics
 	var err error
 
@@ -200,6 +246,11 @@ func (u *AnalyticsUsecase) GetPopularRoutes(ctx context.Context, startDate, endD
 			TotalRevenue:  ra.TotalRevenue,
 			AvgOccupancy:  ra.AverageOccupancyRate,
 		})
+	}
+
+	// Cache the result
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Set(ctx, cacheKey, results, "analytics")
 	}
 
 	return results, nil

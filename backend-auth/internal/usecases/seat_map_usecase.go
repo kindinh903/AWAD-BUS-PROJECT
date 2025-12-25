@@ -7,22 +7,26 @@ import (
 	"github.com/google/uuid"
 	"github.com/yourusername/bus-booking-auth/internal/entities"
 	"github.com/yourusername/bus-booking-auth/internal/repositories"
+	"github.com/yourusername/bus-booking-auth/internal/services"
 )
 
 // SeatMapUsecase handles business logic for seat map operations
 type SeatMapUsecase struct {
-	seatMapRepo repositories.SeatMapRepository
-	busRepo     repositories.BusRepository
+	seatMapRepo  repositories.SeatMapRepository
+	busRepo      repositories.BusRepository
+	cacheService *services.CacheService
 }
 
 // NewSeatMapUsecase creates a new seat map usecase
 func NewSeatMapUsecase(
 	seatMapRepo repositories.SeatMapRepository,
 	busRepo repositories.BusRepository,
+	cacheService *services.CacheService,
 ) *SeatMapUsecase {
 	return &SeatMapUsecase{
-		seatMapRepo: seatMapRepo,
-		busRepo:     busRepo,
+		seatMapRepo:  seatMapRepo,
+		busRepo:      busRepo,
+		cacheService: cacheService,
 	}
 }
 
@@ -65,18 +69,63 @@ func (u *SeatMapUsecase) CreateSeatMap(ctx context.Context, input CreateSeatMapI
 		return nil, fmt.Errorf("failed to create seats: %w", err)
 	}
 
+	// Invalidate cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "seatmaps:*")
+	}
+
 	// Reload with seats
 	return u.seatMapRepo.GetWithSeats(ctx, seatMap.ID)
 }
 
 // GetSeatMap returns a seat map by ID with all seats
 func (u *SeatMapUsecase) GetSeatMap(ctx context.Context, id uuid.UUID) (*entities.SeatMap, error) {
-	return u.seatMapRepo.GetWithSeats(ctx, id)
+	cacheKey := fmt.Sprintf("seatmap:%s", id.String())
+
+	// Try cache first
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		var cached entities.SeatMap
+		if err := u.cacheService.Get(ctx, cacheKey, &cached); err == nil {
+			return &cached, nil
+		}
+	}
+
+	result, err := u.seatMapRepo.GetWithSeats(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Cache the result
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Set(ctx, cacheKey, result, "seatmaps")
+	}
+
+	return result, nil
 }
 
 // GetAllSeatMaps returns all seat maps
 func (u *SeatMapUsecase) GetAllSeatMaps(ctx context.Context) ([]*entities.SeatMap, error) {
-	return u.seatMapRepo.GetAll(ctx)
+	cacheKey := "seatmaps:all"
+
+	// Try cache first
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		var cached []*entities.SeatMap
+		if err := u.cacheService.Get(ctx, cacheKey, &cached); err == nil {
+			return cached, nil
+		}
+	}
+
+	result, err := u.seatMapRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Cache the result
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Set(ctx, cacheKey, result, "seatmaps")
+	}
+
+	return result, nil
 }
 
 // UpdateSeatMapInput represents input for updating a seat map
@@ -111,12 +160,29 @@ func (u *SeatMapUsecase) UpdateSeatMap(ctx context.Context, id uuid.UUID, input 
 		return nil, fmt.Errorf("failed to update seat map: %w", err)
 	}
 
+	// Invalidate cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "seatmaps:*")
+		_ = u.cacheService.Invalidate(ctx, fmt.Sprintf("seatmap:%s", id.String()))
+	}
+
 	return u.seatMapRepo.GetWithSeats(ctx, id)
 }
 
 // DeleteSeatMap deletes a seat map and all its seats
 func (u *SeatMapUsecase) DeleteSeatMap(ctx context.Context, id uuid.UUID) error {
-	return u.seatMapRepo.Delete(ctx, id)
+	err := u.seatMapRepo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "seatmaps:*")
+		_ = u.cacheService.Invalidate(ctx, fmt.Sprintf("seatmap:%s", id.String()))
+	}
+
+	return nil
 }
 
 // UpdateSeatInput represents input for updating a single seat
