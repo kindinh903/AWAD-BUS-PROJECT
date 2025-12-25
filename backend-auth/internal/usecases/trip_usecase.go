@@ -191,3 +191,107 @@ func (u *TripUsecase) UpdateTripStatus(ctx context.Context, tripIDStr string, st
 
 	return nil
 }
+
+// UpdateTrip updates an existing trip
+func (u *TripUsecase) UpdateTrip(ctx context.Context, tripID uuid.UUID, updates *entities.Trip) error {
+	// Validate trip exists
+	existing, err := u.tripRepo.GetByID(ctx, tripID)
+	if err != nil {
+		return fmt.Errorf("trip not found: %w", err)
+	}
+
+	// Merge updates with existing data (only update non-zero values)
+	if updates.RouteID != uuid.Nil {
+		// If route is being changed, validate it exists
+		_, err := u.routeRepo.GetByID(ctx, updates.RouteID)
+		if err != nil {
+			return fmt.Errorf("route not found: %w", err)
+		}
+		existing.RouteID = updates.RouteID
+	}
+
+	if updates.BusID != nil {
+		// If bus is being changed, validate and check conflicts
+		_, err := u.busRepo.GetByID(ctx, *updates.BusID)
+		if err != nil {
+			return fmt.Errorf("bus not found: %w", err)
+		}
+
+		// Use updated times if provided, otherwise use existing
+		startTime := existing.StartTime
+		if !updates.StartTime.IsZero() {
+			startTime = updates.StartTime
+		}
+		endTime := existing.EndTime
+		if !updates.EndTime.IsZero() {
+			endTime = updates.EndTime
+		}
+
+		// Check for conflicts (excluding this trip)
+		conflictingTrips, err := u.tripRepo.GetByBusID(ctx, *updates.BusID, startTime, endTime)
+		if err != nil {
+			return fmt.Errorf("failed to check conflicts: %w", err)
+		}
+
+		for _, trip := range conflictingTrips {
+			if trip.ID != tripID {
+				return fmt.Errorf("bus has conflicting trip(s) at the requested time")
+			}
+		}
+		existing.BusID = updates.BusID
+	}
+
+	if !updates.StartTime.IsZero() {
+		existing.StartTime = updates.StartTime
+	}
+	if !updates.EndTime.IsZero() {
+		existing.EndTime = updates.EndTime
+	}
+	if updates.Price > 0 {
+		existing.Price = updates.Price
+	}
+	if updates.Status != "" {
+		existing.Status = updates.Status
+	}
+	if updates.Notes != nil {
+		existing.Notes = updates.Notes
+	}
+	if updates.DriverID != nil {
+		existing.DriverID = updates.DriverID
+	}
+
+	// Update the trip
+	err = u.tripRepo.Update(ctx, existing)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate trip search cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "trip:search:*")
+	}
+
+	return nil
+}
+
+// DeleteTrip soft deletes a trip
+func (u *TripUsecase) DeleteTrip(ctx context.Context, tripID uuid.UUID) error {
+	// Validate trip exists
+	_, err := u.tripRepo.GetByID(ctx, tripID)
+	if err != nil {
+		return fmt.Errorf("trip not found: %w", err)
+	}
+
+	// Delete the trip
+	err = u.tripRepo.Delete(ctx, tripID)
+	if err != nil {
+		return err
+	}
+
+	// Invalidate trip search cache
+	if u.cacheService != nil && u.cacheService.IsEnabled() {
+		_ = u.cacheService.Invalidate(ctx, "trip:search:*")
+	}
+
+	return nil
+}

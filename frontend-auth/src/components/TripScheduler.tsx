@@ -87,19 +87,6 @@ const initialTrips: ScheduledTrip[] = [
   },
 ];
 
-const cities = [
-  'Ho Chi Minh City',
-  'Hanoi',
-  'Da Nang',
-  'Hai Phong',
-  'Can Tho',
-  'Nha Trang',
-  'Hue',
-  'Vung Tau',
-  'Dalat',
-  'Phu Quoc',
-];
-
 const companies = [
   'Phuong Trang',
   'Mai Linh Express',
@@ -125,12 +112,15 @@ const amenitiesOptions = [
 
 export const TripScheduler: React.FC = () => {
   const [trips, setTrips] = useState<ScheduledTrip[]>([]);
+  const [buses, setBuses] = useState<any[]>([]);
+  const [routes, setRoutes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<ScheduledTrip | null>(null);
   const [viewingTripSeats, setViewingTripSeats] = useState<ScheduledTrip | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedRouteId, setSelectedRouteId] = useState<string>('');
   const [formData, setFormData] = useState<Partial<ScheduledTrip>>({
     from: '',
     to: '',
@@ -148,17 +138,37 @@ export const TripScheduler: React.FC = () => {
     status: 'scheduled',
   });
 
-  // Fetch trips from API
+  // Fetch trips, buses, and routes from API
   useEffect(() => {
     fetchTrips();
+    fetchBuses();
+    fetchRoutes();
   }, []);
+
+  const fetchBuses = async () => {
+    try {
+      const response = await adminAPI.getAllBuses();
+      setBuses(response.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch buses:', error);
+    }
+  };
+
+  const fetchRoutes = async () => {
+    try {
+      const response = await adminAPI.getAllRoutes();
+      setRoutes(response.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch routes:', error);
+    }
+  };
 
   const fetchTrips = async () => {
     setIsLoading(true);
     try {
       const response = await adminAPI.getAllTrips();
       const apiTrips = response.data.data || [];
-      
+
       // Transform API response to ScheduledTrip format
       const transformedTrips: ScheduledTrip[] = apiTrips.map((trip: any) => ({
         id: trip.id,
@@ -181,7 +191,7 @@ export const TripScheduler: React.FC = () => {
         createdAt: new Date(trip.created_at),
         updatedAt: new Date(trip.updated_at),
       }));
-      
+
       setTrips(transformedTrips);
     } catch (error) {
       console.error('Failed to fetch trips:', error);
@@ -192,41 +202,41 @@ export const TripScheduler: React.FC = () => {
 
   // Filter trips based on search and status
   const filteredTrips = trips.filter(trip => {
-    const matchesSearch = 
+    const matchesSearch =
       trip.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trip.to.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trip.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trip.driverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trip.busPlate.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || trip.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
   const calculateDuration = (departure: string, arrival: string) => {
     if (!departure || !arrival) return '0h 00m';
-    
+
     const [depHour, depMin] = departure.split(':').map(Number);
     const [arrHour, arrMin] = arrival.split(':').map(Number);
-    
+
     let totalMinutes = (arrHour * 60 + arrMin) - (depHour * 60 + depMin);
-    
+
     // Handle next day arrival
     if (totalMinutes < 0) {
       totalMinutes += 24 * 60;
     }
-    
+
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    
+
     return `${hours}h ${minutes.toString().padStart(2, '0')}m`;
   };
 
   const handleInputChange = (field: keyof ScheduledTrip, value: any) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      
+
       // Auto-calculate duration when departure or arrival changes
       if (field === 'departure' || field === 'arrival') {
         updated.duration = calculateDuration(
@@ -234,12 +244,12 @@ export const TripScheduler: React.FC = () => {
           field === 'arrival' ? value : prev.arrival || ''
         );
       }
-      
+
       // Auto-set available seats when total seats changes
       if (field === 'totalSeats') {
         updated.availableSeats = value;
       }
-      
+
       return updated;
     });
   };
@@ -249,7 +259,7 @@ export const TripScheduler: React.FC = () => {
     const updatedAmenities = currentAmenities.includes(amenity)
       ? currentAmenities.filter(a => a !== amenity)
       : [...currentAmenities, amenity];
-    
+
     setFormData(prev => ({ ...prev, amenities: updatedAmenities }));
   };
 
@@ -257,8 +267,10 @@ export const TripScheduler: React.FC = () => {
     if (trip) {
       setEditingTrip(trip);
       setFormData(trip);
+      setSelectedRouteId(''); // Editing not supported via API yet
     } else {
       setEditingTrip(null);
+      setSelectedRouteId('');
       setFormData({
         from: '',
         to: '',
@@ -282,46 +294,89 @@ export const TripScheduler: React.FC = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingTrip(null);
+    setSelectedRouteId('');
     setFormData({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.from || !formData.to || !formData.departure || !formData.arrival || !formData.date) {
-      alert('Please fill in all required fields');
+
+    if (!selectedRouteId || !formData.departure || !formData.arrival || !formData.date) {
+      alert('Please select a route and fill in all required fields');
       return;
     }
 
-    const tripData: ScheduledTrip = {
-      id: editingTrip ? editingTrip.id : Date.now().toString(),
-      from: formData.from!,
-      to: formData.to!,
-      departure: formData.departure!,
-      arrival: formData.arrival!,
-      date: formData.date!,
-      duration: calculateDuration(formData.departure!, formData.arrival!),
-      price: formData.price || 0,
-      busType: formData.busType || 'Standard',
-      company: formData.company || '',
-      availableSeats: formData.availableSeats || formData.totalSeats || 35,
-      totalSeats: formData.totalSeats || 35,
-      amenities: formData.amenities || [],
-      rating: editingTrip ? editingTrip.rating : 0,
-      status: formData.status || 'scheduled',
-      driverName: formData.driverName || '',
-      busPlate: formData.busPlate || '',
-      createdAt: editingTrip ? editingTrip.createdAt : new Date(),
-      updatedAt: new Date(),
-    };
+    try {
+      setIsLoading(true);
 
-    if (editingTrip) {
-      setTrips(prev => prev.map(trip => trip.id === editingTrip.id ? tripData : trip));
-    } else {
-      setTrips(prev => [...prev, tripData]);
+      if (editingTrip) {
+        // For now, editing is not implemented on backend
+        // Just update local state
+        const tripData: ScheduledTrip = {
+          id: editingTrip.id,
+          from: formData.from!,
+          to: formData.to!,
+          departure: formData.departure!,
+          arrival: formData.arrival!,
+          date: formData.date!,
+          duration: calculateDuration(formData.departure!, formData.arrival!),
+          price: formData.price || 0,
+          busType: formData.busType || 'Standard',
+          company: formData.company || '',
+          availableSeats: formData.availableSeats || formData.totalSeats || 35,
+          totalSeats: formData.totalSeats || 35,
+          amenities: formData.amenities || [],
+          rating: editingTrip.rating,
+          status: formData.status || 'scheduled',
+          driverName: formData.driverName || '',
+          busPlate: formData.busPlate || '',
+          createdAt: editingTrip.createdAt,
+          updatedAt: new Date(),
+        };
+        setTrips(prev => prev.map(trip => trip.id === editingTrip.id ? tripData : trip));
+      } else {
+        // Create new trip - call backend API
+        if (!selectedRouteId) {
+          alert('Please select a route');
+          setIsLoading(false);
+          return;
+        }
+
+        // Combine date with time to create ISO datetime strings
+        const startDateTime = `${formData.date}T${formData.departure}:00`;
+        const endDateTime = `${formData.date}T${formData.arrival}:00`;
+
+        // Get selected bus ID from busPlate field
+        const selectedBusId = formData.busPlate || undefined;
+
+        // Create trip via API
+        const response = await adminAPI.createTrip({
+          routeId: selectedRouteId,
+          busId: selectedBusId,
+          startTime: startDateTime,
+          endTime: endDateTime,
+          price: formData.price || 0,
+          notes: formData.driverName ? `Driver: ${formData.driverName}` : undefined,
+        });
+
+        // Refresh trips list
+        await fetchTrips();
+        alert('Trip created successfully!');
+      }
+
+      closeModal();
+    } catch (error: any) {
+      console.error('Failed to save trip:', error);
+      if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+        alert('Cannot connect to server. Please make sure the backend is running on http://localhost:8080');
+      } else if (error.response?.status === 404) {
+        alert('Backend endpoint not found. Please restart the Go backend server to load the new CreateTrip endpoint.');
+      } else {
+        alert(error.response?.data?.details || error.response?.data?.error || 'Failed to save trip');
+      }
+    } finally {
+      setIsLoading(false);
     }
-
-    closeModal();
   };
 
   const handleDelete = (id: string) => {
@@ -417,7 +472,7 @@ export const TripScheduler: React.FC = () => {
             Scheduled Trips ({filteredTrips.length})
           </h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -464,11 +519,10 @@ export const TripScheduler: React.FC = () => {
                       <div className="font-medium text-gray-900">{trip.company}</div>
                       <div className="text-sm text-gray-500">{trip.driverName}</div>
                       <div className="text-xs text-gray-400">{trip.busPlate}</div>
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${
-                        trip.busType === 'VIP' ? 'bg-purple-100 text-purple-800' :
-                        trip.busType === 'Sleeper' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${trip.busType === 'VIP' ? 'bg-purple-100 text-purple-800' :
+                          trip.busType === 'Sleeper' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                        }`}>
                         {trip.busType}
                       </span>
                     </div>
@@ -529,14 +583,14 @@ export const TripScheduler: React.FC = () => {
               ))}
             </tbody>
           </table>
-          
+
           {isLoading && (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
               <p className="text-gray-600">Loading trips...</p>
             </div>
           )}
-          
+
           {!isLoading && filteredTrips.length === 0 && (
             <div className="text-center py-8">
               <Bus className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -564,41 +618,41 @@ export const TripScheduler: React.FC = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Route Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      From City *
-                    </label>
-                    <select
-                      value={formData.from || ''}
-                      onChange={(e) => handleInputChange('from', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select departure city</option>
-                      {cities.map(city => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      To City *
-                    </label>
-                    <select
-                      value={formData.to || ''}
-                      onChange={(e) => handleInputChange('to', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select destination city</option>
-                      {cities.map(city => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Route Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Route *
+                  </label>
+                  <select
+                    value={selectedRouteId}
+                    onChange={(e) => {
+                      const routeId = e.target.value;
+                      setSelectedRouteId(routeId);
+                      const route = routes.find(r => r.id === routeId);
+                      if (route) {
+                        setFormData(prev => ({
+                          ...prev,
+                          from: route.origin,
+                          to: route.destination,
+                          price: route.base_price,
+                        }));
+                      }
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select a route</option>
+                    {routes.filter(r => r.is_active).map(route => (
+                      <option key={route.id} value={route.id}>
+                        {route.origin} → {route.destination} ({route.duration_minutes}min, {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(route.base_price)})
+                      </option>
+                    ))}
+                  </select>
+                  {routes.length === 0 && (
+                    <p className="mt-2 text-sm text-orange-600">
+                      No routes available. Please create a route first in the Routes tab.
+                    </p>
+                  )}
                 </div>
 
                 {/* Time Information */}
@@ -616,7 +670,7 @@ export const TripScheduler: React.FC = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Departure Time *
@@ -629,7 +683,7 @@ export const TripScheduler: React.FC = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Arrival Time *
@@ -673,7 +727,7 @@ export const TripScheduler: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Bus Type
@@ -688,7 +742,7 @@ export const TripScheduler: React.FC = () => {
                       <option value="Sleeper">Sleeper</option>
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Price ($)
@@ -718,31 +772,41 @@ export const TripScheduler: React.FC = () => {
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bus Plate Number
+                      Select Bus (Optional)
                     </label>
-                    <input
-                      type="text"
+                    <select
                       value={formData.busPlate || ''}
                       onChange={(e) => handleInputChange('busPlate', e.target.value)}
-                      placeholder="e.g., 51B-12345"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                    >
+                      <option value="">No bus assigned yet</option>
+                      {buses.map((bus: any) => (
+                        <option key={bus.id} value={bus.id}>
+                          {bus.name} - {bus.license_plate} ({bus.bus_type}, {bus.seat_map?.total_seats || 40} seats)
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      The bus will use its configured seat map. You can assign a bus now or later.
+                    </p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Total Seats
+                      Total Seats (Read-only, from bus seat map)
                     </label>
                     <input
                       type="number"
-                      min="1"
-                      max="100"
-                      value={formData.totalSeats || ''}
-                      onChange={(e) => handleInputChange('totalSeats', parseInt(e.target.value) || 35)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={
+                        formData.busPlate
+                          ? buses.find(b => b.id === formData.busPlate)?.seat_map?.total_seats || 40
+                          : formData.totalSeats || 40
+                      }
+                      disabled
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
                     />
                   </div>
                 </div>

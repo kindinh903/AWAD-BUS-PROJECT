@@ -58,6 +58,7 @@ services:
       CACHE_ENABLED: "true"
       CACHE_TTL_TRIPS: 300
       CACHE_TTL_SEATS: 120
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://localhost:5174,http://localhost:3000,https://awad-bus-project.vercel.app"
       JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
       JWT_ACCESS_EXPIRY: 15m
       JWT_REFRESH_EXPIRY: 7d

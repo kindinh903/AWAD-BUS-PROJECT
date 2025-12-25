@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { analyticsAPI } from '../lib/api';
 import { TripScheduler } from './TripScheduler';
+import { RouteManager } from './RouteManager';
+import { BusManager } from './BusManager';
 import { SeatMapList } from './SeatMapList';
 import { SeatMapEditor } from './SeatMapEditor';
 
@@ -77,7 +79,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
   };
 
   // Transform API data to display format
-  const summaryData = dashboardData ? [
+  const summaryData: Array<{
+    id: string;
+    title: string;
+    value: string | number;
+    change?: number;
+    icon: string;
+    color: 'blue' | 'green' | 'orange' | 'red';
+  }> = dashboardData ? [
     {
       id: 'total-bookings',
       title: 'Total Bookings',
@@ -172,7 +181,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                   <p className="text-2xl font-bold text-gray-900">
                     {card.value}
                   </p>
-                  {card.change && (
+                  {card.change !== undefined && (
                     <p
                       className={`text-sm ${card.change > 0 ? 'text-green-600' : 'text-red-600'}`}
                     >
@@ -194,7 +203,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       <div className="mb-6">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            {['overview', 'users', 'trips', 'seat-maps', 'buses', 'reports'].map(tab => (
+            {['overview', 'users', 'routes', 'trips', 'seat-maps', 'buses', 'reports'].map(tab => (
               <button
                 key={tab}
                 onClick={() => {
@@ -310,6 +319,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         </div>
       )}
 
+      {selectedTab === 'routes' && (
+        <RouteManager />
+      )}
+
       {selectedTab === 'trips' && (
         <TripScheduler />
       )}
@@ -325,13 +338,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       )}
 
       {selectedTab === 'buses' && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Database className="h-6 w-6 text-blue-600" />
-            Bus Fleet Management
-          </h2>
-          <p className="text-gray-600">Bus fleet management features coming soon...</p>
-        </div>
+        <BusManager />
       )}
 
       {selectedTab === 'seat-maps' && (

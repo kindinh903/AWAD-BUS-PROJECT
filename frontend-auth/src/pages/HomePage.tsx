@@ -365,7 +365,7 @@ export default function HomePage() {
               {popularRoutes.map((route, index) => (
                 <Link
                   key={index}
-                  to={`/routes?origin=${encodeURIComponent(route.origin)}&destination=${encodeURIComponent(route.destination)}`}
+                  to={`/routes?origin=${encodeURIComponent(route.origin)}&amp;destination=${encodeURIComponent(route.destination)}`}
                   className="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700"
                 >
                   <div className="flex items-center gap-4">

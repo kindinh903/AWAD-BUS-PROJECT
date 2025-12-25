@@ -184,11 +184,49 @@ export const reviewAPI = {
 export const adminAPI = {
   // Buses
   getAllBuses: () => api.get('/admin/buses'),
+  createBus: (data: {
+    name: string;
+    plateNumber: string;
+    totalSeats: number;
+    busType: string;
+    manufacturer?: string;
+    model?: string;
+    year?: number;
+  }) => api.post('/admin/buses', data),
+  updateBus: (busId: string, data: {
+    name?: string;
+    plateNumber?: string;
+    totalSeats?: number;
+    busType?: string;
+    manufacturer?: string;
+    model?: string;
+    year?: number;
+    status?: string;
+  }) => api.put(`/admin/buses/${busId}`, data),
+  deleteBus: (busId: string) => api.delete(`/admin/buses/${busId}`),
   getAvailableBuses: (routeId: string, start: string, end: string) =>
     api.get('/admin/buses/available', { params: { routeId, start, end } }),
 
   // Routes
   getAllRoutes: () => api.get('/admin/routes'),
+  createRoute: (data: {
+    origin: string;
+    destination: string;
+    durationMinutes: number;
+    distance?: number;
+    basePrice: number;
+    description?: string;
+  }) => api.post('/admin/routes', data),
+  updateRoute: (routeId: string, data: {
+    origin?: string;
+    destination?: string;
+    durationMinutes?: number;
+    distance?: number;
+    basePrice?: number;
+    description?: string;
+    isActive?: boolean;
+  }) => api.put(`/admin/routes/${routeId}`, data),
+  deleteRoute: (routeId: string) => api.delete(`/admin/routes/${routeId}`),
 
   // Trips
   getAllTrips: () => api.get('/admin/trips'),
@@ -196,6 +234,17 @@ export const adminAPI = {
     api.post('/admin/trips/assign-bus', { tripId, busId }),
   updateTripStatus: (tripId: string, status: string) =>
     api.put(`/admin/trips/${tripId}/status`, { status }),
+
+  // Trip Operations - Create
+  createTrip: (data: {
+    routeId: string;
+    busId?: string;
+    startTime: string;
+    endTime: string;
+    price: number;
+    driverId?: string;
+    notes?: string;
+  }) => api.post('/admin/trips', data),
 
   // Trip Operations - Passengers
   getTripPassengers: (tripId: string) =>

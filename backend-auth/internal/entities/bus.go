@@ -30,6 +30,9 @@ type Bus struct {
 	CreatedAt    time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt    *time.Time `json:"deleted_at,omitempty" gorm:"index"`
+	
+	// Relations
+	SeatMap      *SeatMap   `json:"seat_map,omitempty" gorm:"foreignKey:SeatMapID"` // Seat map configuration
 }
 
 // TableName overrides the table name

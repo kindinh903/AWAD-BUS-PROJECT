@@ -36,6 +36,7 @@ func (r *busRepository) GetByID(ctx context.Context, id uuid.UUID) (*entities.Bu
 func (r *busRepository) GetAll(ctx context.Context) ([]*entities.Bus, error) {
 	var buses []*entities.Bus
 	err := r.db.WithContext(ctx).
+		Preload("SeatMap").
 		Where("deleted_at IS NULL").
 		Order("created_at DESC").
 		Find(&buses).Error

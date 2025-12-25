@@ -112,7 +112,7 @@ func (h *RouteStopHandler) CreateStop(c *gin.Context) {
 // @Tags admin
 // @Accept json
 // @Produce json
-// @Param routeId path string true "Route ID"
+// @Param id path string true "Route ID"
 // @Param stopId path string true "Stop ID"
 // @Param body body UpdateStopRequest true "Updated stop details"
 // @Security BearerAuth
@@ -121,9 +121,9 @@ func (h *RouteStopHandler) CreateStop(c *gin.Context) {
 // @Failure 401 {object} map[string]interface{} "Unauthorized"
 // @Failure 404 {object} map[string]interface{} "Stop not found"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /admin/routes/{routeId}/stops/{stopId} [put]
+// @Router /admin/routes/{id}/stops/{stopId} [put]
 func (h *RouteStopHandler) UpdateStop(c *gin.Context) {
-	routeID, err := uuid.Parse(c.Param("routeId"))
+	routeID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid route ID format",
@@ -194,7 +194,7 @@ func (h *RouteStopHandler) UpdateStop(c *gin.Context) {
 // @Description Delete a route stop (must maintain at least 1 pickup and 1 dropoff)
 // @Tags admin
 // @Produce json
-// @Param routeId path string true "Route ID"
+// @Param id path string true "Route ID"
 // @Param stopId path string true "Stop ID"
 // @Security BearerAuth
 // @Success 200 {object} map[string]interface{} "Stop deleted"
@@ -203,7 +203,7 @@ func (h *RouteStopHandler) UpdateStop(c *gin.Context) {
 // @Failure 404 {object} map[string]interface{} "Stop not found"
 // @Failure 409 {object} map[string]interface{} "Cannot delete last stop"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /admin/routes/{routeId}/stops/{stopId} [delete]
+// @Router /admin/routes/{id}/stops/{stopId} [delete]
 func (h *RouteStopHandler) DeleteStop(c *gin.Context) {
 	stopID, err := uuid.Parse(c.Param("stopId"))
 	if err != nil {

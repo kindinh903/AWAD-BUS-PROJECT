@@ -113,7 +113,7 @@ func CORS() gin.HandlerFunc {
 			fallback = "https://awad-bus-project.vercel.app"
 		}
 
-		allowed = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000," + fallback
+		allowed = "http://localhost:5173,http://localhost:5174,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:3000," + fallback
 	}
 
 	// Build a lookup map

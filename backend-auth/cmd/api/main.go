@@ -454,22 +454,34 @@ func setupRouter(container *Container) *gin.Engine {
 			admin.Use(middleware.RequireRole("admin"))
 			{
 				adminHandler := handlers.NewAdminHandler(container.TripUsecase, container.BookingUsecase)
+				busHandler := handlers.NewBusHandler(container.BusRepo)
+				routeHandler := handlers.NewRouteHandler(container.RouteRepo)
 				routeStopHandler := handlers.NewRouteStopHandler(container.RouteStopUsecase)
 				seatMapHandler := handlers.NewSeatMapHandler(container.SeatMapUsecase)
 
 				// Bus management
-				admin.GET("/buses", adminHandler.GetAllBuses)
-				admin.GET("/buses/available", adminHandler.GetAvailableBuses)
+				admin.GET("/buses", busHandler.GetAllBuses)
+				admin.POST("/buses", busHandler.CreateBus)
+				admin.GET("/buses/:id", busHandler.GetBusByID)
+				admin.PUT("/buses/:id", busHandler.UpdateBus)
+				admin.DELETE("/buses/:id", busHandler.DeleteBus)
 				admin.POST("/buses/assign-seat-map", seatMapHandler.AssignSeatMapToBus)
 
 				// Route management
-				admin.GET("/routes", adminHandler.GetAllRoutes)
+				admin.GET("/routes", routeHandler.GetAllRoutes)
+				admin.POST("/routes", routeHandler.CreateRoute)
+				admin.GET("/routes/:id", routeHandler.GetRouteByID)
+				admin.PUT("/routes/:id", routeHandler.UpdateRoute)
+				admin.DELETE("/routes/:id", routeHandler.DeleteRoute)
 				admin.POST("/routes/:id/stops", routeStopHandler.CreateStop)
-				admin.PUT("/routes/:routeId/stops/:stopId", routeStopHandler.UpdateStop)
-				admin.DELETE("/routes/:routeId/stops/:stopId", routeStopHandler.DeleteStop)
+				admin.PUT("/routes/:id/stops/:stopId", routeStopHandler.UpdateStop)
+				admin.DELETE("/routes/:id/stops/:stopId", routeStopHandler.DeleteStop)
 
 				// Trip management
 				admin.GET("/trips", adminHandler.GetAllTrips)
+				admin.POST("/trips", adminHandler.CreateTrip)
+				admin.PUT("/trips/:id", adminHandler.UpdateTrip)
+				admin.DELETE("/trips/:id", adminHandler.DeleteTrip)
 				admin.POST("/trips/assign-bus", adminHandler.AssignBus)
 
 				// Seat map management
