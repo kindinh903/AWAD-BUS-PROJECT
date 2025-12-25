@@ -287,9 +287,13 @@ export const bookingAPI = {
   getGuestBookings: (email?: string, phone?: string) =>
     api.get('/bookings/guest', { params: { email, phone } }),
 
-  // Get available seats for a trip
+  // Get available seats for a trip (only unbooked seats)
   getAvailableSeats: (tripId: string) =>
     api.get(`/trips/${tripId}/seats`),
+
+  // Get all seats with status (available, booked, reserved)
+  getSeatsWithStatus: (tripId: string) =>
+    api.get(`/trips/${tripId}/seats/status`),
 
   // Download ticket PDF
   downloadTicket: (ticketId: string) => {

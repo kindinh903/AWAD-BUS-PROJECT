@@ -30,12 +30,29 @@ const SeatMap: React.FC<SeatMapProps> = ({
     seats.forEach(seat => {
       let status: SeatStatus['status'] = 'available';
       
-      if (bookedSeats.includes(seat.id)) {
-        status = 'booked';
-      } else if (reservedSeats.includes(seat.id)) {
-        status = 'reserved';
-      } else if (selectedSeats.includes(seat.id)) {
-        status = 'selected';
+      // Check if seat has status from backend (seats/status endpoint)
+      const backendStatus = (seat as any).status;
+      if (backendStatus) {
+        if (backendStatus === 'booked') {
+          status = 'booked';
+        } else if (backendStatus === 'reserved') {
+          status = 'reserved';
+        } else if (backendStatus === 'unavailable') {
+          status = 'available'; // Keep as available but not bookable
+        } else if (selectedSeats.includes(seat.id)) {
+          status = 'selected';
+        } else {
+          status = 'available';
+        }
+      } else {
+        // Fallback to props-based status (old behavior)
+        if (bookedSeats.includes(seat.id)) {
+          status = 'booked';
+        } else if (reservedSeats.includes(seat.id)) {
+          status = 'reserved';
+        } else if (selectedSeats.includes(seat.id)) {
+          status = 'selected';
+        }
       }
 
       statusMap.set(seat.id, { seat_id: seat.id, status });

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Bus, LogOut, LayoutDashboard, Menu, X,
-  MapPin, Truck, Tag, HelpCircle, Search
+  MapPin, Truck, Tag, HelpCircle, Search, Ticket
 } from 'lucide-react';
 import { tokenManager } from '../lib/tokenManager';
 import { authAPI, authEvents } from '../lib/api';
@@ -150,13 +150,24 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  <span className="hidden xl:inline">Dashboard</span>
-                </Link>
+                {/* My Tickets for regular users, Dashboard for admin */}
+                {userRole === 'admin' ? (
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span className="hidden xl:inline">Admin</span>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/my-tickets"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <Ticket className="h-4 w-4" />
+                    <span className="hidden xl:inline">My Tickets</span>
+                  </Link>
+                )}
 
                 <button
                   onClick={handleLogout}
@@ -229,12 +240,30 @@ export default function Navbar() {
                     </p>
                   </div>
                 </div>
+                {/* My Tickets for regular users, Dashboard for admin */}
+                {userRole === 'admin' ? (
+                  <Link
+                    to="/dashboard"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                    Admin Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    to="/my-tickets"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <Ticket className="h-5 w-5" />
+                    My Tickets
+                  </Link>
+                )}
                 <Link
-                  to="/dashboard"
+                  to="/booking-history"
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <LayoutDashboard className="h-5 w-5" />
-                  Dashboard
+                  Booking History
                 </Link>
                 <button
                   onClick={handleLogout}

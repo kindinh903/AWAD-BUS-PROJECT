@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import UserDashboardPage from './pages/UserDashboardPage';
 import TripDetailsPage from './pages/TripDetailsPage';
 import PaymentPage from './pages/PaymentPage';
 import PaymentSuccessPage from './pages/PaymentSuccessPage';
@@ -64,6 +65,17 @@ function App() {
         />
 
         {/* Protected pages - redirect to login if not authenticated */}
+        {/* User Dashboard - My Tickets & Bookings */}
+        <Route
+          path="my-tickets"
+          element={
+            <ProtectedRoute>
+              <UserDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Dashboard */}
         <Route
           path="dashboard"
           element={

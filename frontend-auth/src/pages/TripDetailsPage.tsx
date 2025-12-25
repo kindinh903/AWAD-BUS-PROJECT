@@ -92,7 +92,7 @@ export default function TripDetailsPage() {
 
     setLoading(true);
     try {
-      const response = await tripAPI.getAvailableSeats(trip.id);
+      const response = await bookingAPI.getSeatsWithStatus(trip.id);
       setSeats(response.data.data);
     } catch (error) {
       console.error('Failed to load seats:', error);
@@ -108,7 +108,7 @@ export default function TripDetailsPage() {
 
     try {
       setIsRefreshing(true);
-      const response = await tripAPI.getAvailableSeats(trip.id);
+      const response = await bookingAPI.getSeatsWithStatus(trip.id);
       const newSeats = response.data.data;
 
       setSeats(newSeats);
