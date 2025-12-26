@@ -156,7 +156,7 @@ export default function PromotionsPage() {
             </div>
 
             {/* Promo Code Input */}
-            <div className="container mx-auto px-4 -mt-8">
+            <div className="container mx-auto px-4 mt-8">
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
                     <div className="flex flex-col md:flex-row items-center gap-4">
                         <div className="flex-1 w-full">

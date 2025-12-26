@@ -4,6 +4,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ChatIcon from '@mui/icons-material/Chat';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
+import ReactMarkdown from 'react-markdown';
 import api from '../lib/api';
 
 interface Message {
@@ -177,9 +178,23 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                           : 'bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 rounded-bl-md shadow-sm'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                        {message.content}
-                      </p>
+                      <div className="text-sm whitespace-pre-wrap break-words leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+                        {message.role === 'assistant' ? (
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                              strong: ({ children }) => <strong className="font-bold text-blue-600 dark:text-blue-400">{children}</strong>,
+                              ol: ({ children }) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
+                              ul: ({ children }) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
+                              li: ({ children }) => <li className="mb-1">{children}</li>,
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        ) : (
+                          <p>{message.content}</p>
+                        )}
+                      </div>
                       <p
                         className={`text-xs mt-1 ${
                           message.role === 'user' ? 'text-blue-100' : 'text-gray-400 dark:text-slate-400'
