@@ -107,7 +107,7 @@ export default function StatisticChart({ role }: StatisticChartProps) {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => `${value} bookings`} />
+                <Tooltip formatter={(value) => `${value} bookings`} />
               </PieChart>
             </ResponsiveContainer>
 

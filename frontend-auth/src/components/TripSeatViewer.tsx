@@ -215,7 +215,7 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
                   <div key={rowNum} className="flex items-center gap-2">
                     <span className="text-xs text-gray-500 w-6">{rowNum}</span>
                     <div className="flex gap-2">
-                      {seatsByRow[rowNum].map((seat, idx) => {
+                      {seatsByRow[rowNum].map((seat, _idx) => {
                         const isAisle = seat.seat_type === 'aisle' || !seat.is_bookable;
                         
                         return (

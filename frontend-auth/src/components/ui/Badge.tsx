@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -31,11 +30,9 @@ export function Badge({
   };
 
   return (
-    <motion.div
-      initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
+    <div
       className={cn(
-        "inline-flex items-center rounded-full font-medium",
+        "inline-flex items-center rounded-full font-medium transition-transform",
         variants[variant],
         sizes[size],
         pulse && "animate-pulse",
@@ -44,6 +41,6 @@ export function Badge({
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

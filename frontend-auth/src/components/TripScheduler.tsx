@@ -41,51 +41,7 @@ export interface ScheduledTrip {
   updatedAt: Date;
 }
 
-// Mock data for scheduled trips
-const initialTrips: ScheduledTrip[] = [
-  {
-    id: '1',
-    from: 'Ho Chi Minh City',
-    to: 'Da Nang',
-    departure: '08:00',
-    arrival: '20:00',
-    date: '2025-12-15',
-    duration: '12h 00m',
-    price: 25.0,
-    busType: 'VIP',
-    company: 'Phuong Trang',
-    availableSeats: 12,
-    totalSeats: 45,
-    amenities: ['WiFi', 'AC', 'Reclining Seats', 'Snacks'],
-    rating: 4.5,
-    status: 'scheduled',
-    driverName: 'Nguyen Van A',
-    busPlate: '51B-12345',
-    createdAt: new Date('2025-12-01'),
-    updatedAt: new Date('2025-12-01'),
-  },
-  {
-    id: '2',
-    from: 'Hanoi',
-    to: 'Hai Phong',
-    departure: '07:00',
-    arrival: '09:30',
-    date: '2025-12-16',
-    duration: '2h 30m',
-    price: 10.0,
-    busType: 'Standard',
-    company: 'Hoang Long',
-    availableSeats: 15,
-    totalSeats: 35,
-    amenities: ['AC'],
-    rating: 4.0,
-    status: 'active',
-    driverName: 'Tran Van B',
-    busPlate: '30A-67890',
-    createdAt: new Date('2025-11-28'),
-    updatedAt: new Date('2025-12-01'),
-  },
-];
+/* Mock data removed - using API data instead */
 
 const companies = [
   'Phuong Trang',
@@ -350,7 +306,7 @@ export const TripScheduler: React.FC = () => {
         const selectedBusId = formData.busPlate || undefined;
 
         // Create trip via API
-        const response = await adminAPI.createTrip({
+        await adminAPI.createTrip({
           routeId: selectedRouteId,
           busId: selectedBusId,
           startTime: startDateTime,

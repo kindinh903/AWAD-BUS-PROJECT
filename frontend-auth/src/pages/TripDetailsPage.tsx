@@ -7,7 +7,6 @@ import UsbIcon from '@mui/icons-material/Usb';
 import LocalCafeIcon from '@mui/icons-material/LocalCafe';
 import HotelIcon from '@mui/icons-material/Hotel';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { Button } from '../components/ui/Button';
 import { BusTrip } from '../lib/mockData';
 import SeatMap from '../components/SeatMap';
 import PassengerForm from '../components/PassengerForm';
@@ -31,8 +30,8 @@ export default function TripDetailsPage() {
   const [passengers, setPassengers] = useState<Passenger[]>([]);
   const [loading, setLoading] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random()}`);
-  const [bookingReference, setBookingReference] = useState<string | null>(null);
-  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [bookingReference, _setBookingReference] = useState<string | null>(null);
+  const [bookingId, _setBookingId] = useState<string | null>(null);
   const [trip, setTrip] = useState<BusTrip | null>(location.state?.trip || null);
   const [tripLoading, setTripLoading] = useState(!location.state?.trip);
   const [isRefreshing, setIsRefreshing] = useState(false);

@@ -16,6 +16,7 @@ interface BookingData {
     contact_name: string;
     contact_email: string;
     total_amount: number;
+    total_price?: number;
     status: string;
     trip?: {
         route?: {

@@ -27,7 +27,7 @@ export function Skeleton({
       transition: {
         duration: 1.5,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: "easeInOut" as const
       }
     },
     wave: {
@@ -35,7 +35,7 @@ export function Skeleton({
       transition: {
         duration: 2,
         repeat: Infinity,
-        ease: "linear"
+        ease: "linear" as const
       }
     }
   };

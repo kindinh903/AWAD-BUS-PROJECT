@@ -331,11 +331,11 @@ export default function HomePage() {
               <CardContent>
                 <DirectionsBusIcon sx={{ fontSize: 48 }} className="text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 dark:text-gray-400 mb-4">No trips available today. Check back tomorrow!</p>
-                <Button variant="outline" asChild>
-                  <Link to="/routes">
+                <Link to="/routes">
+                  <Button variant="outline">
                     Browse all routes
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           )}

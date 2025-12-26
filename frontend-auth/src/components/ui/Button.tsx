@@ -1,10 +1,8 @@
 import { forwardRef } from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
 import { CircularProgress } from '@mui/material';
 import { cn } from '../../lib/utils';
 
-// Combine Framer Motion props with HTML Button props
-type ButtonProps = HTMLMotionProps<"button"> & {
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
@@ -16,7 +14,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, leftIcon, rightIcon, children, disabled, ...props }, ref) => {
     
     // Base styles
-    const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-white dark:ring-offset-gray-950";
+    const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-white dark:ring-offset-gray-950 hover:scale-[1.02] active:scale-[0.98]";
     
     // Variants
     const variants = {
@@ -35,10 +33,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <motion.button
+      <button
         ref={ref}
-        whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
         disabled={isLoading || disabled}
         {...props}
@@ -47,7 +43,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {!isLoading && leftIcon && leftIcon}
         {children}
         {!isLoading && rightIcon && rightIcon}
-      </motion.button>
+      </button>
     );
   }
 );
