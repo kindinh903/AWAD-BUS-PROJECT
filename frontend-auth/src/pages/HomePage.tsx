@@ -327,7 +327,7 @@ export default function HomePage() {
               ))}
             </StaggerGrid>
           ) : (
-            <Card className="text-center py-12">
+            <Card className="text-center py-12 border border-gray-200 dark:border-slate-700">
               <CardContent>
                 <DirectionsBusIcon sx={{ fontSize: 48 }} className="text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 dark:text-gray-400 mb-4">No trips available today. Check back tomorrow!</p>

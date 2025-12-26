@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import ChatIcon from '@mui/icons-material/Chat';
-import MinimizeIcon from '@mui/icons-material/Minimize';
+import RemoveIcon from '@mui/icons-material/Remove';
+import AddIcon from '@mui/icons-material/Add';
 import api from '../lib/api';
 
 interface Message {
@@ -117,7 +118,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className={`mb-4 w-96 bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${
+          className={`mb-4 w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 flex flex-col ${
             isMinimized ? 'h-16' : 'h-[600px]'
           }`}
           style={{
@@ -125,7 +126,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
           }}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 flex items-center justify-between">
+          <div className={`flex-shrink-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 flex items-center justify-between ${
+            isMinimized ? 'h-16' : 'py-4'
+          }`}>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                 <ChatIcon sx={{ fontSize: 24 }} className="text-blue-600" />
@@ -138,14 +141,14 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={toggleMinimize}
-                className="p-1 hover:bg-blue-500 rounded-lg transition-colors"
-                aria-label="Minimize"
+                className="p-1 hover:bg-blue-500 rounded-lg transition-colors flex items-center justify-center"
+                aria-label={isMinimized ? 'Expand' : 'Minimize'}
               >
-                <MinimizeIcon sx={{ fontSize: 20 }} />
+                {isMinimized ? <AddIcon sx={{ fontSize: 20 }} /> : <RemoveIcon sx={{ fontSize: 20 }} />}
               </button>
               <button
                 onClick={toggleChat}
-                className="p-1 hover:bg-blue-500 rounded-lg transition-colors"
+                className="p-1 hover:bg-blue-500 rounded-lg transition-colors flex items-center justify-center"
                 aria-label="Close chat"
               >
                 <CloseIcon sx={{ fontSize: 20 }} />
@@ -156,7 +159,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
           {/* Messages Container */}
           {!isMinimized && (
             <>
-              <div className="h-[450px] overflow-y-auto p-4 space-y-4 bg-gray-50">
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-slate-900">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -171,7 +174,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                       className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                         message.role === 'user'
                           ? 'bg-blue-600 text-white rounded-br-md'
-                          : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
+                          : 'bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 rounded-bl-md shadow-sm'
                       }`}
                     >
                       <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
@@ -179,7 +182,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                       </p>
                       <p
                         className={`text-xs mt-1 ${
-                          message.role === 'user' ? 'text-blue-100' : 'text-gray-400'
+                          message.role === 'user' ? 'text-blue-100' : 'text-gray-400 dark:text-slate-400'
                         }`}
                       >
                         {message.timestamp.toLocaleTimeString([], {
@@ -195,15 +198,15 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-2">
                       <ChatIcon sx={{ fontSize: 20 }} className="text-white" />
                     </div>
-                    <div className="bg-white text-gray-800 rounded-2xl rounded-bl-md shadow-sm px-4 py-3">
+                    <div className="bg-white dark:bg-slate-700 text-gray-800 dark:text-slate-100 rounded-2xl rounded-bl-md shadow-sm px-4 py-3">
                       <div className="flex space-x-2">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 dark:bg-slate-400 rounded-full animate-bounce"></div>
                         <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-gray-400 dark:bg-slate-400 rounded-full animate-bounce"
                           style={{ animationDelay: '0.2s' }}
                         ></div>
                         <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-gray-400 dark:bg-slate-400 rounded-full animate-bounce"
                           style={{ animationDelay: '0.4s' }}
                         ></div>
                       </div>
@@ -214,7 +217,7 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
               </div>
 
               {/* Input Area */}
-              <div className="border-t border-gray-200 p-4 bg-white">
+              <div className="flex-shrink-0 border-t border-gray-200 dark:border-slate-700 p-4 pb-6 bg-white dark:bg-slate-800">
                 <div className="flex items-center space-x-2">
                   <input
                     ref={inputRef}
@@ -223,21 +226,21 @@ const Chatbot: React.FC<ChatbotProps> = ({ className = '' }) => {
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Type your message..."
-                    className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="flex-1 border border-gray-300 dark:border-slate-600 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-400"
                     disabled={isLoading}
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputMessage.trim() || isLoading}
-                    className="bg-blue-600 text-white p-2.5 rounded-full hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex-shrink-0"
+                    className="bg-blue-600 text-white w-10 h-10 rounded-full hover:bg-blue-700 transition-colors disabled:bg-gray-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed flex-shrink-0 flex items-center justify-center"
                     aria-label="Send message"
                   >
                     <SendIcon sx={{ fontSize: 20 }} />
                   </button>
                 </div>
-                <p className="text-xs text-gray-400 mt-2 text-center">
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-3 text-center">
                   Powered by{' '}
-                  <span className="font-semibold text-blue-600">Gemini AI</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">Gemini AI</span>
                 </p>
               </div>
             </>

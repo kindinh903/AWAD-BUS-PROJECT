@@ -10,7 +10,6 @@ interface CityAutocompleteProps {
   exclude?: string;
   icon?: 'origin' | 'destination';
   className?: string;
-  darkMode?: boolean;
 }
 
 export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
@@ -20,7 +19,6 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   exclude,
   icon = 'origin',
   className = '',
-  darkMode = false,
 }) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -108,23 +106,14 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
 
   const Icon = icon === 'destination' ? ExploreIcon : LocationOnIcon;
 
-  const baseInputClass = darkMode
-    ? 'w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-    : 'w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  const baseInputClass = 'w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
-  const baseSuggestionClass = darkMode
-    ? 'absolute top-full left-0 right-0 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto z-50'
-    : 'absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto z-50';
+  const baseSuggestionClass = 'absolute top-full left-0 right-0 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto z-50';
 
   const getItemClass = (index: number) => {
     const active = index === activeIndex;
-    if (darkMode) {
-      return `px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-gray-600 ${
-        active ? 'bg-blue-50 dark:bg-gray-600 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
-      }`;
-    }
-    return `px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-blue-50 ${
-      active ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+    return `px-4 py-2 cursor-pointer flex items-center gap-2 hover:bg-blue-50 dark:hover:bg-slate-600 ${
+      active ? 'bg-blue-50 dark:bg-slate-600 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-slate-200'
     }`;
   };
 

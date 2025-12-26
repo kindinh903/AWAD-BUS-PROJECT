@@ -3,25 +3,48 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light mode colors */
+    --color-bg-primary: 249 250 251; /* gray-50 */
+    --color-bg-secondary: 255 255 255; /* white */
+    --color-bg-tertiary: 243 244 246; /* gray-100 */
+    --color-text-primary: 17 24 39; /* gray-900 */
+    --color-text-secondary: 75 85 99; /* gray-600 */
+    --color-text-muted: 156 163 175; /* gray-400 */
+    --color-border: 229 231 235; /* gray-200 */
+    --color-border-hover: 209 213 219; /* gray-300 */
+    --color-accent: 59 130 246; /* blue-500 */
+    --color-accent-hover: 37 99 235; /* blue-600 */
+  }
+
+  .dark {
+    /* Dark mode colors - Modern, softer dark theme */
+    --color-bg-primary: 15 23 42; /* slate-900 */
+    --color-bg-secondary: 30 41 59; /* slate-800 */
+    --color-bg-tertiary: 51 65 85; /* slate-700 */
+    --color-text-primary: 248 250 252; /* slate-50 */
+    --color-text-secondary: 203 213 225; /* slate-300 */
+    --color-text-muted: 148 163 184; /* slate-400 */
+    --color-border: 51 65 85; /* slate-700 */
+    --color-border-hover: 71 85 105; /* slate-600 */
+    --color-accent: 96 165 250; /* blue-400 */
+    --color-accent-hover: 147 197 253; /* blue-300 */
+  }
+
   * {
     border-color: theme('borderColor.DEFAULT', currentColor);
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+    @apply bg-gray-50 text-gray-900 font-sans antialiased transition-colors duration-200;
   }
 
-  /* Dark mode overrides applied when the `dark` class is set on <html> */
+  /* Dark mode body styles */
   html.dark body {
-    @apply bg-slate-900 text-gray-100;
+    @apply bg-slate-900 text-slate-50;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-semibold;
   }
 }
@@ -32,47 +55,35 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-600;
+    @apply btn bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600;
+  }
+
+  html.dark .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-400 focus-visible:ring-blue-400;
   }
 
   .btn-secondary {
     @apply btn bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:ring-gray-400;
   }
 
+  html.dark .btn-secondary {
+    @apply bg-slate-700 text-slate-100 hover:bg-slate-600 focus-visible:ring-slate-500;
+  }
+
   .btn-outline {
-    @apply btn border border-gray-300 bg-white hover:bg-gray-50;
+    @apply btn border border-gray-300 bg-white hover:bg-gray-50 text-gray-700;
   }
 
-  /* Dark variants for common components */
   html.dark .btn-outline {
-    @apply bg-slate-800 border-slate-700 text-gray-100 hover:bg-slate-700;
-  }
-
-  /* Quick full-page invert option:
-     - Applies an overall invert+hue-rotate when `.dark` is present on <html>.
-     - Media elements (img, video, svg, iframe) are re-inverted so their colors remain natural.
-     - This is a fallback "full invert" experience; for a pixel-perfect dark theme prefer CSS variables + dark variants.
-  */
-  html.dark {
-    filter: invert(1) hue-rotate(180deg);
-  }
-
-  html.dark img,
-  html.dark video,
-  html.dark picture,
-  html.dark svg,
-  html.dark iframe,
-  html.dark [data-no-invert] {
-    /* re-invert media so photos/icons keep correct colors */
-    filter: invert(1) hue-rotate(180deg);
+    @apply bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700 hover:border-slate-500;
   }
 
   .input {
-    @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+    @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20;
   }
 
   html.dark .input {
-    @apply bg-slate-800 border-slate-700 text-gray-100 placeholder:text-slate-400 focus:border-primary-400;
+    @apply bg-slate-800 border-slate-600 text-slate-100 placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400/20;
   }
 
   .card {
@@ -80,17 +91,35 @@
   }
 
   html.dark .card {
-    @apply bg-slate-800 border-slate-700 text-gray-100 shadow-none;
+    @apply bg-slate-800 border-slate-700 text-slate-100 shadow-lg shadow-slate-900/20;
   }
 
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
+  /* Improved dark scrollbar */
+  html.dark ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  html.dark ::-webkit-scrollbar-track {
+    background: rgb(30 41 59); /* slate-800 */
+  }
+
+  html.dark ::-webkit-scrollbar-thumb {
+    background: rgb(71 85 105); /* slate-600 */
+    border-radius: 5px;
+  }
+
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(100 116 139); /* slate-500 */
+  }
+}
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-}
 }

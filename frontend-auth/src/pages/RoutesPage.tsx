@@ -408,9 +408,9 @@ export default function RoutesPage() {
                                     ))}
                                 </StaggerGrid>
                             ) : (
-                                <Card className="text-center py-16">
+                                <Card className="text-center py-16 border border-gray-200 dark:border-slate-700">
                                     <CardContent>
-                                        <DirectionsBusIcon sx={{ fontSize: 64 }} className="text-gray-300 mx-auto mb-4" />
+                                        <DirectionsBusIcon sx={{ fontSize: 64 }} className="text-gray-300 dark:text-gray-500 mx-auto mb-4" />
                                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No routes found</h3>
                                         <p className="text-gray-600 dark:text-gray-400 mb-4">
                                             Try adjusting your search criteria or filters

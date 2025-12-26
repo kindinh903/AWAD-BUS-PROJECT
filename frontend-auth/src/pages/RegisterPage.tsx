@@ -97,17 +97,17 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600 dark:text-slate-400">
             Already have an account?{' '}
             <Link
               to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
             >
               Sign in
             </Link>
@@ -116,10 +116,10 @@ export default function RegisterPage() {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
+            <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
               <div className="flex">
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-400">{error}</h3>
                 </div>
               </div>
             </div>
@@ -129,13 +129,13 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1"
               >
                 Full Name *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <PersonIcon sx={{ fontSize: 20 }} className="text-gray-400" />
+                  <PersonIcon sx={{ fontSize: 20 }} className="text-gray-400 dark:text-slate-500" />
                 </div>
                 <input
                   id="name"
@@ -156,13 +156,13 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1"
               >
                 Email address *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <EmailIcon sx={{ fontSize: 20 }} className="text-gray-400" />
+                  <EmailIcon sx={{ fontSize: 20 }} className="text-gray-400 dark:text-slate-500" />
                 </div>
                 <input
                   id="email"
@@ -183,13 +183,13 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1"
               >
                 Phone Number
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <PhoneIcon sx={{ fontSize: 20 }} className="text-gray-400" />
+                  <PhoneIcon sx={{ fontSize: 20 }} className="text-gray-400 dark:text-slate-500" />
                 </div>
                 <input
                   id="phone"
@@ -209,13 +209,13 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1"
               >
                 Password *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400" />
+                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400 dark:text-slate-500" />
                 </div>
                 <input
                   id="password"
@@ -236,13 +236,13 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1"
               >
                 Confirm Password *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400" />
+                  <LockIcon sx={{ fontSize: 20 }} className="text-gray-400 dark:text-slate-500" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -267,10 +267,10 @@ export default function RegisterPage() {
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-300 dark:border-slate-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">
+              <span className="px-2 bg-gray-50 dark:bg-slate-900 text-gray-500 dark:text-slate-400">
                 Or continue with
               </span>
             </div>
@@ -288,7 +288,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn bg-primary-600 text-white hover:bg-primary-700 w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center px-6 py-3 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
+              className="btn bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center px-6 py-3 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
             >
               {loading ? (
                 <>
@@ -304,7 +304,7 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          <p className="text-xs text-center text-gray-500">
+          <p className="text-xs text-center text-gray-500 dark:text-slate-500">
             By signing up, you agree to our Terms of Service and Privacy Policy
           </p>
         </form>

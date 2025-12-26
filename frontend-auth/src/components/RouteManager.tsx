@@ -230,9 +230,9 @@ export const RouteManager: React.FC = () => {
             <p className="mt-2 text-gray-600">Loading routes...</p>
           </div>
         ) : routes.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
             <RouteIcon className="text-gray-400 mx-auto mb-3" style={{ fontSize: '48px' }} />
-            <p className="text-gray-600">No routes found. Create your first route to get started.</p>
+            <p className="text-gray-600 dark:text-gray-400">No routes found. Create your first route to get started.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
