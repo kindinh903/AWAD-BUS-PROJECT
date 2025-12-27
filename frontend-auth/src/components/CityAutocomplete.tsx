@@ -10,6 +10,7 @@ interface CityAutocompleteProps {
   exclude?: string;
   icon?: 'origin' | 'destination';
   className?: string;
+  darkMode?: boolean;
 }
 
 export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
@@ -19,6 +20,8 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   exclude,
   icon = 'origin',
   className = '',
+  // darkMode is handled by Tailwind dark: classes, kept for compatibility
+  darkMode = false,
 }) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -54,11 +57,11 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setActiveIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+        setActiveIndex((prev: number) => (prev < suggestions.length - 1 ? prev + 1 : prev));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setActiveIndex(prev => (prev > 0 ? prev - 1 : -1));
+        setActiveIndex((prev: number) => (prev > 0 ? prev - 1 : -1));
         break;
       case 'Enter':
         e.preventDefault();
@@ -133,7 +136,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
       />
       {showSuggestions && suggestions.length > 0 && (
         <div ref={suggestionsRef} className={baseSuggestionClass}>
-          {suggestions.map((city, index) => (
+          {suggestions.map((city: string, index: number) => (
             <div
               key={city}
               onClick={() => selectSuggestion(city)}
