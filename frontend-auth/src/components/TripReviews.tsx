@@ -82,14 +82,14 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
         const percentage = total > 0 ? (count / total) * 100 : 0;
         return (
             <div className="flex items-center gap-2 text-sm">
-                <span className="w-6 text-gray-600">{label}</span>
-                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <span className="w-6 text-gray-600 dark:text-gray-300">{label}</span>
+                <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                         className="h-full bg-yellow-400 rounded-full"
                         style={{ width: `${percentage}%` }}
                     />
                 </div>
-                <span className="w-8 text-right text-gray-500">{count}</span>
+                <span className="w-8 text-right text-gray-500 dark:text-gray-400">{count}</span>
             </div>
         );
     };
@@ -105,13 +105,13 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
 
     if (loading && reviews.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
                 <div className="animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
                     <div className="space-y-3">
-                        <div className="h-4 bg-gray-200 rounded w-full"></div>
-                        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                        <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
                     </div>
                 </div>
             </div>
@@ -119,17 +119,17 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
             {/* Header */}
             <button
                 onClick={() => setExpanded(!expanded)}
-                className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
                 <div className="flex items-center gap-3">
                     <ChatIcon sx={{ fontSize: 20 }} className="text-blue-600" />
-                    <h3 className="font-semibold text-lg">Customer Reviews</h3>
+                    <h3 className="font-semibold text-lg dark:text-white">Customer Reviews</h3>
                     {stats && (
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                             ({stats.total_reviews} {stats.total_reviews === 1 ? 'review' : 'reviews'})
                         </span>
                     )}
@@ -149,11 +149,11 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                             {/* Average Rating */}
                             <div className="flex items-center gap-4">
                                 <div className="text-center">
-                                    <div className="text-4xl font-bold text-gray-900">
+                                    <div className="text-4xl font-bold text-gray-900 dark:text-white">
                                         {stats.average_rating.toFixed(1)}
                                     </div>
                                     {renderStars(Math.round(stats.average_rating), 'md')}
-                                    <div className="text-sm text-gray-500 mt-1">
+                                    <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                         {stats.total_reviews} reviews
                                     </div>
                                 </div>
@@ -176,7 +176,7 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                             {reviews.map((review) => (
                                 <div key={review.id} className="border-b pb-4 last:border-b-0 last:pb-0">
                                     <div className="flex items-start gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
                                             {review.user?.avatar ? (
                                                 <img
                                                     src={review.user.avatar}
@@ -193,15 +193,15 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                                                     {review.user?.name || 'Anonymous'}
                                                 </span>
                                                 {renderStars(review.rating)}
-                                                <span className="text-sm text-gray-400">
+                                                <span className="text-sm text-gray-400 dark:text-gray-500">
                                                     {formatDate(review.created_at)}
                                                 </span>
                                             </div>
                                             {review.title && (
-                                                <h4 className="font-medium text-gray-900 mb-1">{review.title}</h4>
+                                                <h4 className="font-medium text-gray-900 dark:text-white mb-1">{review.title}</h4>
                                             )}
                                             {review.comment && (
-                                                <p className="text-gray-600 text-sm">{review.comment}</p>
+                                                <p className="text-gray-600 dark:text-gray-300 text-sm">{review.comment}</p>
                                             )}
                                         </div>
                                     </div>
@@ -218,7 +218,7 @@ export default function TripReviews({ tripId }: TripReviewsProps) {
                                     >
                                         Previous
                                     </button>
-                                    <span className="px-3 py-1 text-sm text-gray-600">
+                                    <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
                                         Page {page} of {totalPages}
                                     </span>
                                     <button

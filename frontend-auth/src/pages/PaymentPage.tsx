@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentAPI, bookingAPI } from '../lib/api';
+import { tokenManager } from '../lib/tokenManager';
 import QRCode from 'qrcode';
 
 interface PaymentData {
@@ -49,6 +50,19 @@ export default function PaymentPage() {
 
     // Check if we're returning from payment gateway
     const paymentId = searchParams.get('payment_id');
+
+    // Check authentication on mount
+    useEffect(() => {
+        const userInfo = tokenManager.getUserInfo();
+        if (!userInfo) {
+            // Save current path to return after login
+            const currentPath = `/payment/${bookingId}${window.location.search}`;
+            localStorage.setItem('redirectAfterLogin', currentPath);
+            
+            // Redirect to login
+            navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        }
+    }, [bookingId, navigate]);
 
     // Fetch booking details
     useEffect(() => {

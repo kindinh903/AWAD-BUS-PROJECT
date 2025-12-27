@@ -39,10 +39,13 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
     const loadRelatedTrips = async () => {
         try {
             setLoading(true);
+            console.log('[RelatedTrips] Loading related trips for tripId:', tripId, 'limit:', limit);
             const response = await tripAPI.getRelatedTrips(tripId, limit);
+            console.log('[RelatedTrips] Response:', response.data);
             setTrips(response.data.data || []);
+            console.log('[RelatedTrips] Loaded', response.data.data?.length || 0, 'trips');
         } catch (error) {
-            console.error('Failed to load related trips:', error);
+            console.error('[RelatedTrips] Failed to load related trips:', error);
         } finally {
             setLoading(false);
         }
@@ -76,25 +79,14 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
     };
 
     const handleTripClick = (trip: Trip) => {
-        // Navigate to trip details with the trip data
-        navigate('/trip-details', {
-            state: {
-                trip: {
-                    id: trip.id,
-                    from: trip.route?.origin || 'Unknown',
-                    to: trip.route?.destination || 'Unknown',
-                    departure: formatTime(trip.start_time),
-                    arrival: formatTime(trip.end_time),
-                    duration: calculateDuration(trip.start_time, trip.end_time),
-                    price: trip.price,
-                    company: trip.bus?.name || 'Bus',
-                    busType: trip.bus?.bus_type || 'Standard',
-                    availableSeats: trip.available_seats || 0,
-                    totalSeats: 40,
-                    amenities: ['WiFi', 'AC', 'USB Charging'],
-                },
-            },
+        // Navigate to trip details page
+        console.log('[RelatedTrips] Clicking trip:', {
+            id: trip.id,
+            route: trip.route,
+            startTime: trip.start_time,
+            price: trip.price
         });
+        navigate(`/trips/${trip.id}`);
     };
 
     if (loading) {
@@ -119,10 +111,10 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
-                <DirectionsBusIcon sx={{ fontSize: 20 }} className="text-blue-600" />
-                <h3 className="font-semibold text-lg">Other Trips on This Route</h3>
+                <DirectionsBusIcon sx={{ fontSize: 20 }} className="text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-lg dark:text-white">Other Trips on This Route</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -130,30 +122,30 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
                     <div
                         key={trip.id}
                         onClick={() => handleTripClick(trip)}
-                        className="border rounded-lg p-4 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                        className="border dark:border-gray-700 rounded-lg p-4 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all cursor-pointer group bg-white dark:bg-gray-700"
                     >
                         <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                                 <AccessTimeIcon sx={{ fontSize: 16 }} />
                                 <span>{formatDate(trip.start_time)}</span>
                             </div>
-                            <span className="text-lg font-bold text-blue-600">
+                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                                 ${trip.price}
                             </span>
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">{formatTime(trip.start_time)}</span>
-                            <ArrowForwardIcon sx={{ fontSize: 16 }} className="text-gray-400" />
-                            <span className="font-medium">{formatTime(trip.end_time)}</span>
-                            <span className="text-sm text-gray-400 ml-2">
+                            <span className="font-medium dark:text-white">{formatTime(trip.start_time)}</span>
+                            <ArrowForwardIcon sx={{ fontSize: 16 }} className="text-gray-400 dark:text-gray-500" />
+                            <span className="font-medium dark:text-white">{formatTime(trip.end_time)}</span>
+                            <span className="text-sm text-gray-400 dark:text-gray-500 ml-2">
                                 ({calculateDuration(trip.start_time, trip.end_time)})
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between text-sm text-gray-500">
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                             <span>{trip.bus?.bus_type || 'Standard'}</span>
-                            <span className="group-hover:text-blue-600 transition-colors">
+                            <span className="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 View Details →
                             </span>
                         </div>

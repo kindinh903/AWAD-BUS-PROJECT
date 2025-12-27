@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { authAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
@@ -11,6 +11,7 @@ import LoginIcon from '@mui/icons-material/Login';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -30,8 +31,12 @@ export default function LoginPage() {
       tokenManager.setTokens(response.data.access_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      // Navigate to home without page reload (preserves memory tokens)
-      navigate('/');
+      // Check for redirect URL
+      const redirectUrl = searchParams.get('redirect') || localStorage.getItem('redirectAfterLogin');
+      localStorage.removeItem('redirectAfterLogin'); // Clean up
+      
+      // Navigate to redirect URL or home
+      navigate(redirectUrl || '/');
     } catch (error) {
       const axiosError = error as AxiosError<{ error: string }>;
       setError(
@@ -57,8 +62,12 @@ export default function LoginPage() {
 
       console.log('Google login successful, user:', response.data.user);
 
-      // Navigate to dashboard
-      navigate('/dashboard');
+      // Check for redirect URL
+      const redirectUrl = searchParams.get('redirect') || localStorage.getItem('redirectAfterLogin');
+      localStorage.removeItem('redirectAfterLogin'); // Clean up
+      
+      // Navigate to redirect URL or dashboard
+      navigate(redirectUrl || '/dashboard');
     } catch (error) {
       console.error('Google login error:', error);
       const axiosError = error as AxiosError<{ error: string }>;

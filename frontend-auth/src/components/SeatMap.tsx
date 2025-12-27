@@ -76,28 +76,28 @@ const SeatMap: React.FC<SeatMapProps> = ({
 
   const getSeatColor = (seat: Seat, status: SeatStatus['status']) => {
     if (!seat.is_bookable || seat.seat_type === 'aisle') {
-      return 'bg-gray-100 cursor-not-allowed';
+      return 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed';
     }
     
     switch (status) {
       case 'selected':
-        return 'bg-green-500 text-white cursor-pointer hover:bg-green-600';
+        return 'bg-green-500 dark:bg-green-600 text-white cursor-pointer hover:bg-green-600 dark:hover:bg-green-700';
       case 'booked':
-        return 'bg-red-400 text-white cursor-not-allowed';
+        return 'bg-red-400 dark:bg-red-500 text-white cursor-not-allowed';
       case 'reserved':
-        return 'bg-orange-400 text-white cursor-not-allowed';
+        return 'bg-orange-400 dark:bg-orange-500 text-white cursor-not-allowed';
       case 'available':
         switch (seat.seat_type) {
           case 'vip':
-            return 'bg-amber-400 hover:bg-amber-500 cursor-pointer';
+            return 'bg-amber-400 dark:bg-amber-500 hover:bg-amber-500 dark:hover:bg-amber-600 cursor-pointer';
           case 'sleeper':
-            return 'bg-purple-400 hover:bg-purple-500 cursor-pointer';
+            return 'bg-purple-400 dark:bg-purple-500 hover:bg-purple-500 dark:hover:bg-purple-600 cursor-pointer';
           case 'standard':
           default:
-            return 'bg-blue-400 hover:bg-blue-500 cursor-pointer';
+            return 'bg-blue-400 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-600 cursor-pointer';
         }
       default:
-        return 'bg-gray-300';
+        return 'bg-gray-300 dark:bg-gray-600';
     }
   };
 
@@ -133,13 +133,13 @@ const SeatMap: React.FC<SeatMapProps> = ({
     <div className="space-y-6">
       {/* Bus Front Indicator */}
       <div className="flex justify-center">
-        <div className="bg-gray-800 text-white px-8 py-2 rounded-t-full">
+        <div className="bg-gray-800 dark:bg-gray-700 text-white px-8 py-2 rounded-t-full">
           🚌 Driver
         </div>
       </div>
 
       {/* Seat Map */}
-      <div className="border-4 border-gray-300 rounded-lg p-4 bg-gray-50">
+      <div className="border-4 border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
         <div className="space-y-2">
           {sortedRows.map(rowNum => {
             const rowSeats = seatsByRow[rowNum].sort(
@@ -148,7 +148,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
 
             return (
               <div key={rowNum} className="flex justify-center gap-2">
-                <div className="w-8 text-center text-sm font-semibold text-gray-600">
+                <div className="w-8 text-center text-sm font-semibold text-gray-600 dark:text-gray-300">
                   {rowNum}
                 </div>
                 {rowSeats.map(seat => {
@@ -192,31 +192,31 @@ const SeatMap: React.FC<SeatMapProps> = ({
       {/* Legend */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-400 rounded"></div>
-          <span className="text-sm">Standard</span>
+          <div className="w-8 h-8 bg-blue-400 dark:bg-blue-500 rounded"></div>
+          <span className="text-sm dark:text-gray-300">Standard</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-amber-400 rounded"></div>
-          <span className="text-sm">VIP</span>
+          <div className="w-8 h-8 bg-amber-400 dark:bg-amber-500 rounded"></div>
+          <span className="text-sm dark:text-gray-300">VIP</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-purple-400 rounded"></div>
-          <span className="text-sm">Sleeper</span>
+          <div className="w-8 h-8 bg-purple-400 dark:bg-purple-500 rounded"></div>
+          <span className="text-sm dark:text-gray-300">Sleeper</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-500 rounded"></div>
-          <span className="text-sm">Selected</span>
+          <div className="w-8 h-8 bg-green-500 dark:bg-green-600 rounded"></div>
+          <span className="text-sm dark:text-gray-300">Selected</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-red-400 rounded"></div>
-          <span className="text-sm">Booked</span>
+          <div className="w-8 h-8 bg-red-400 dark:bg-red-500 rounded"></div>
+          <span className="text-sm dark:text-gray-300">Booked</span>
         </div>
       </div>
 
       {/* Selection Summary */}
       {selectedSeats.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-semibold mb-2">Selected Seats:</h3>
+        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+          <h3 className="font-semibold mb-2 dark:text-white">Selected Seats:</h3>
           <div className="flex flex-wrap gap-2">
             {selectedSeats.map(seatId => {
               const seat = seats.find(s => s.id === seatId);
@@ -224,7 +224,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
               return (
                 <span
                   key={seatId}
-                  className="bg-white px-3 py-1 rounded-full text-sm font-medium"
+                  className="bg-white dark:bg-gray-700 dark:text-white px-3 py-1 rounded-full text-sm font-medium"
                 >
                   {seat.seat_number} - $
                   {(basePrice * seat.price_multiplier).toFixed(2)}
@@ -233,7 +233,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
             })}
           </div>
           <div className="mt-3 text-right">
-            <span className="text-lg font-bold">
+            <span className="text-lg font-bold dark:text-white">
               Total: $
               {selectedSeats
                 .reduce((total, seatId) => {

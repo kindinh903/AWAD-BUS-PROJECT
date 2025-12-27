@@ -73,42 +73,42 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-2xl font-bold">Booking Summary</h2>
+      <h2 className="text-2xl font-bold dark:text-white">Booking Summary</h2>
 
       {/* Trip Details */}
-      <div className="border rounded-lg p-4 bg-white shadow-sm">
-        <h3 className="font-semibold mb-3 text-lg">Trip Details</h3>
+      <div className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-700 shadow-sm">
+        <h3 className="font-semibold mb-3 text-lg dark:text-white">Trip Details</h3>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-gray-600">Route:</span>
-            <span className="font-medium">
+            <span className="text-gray-600 dark:text-gray-400">Route:</span>
+            <span className="font-medium dark:text-white">
               {tripDetails.origin} → {tripDetails.destination}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Departure:</span>
-            <span className="font-medium">
+            <span className="text-gray-600 dark:text-gray-400">Departure:</span>
+            <span className="font-medium dark:text-white">
               {formatDate(tripDetails.departure_time)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Arrival:</span>
-            <span className="font-medium">
+            <span className="text-gray-600 dark:text-gray-400">Arrival:</span>
+            <span className="font-medium dark:text-white">
               {formatDate(tripDetails.arrival_time)}
             </span>
           </div>
           {tripDetails.bus_name && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Bus:</span>
-              <span className="font-medium">{tripDetails.bus_name}</span>
+              <span className="text-gray-600 dark:text-gray-400">Bus:</span>
+              <span className="font-medium dark:text-white">{tripDetails.bus_name}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Passenger Details */}
-      <div className="border rounded-lg p-4 bg-white shadow-sm">
-        <h3 className="font-semibold mb-3 text-lg">Passengers</h3>
+      <div className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-700 shadow-sm">
+        <h3 className="font-semibold mb-3 text-lg dark:text-white">Passengers</h3>
         <div className="space-y-3">
           {passengers.map((passenger, index) => {
             const seat = seats.find(s => s.id === passenger.seat_id);
@@ -117,18 +117,18 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               : 0;
 
             return (
-              <div key={index} className="border-b pb-3 last:border-b-0">
+              <div key={index} className="border-b dark:border-gray-600 pb-3 last:border-b-0">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="font-medium">{passenger.full_name}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="font-medium dark:text-white">{passenger.full_name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Seat {seat?.seat_number} ({seat?.seat_type.toUpperCase()})
                     </p>
                     {passenger.age && (
-                      <p className="text-sm text-gray-600">Age: {passenger.age}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Age: {passenger.age}</p>
                     )}
                   </div>
-                  <p className="font-semibold">${seatPrice.toFixed(2)}</p>
+                  <p className="font-semibold dark:text-white">${seatPrice.toFixed(2)}</p>
                 </div>
               </div>
             );
@@ -137,11 +137,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       </div>
 
       {/* Contact Information */}
-      <div className="border rounded-lg p-4 bg-white shadow-sm">
-        <h3 className="font-semibold mb-3 text-lg">Contact Information</h3>
+      <div className="border dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-700 shadow-sm">
+        <h3 className="font-semibold mb-3 text-lg dark:text-white">Contact Information</h3>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Contact Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -151,13 +151,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               onChange={e =>
                 setContactInfo({ ...contactInfo, name: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
               placeholder="Your full name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -167,13 +167,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               onChange={e =>
                 setContactInfo({ ...contactInfo, email: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
               placeholder="your@email.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Phone <span className="text-red-500">*</span>
             </label>
             <input
@@ -183,7 +183,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               onChange={e =>
                 setContactInfo({ ...contactInfo, phone: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
               placeholder="+1 234 567 8900"
             />
           </div>
@@ -191,14 +191,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       </div>
 
       {/* Total */}
-      <div className="border rounded-lg p-4 bg-blue-50 shadow-sm">
+      <div className="border dark:border-blue-700 rounded-lg p-4 bg-blue-50 dark:bg-blue-900/30 shadow-sm">
         <div className="flex justify-between items-center">
-          <span className="text-lg font-semibold">Total Amount:</span>
-          <span className="text-2xl font-bold text-blue-600">
+          <span className="text-lg font-semibold dark:text-white">Total Amount:</span>
+          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
             ${calculateTotal().toFixed(2)}
           </span>
         </div>
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
           {passengers.length} seat{passengers.length > 1 ? 's' : ''}
         </p>
       </div>
@@ -209,7 +209,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           type="button"
           onClick={onBack}
           disabled={isProcessing}
-          className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+          className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-white disabled:opacity-50"
         >
           Back
         </button>
@@ -222,7 +222,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         </button>
       </div>
 
-      <p className="text-sm text-gray-500 text-center">
+      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
         You will have 30 minutes to complete the payment after confirmation.
       </p>
     </form>
