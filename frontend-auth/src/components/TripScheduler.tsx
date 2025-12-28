@@ -352,15 +352,15 @@ export const TripScheduler: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 dark:bg-gray-900 dark:text-white">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Calendar className="h-6 w-6 text-blue-600" />
             Trip Scheduler
           </h2>
-          <p className="text-gray-600 mt-1">Create, edit, and manage bus trip schedules</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Create, edit, and manage bus trip schedules</p>
         </div>
         <button
           onClick={() => openModal()}
@@ -372,24 +372,24 @@ export const TripScheduler: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
             <input
               type="text"
               placeholder="Search trips by city, company, driver, or bus plate..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-white"
             />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400" />
+            <Filter className="h-4 w-4 text-gray-400 dark:text-gray-500" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-white"
             >
               <option value="all">All Status</option>
               <option value="scheduled">Scheduled</option>
@@ -409,11 +409,11 @@ export const TripScheduler: React.FC = () => {
           { label: 'Active', value: trips.filter(t => t.status === 'active').length, icon: Clock, color: 'green' },
           { label: 'Total Seats', value: trips.reduce((acc, trip) => acc + trip.totalSeats, 0), icon: Users, color: 'orange' },
         ].map((stat, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg shadow-sm border">
+          <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
               </div>
               <stat.icon className={`h-8 w-8 text-${stat.color}-600`} />
             </div>
@@ -422,18 +422,18 @@ export const TripScheduler: React.FC = () => {
       </div>
 
       {/* Trip List */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
             Scheduled Trips ({filteredTrips.length})
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Route & Time
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -453,31 +453,31 @@ export const TripScheduler: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredTrips.map((trip) => (
-                <tr key={trip.id} className="hover:bg-gray-50">
+                <tr key={trip.id} className="hover:bg-gray-50 dark:hover:bg-gray-900">
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <MapPin className="h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 dark:text-white">
                           {trip.from} → {trip.to}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-300">
                           {trip.date} | {trip.departure} - {trip.arrival}
                         </div>
-                        <div className="text-xs text-gray-400">{trip.duration}</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-400">{trip.duration}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div>
-                      <div className="font-medium text-gray-900">{trip.company}</div>
-                      <div className="text-sm text-gray-500">{trip.driverName}</div>
-                      <div className="text-xs text-gray-400">{trip.busPlate}</div>
-                      <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${trip.busType === 'VIP' ? 'bg-purple-100 text-purple-800' :
-                          trip.busType === 'Sleeper' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
+                      <div className="font-medium text-gray-900 dark:text-white">{trip.company}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-300">{trip.driverName}</div>
+                      <div className="text-xs text-gray-400 dark:text-gray-400">{trip.busPlate}</div>
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${trip.busType === 'VIP' ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' :
+                          trip.busType === 'Sleeper' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' :
+                            'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                         }`}>
                         {trip.busType}
                       </span>
@@ -485,12 +485,12 @@ export const TripScheduler: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <Users className="h-4 w-4 text-gray-400 mr-1" />
-                      <span className="text-sm text-gray-900">
+                      <Users className="h-4 w-4 text-gray-400 dark:text-gray-500 mr-1" />
+                      <span className="text-sm text-gray-900 dark:text-white">
                         {trip.availableSeats}/{trip.totalSeats}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
                       <div
                         className="bg-blue-600 h-2 rounded-full"
                         style={{
@@ -502,11 +502,11 @@ export const TripScheduler: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <DollarSign className="h-4 w-4 text-green-600 mr-1" />
-                      <span className="text-lg font-semibold text-gray-900">${trip.price}</span>
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">${trip.price}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-block px-3 py-1 text-sm rounded-full border ${getStatusColor(trip.status)}`}>
+                    <span className={`inline-block px-3 py-1 text-sm rounded-full border ${getStatusColor(trip.status)} dark:border-opacity-60`}> 
                       {trip.status}
                     </span>
                   </td>
@@ -514,21 +514,21 @@ export const TripScheduler: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setViewingTripSeats(trip)}
-                        className="text-green-600 hover:text-green-800 p-1 rounded"
+                        className="text-green-600 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 p-1 rounded"
                         title="View Seats"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => openModal(trip)}
-                        className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                        className="text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 p-1 rounded"
                         title="Edit Trip"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(trip.id)}
-                        className="text-red-600 hover:text-red-800 p-1 rounded"
+                        className="text-red-600 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 p-1 rounded"
                         title="Delete Trip"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -543,14 +543,14 @@ export const TripScheduler: React.FC = () => {
           {isLoading && (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading trips...</p>
+              <p className="text-gray-600 dark:text-gray-400">Loading trips...</p>
             </div>
           )}
 
           {!isLoading && filteredTrips.length === 0 && (
             <div className="text-center py-8">
-              <Bus className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">No trips found matching your criteria.</p>
+              <Bus className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400">No trips found matching your criteria.</p>
             </div>
           )}
         </div>
@@ -559,15 +559,15 @@ export const TripScheduler: React.FC = () => {
       {/* Modal for Add/Edit Trip */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-lg max-w-4xl w-full max-h-screen overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                   {editingTrip ? 'Edit Trip' : 'Create New Trip'}
                 </h3>
                 <button
                   onClick={closeModal}
-                  className="text-gray-400 hover:text-gray-600 p-1"
+                  className="text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-white p-1"
                 >
                   <X className="h-6 w-6" />
                 </button>
@@ -576,7 +576,7 @@ export const TripScheduler: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Route Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Route *
                   </label>
                   <select
@@ -594,7 +594,7 @@ export const TripScheduler: React.FC = () => {
                         }));
                       }
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                     required
                   >
                     <option value="">Select a route</option>
@@ -605,7 +605,7 @@ export const TripScheduler: React.FC = () => {
                     ))}
                   </select>
                   {routes.length === 0 && (
-                    <p className="mt-2 text-sm text-orange-600">
+                    <p className="mt-2 text-sm text-orange-600 dark:text-orange-400">
                       No routes available. Please create a route first in the Routes tab.
                     </p>
                   )}
@@ -614,7 +614,7 @@ export const TripScheduler: React.FC = () => {
                 {/* Time Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Date *
                     </label>
                     <input
@@ -622,33 +622,33 @@ export const TripScheduler: React.FC = () => {
                       value={formData.date || ''}
                       onChange={(e) => handleInputChange('date', e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Departure Time *
                     </label>
                     <input
                       type="time"
                       value={formData.departure || ''}
                       onChange={(e) => handleInputChange('departure', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Arrival Time *
                     </label>
                     <input
                       type="time"
                       value={formData.arrival || ''}
                       onChange={(e) => handleInputChange('arrival', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                       required
                     />
                   </div>
@@ -669,13 +669,13 @@ export const TripScheduler: React.FC = () => {
                 {/* Bus Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Bus Company
                     </label>
                     <select
                       value={formData.company || ''}
                       onChange={(e) => handleInputChange('company', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                     >
                       <option value="">Select company</option>
                       {companies.map(company => (
@@ -685,13 +685,13 @@ export const TripScheduler: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Bus Type
                     </label>
                     <select
                       value={formData.busType || 'Standard'}
                       onChange={(e) => handleInputChange('busType', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                     >
                       <option value="Standard">Standard</option>
                       <option value="VIP">VIP</option>
@@ -700,7 +700,7 @@ export const TripScheduler: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Price ($)
                     </label>
                     <input
@@ -709,7 +709,7 @@ export const TripScheduler: React.FC = () => {
                       min="0"
                       value={formData.price || ''}
                       onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                     />
                   </div>
                 </div>
@@ -717,7 +717,7 @@ export const TripScheduler: React.FC = () => {
                 {/* Driver and Bus Details */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Driver Name
                     </label>
                     <input
@@ -725,7 +725,7 @@ export const TripScheduler: React.FC = () => {
                       value={formData.driverName || ''}
                       onChange={(e) => handleInputChange('driverName', e.target.value)}
                       placeholder="Enter driver name"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                     />
                   </div>
 
@@ -745,7 +745,7 @@ export const TripScheduler: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       The bus will use its configured seat map. You can assign a bus now or later.
                     </p>
                   </div>
@@ -762,20 +762,20 @@ export const TripScheduler: React.FC = () => {
                           : formData.totalSeats || 40
                       }
                       disabled
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-gray-100 dark:bg-gray-700 cursor-not-allowed dark:text-white"
                     />
                   </div>
                 </div>
 
                 {/* Status */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Status
                   </label>
                   <select
                     value={formData.status || 'scheduled'}
                     onChange={(e) => handleInputChange('status', e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                   >
                     <option value="scheduled">Scheduled</option>
                     <option value="active">Active</option>
@@ -786,7 +786,7 @@ export const TripScheduler: React.FC = () => {
 
                 {/* Amenities */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Amenities
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -798,18 +798,18 @@ export const TripScheduler: React.FC = () => {
                           onChange={() => handleAmenitiesChange(amenity)}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-700">{amenity}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{amenity}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
                 {/* Form Actions */}
-                <div className="flex items-center justify-end gap-3 pt-6 border-t">
+                <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="px-4 py-2 text-gray-600 dark:text-gray-200 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     Cancel
                   </button>

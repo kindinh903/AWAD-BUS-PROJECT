@@ -56,6 +56,15 @@ interface ConversionRate {
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 export const ReportsAnalytics: React.FC = () => {
+    // Detect dark mode using Tailwind's dark class on body
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    useEffect(() => {
+      const checkDark = () => setIsDarkMode(document.documentElement.classList.contains('dark'));
+      checkDark();
+      const observer = new MutationObserver(checkDark);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+      return () => observer.disconnect();
+    }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState({
@@ -150,35 +159,40 @@ export const ReportsAnalytics: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 dark:bg-gray-900 dark:text-white">
       {/* Header with Date Range Picker */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <TrendingUp className="h-7 w-7 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <TrendingUp className="h-7 w-7 text-blue-600 dark:text-blue-400" />
               Reports & Analytics
             </h2>
-            <p className="text-gray-600 mt-1">Track performance and insights</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1 flex items-center gap-2">
+              <span>
+                <svg className="inline h-5 w-5 text-gray-500 dark:text-gray-400 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 12H9v-2h2v2zm0-4H9V6h2v4z" /></svg>
+              </span>
+              Track performance and insights
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <CalendarToday className="h-5 w-5 text-gray-500" />
+              <CalendarToday className="h-5 w-5 text-gray-500 dark:text-blue-400" />
               <input
                 type="date"
                 name="startDate"
                 value={dateRange.startDate}
                 onChange={handleDateChange}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
               />
-              <span className="text-gray-500">to</span>
+              <span className="text-gray-500 dark:text-gray-400">to</span>
               <input
                 type="date"
                 name="endDate"
                 value={dateRange.endDate}
                 onChange={handleDateChange}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -187,7 +201,7 @@ export const ReportsAnalytics: React.FC = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-md text-white">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-700 dark:to-blue-900 p-6 rounded-lg shadow-md text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm">Total Revenue</p>
@@ -202,7 +216,7 @@ export const ReportsAnalytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-md text-white">
+        <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-700 dark:to-green-900 p-6 rounded-lg shadow-md text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm">Total Bookings</p>
@@ -215,7 +229,7 @@ export const ReportsAnalytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-md text-white">
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-700 dark:to-purple-900 p-6 rounded-lg shadow-md text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm">Conversion Rate</p>
@@ -230,7 +244,7 @@ export const ReportsAnalytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-lg shadow-md text-white">
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-700 dark:to-orange-900 p-6 rounded-lg shadow-md text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-orange-100 text-sm">Active Routes</p>
@@ -245,18 +259,19 @@ export const ReportsAnalytics: React.FC = () => {
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Booking Trends Line Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Booking Trends</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Booking Trends</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={bookingTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={formatDate} />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#444' : '#e5e7eb'} />
+              <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
+              <YAxis tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
               <Tooltip
                 labelFormatter={formatDate}
                 formatter={(value: number | undefined) => [value || 0, '']}
+                contentStyle={{ background: isDarkMode ? '#222' : '#fff', color: isDarkMode ? '#fff' : '#222' }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: isDarkMode ? '#fff' : '#222' }} />
               <Line
                 type="monotone"
                 dataKey="total_bookings"
@@ -276,18 +291,19 @@ export const ReportsAnalytics: React.FC = () => {
         </div>
 
         {/* Revenue Trend Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trend</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={bookingTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={formatDate} />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#444' : '#e5e7eb'} />
+              <XAxis dataKey="date" tickFormatter={formatDate} tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
+              <YAxis tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
               <Tooltip
                 labelFormatter={formatDate}
                 formatter={(value: number | undefined) => [formatCurrency(value || 0), 'Revenue']}
+                contentStyle={{ background: isDarkMode ? '#222' : '#fff', color: isDarkMode ? '#fff' : '#222' }}
               />
-              <Legend />
+              <Legend wrapperStyle={{ color: isDarkMode ? '#fff' : '#222' }} />
               <Bar dataKey="total_revenue" fill="#3b82f6" name="Revenue" />
             </BarChart>
           </ResponsiveContainer>
@@ -297,22 +313,22 @@ export const ReportsAnalytics: React.FC = () => {
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Popular Routes Bar Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Routes by Bookings</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Routes by Bookings</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={popularRoutes} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
-              <YAxis dataKey="route_name" type="category" width={100} />
-              <Tooltip formatter={(value: number | undefined) => [value || 0, 'Bookings']} />
+              <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#444' : '#e5e7eb'} />
+              <XAxis type="number" tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
+              <YAxis dataKey="route_name" type="category" width={100} tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
+              <Tooltip formatter={(value: number | undefined) => [value || 0, 'Bookings']} contentStyle={{ background: isDarkMode ? '#222' : '#fff', color: isDarkMode ? '#fff' : '#222' }} />
               <Bar dataKey="total_bookings" fill="#10b981" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Route Revenue Pie Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue by Route</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Route</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -328,62 +344,62 @@ export const ReportsAnalytics: React.FC = () => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value: number | undefined) => [formatCurrency(value || 0), 'Revenue']} />
+              <Tooltip formatter={(value: number | undefined) => [formatCurrency(value || 0), 'Revenue']} contentStyle={{ background: isDarkMode ? '#222' : '#fff', color: isDarkMode ? '#fff' : '#222' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Popular Routes Table */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Popular Routes Detail</h3>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Routes Detail</h3>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Route
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Bookings
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Revenue
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Avg Occupancy
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {popularRoutes.map((route, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-900">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <DirectionsBus className="h-5 w-5 text-gray-400 mr-2" />
+                      <DirectionsBus className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-2" />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{route.route_name}</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{route.route_name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-300">
                           {route.origin} → {route.destination}
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {route.total_bookings}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-300">
                     {formatCurrency(route.total_revenue)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
+                      <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
                         <div
                           className="bg-blue-600 h-2 rounded-full"
                           style={{ width: `${route.avg_occupancy || 0}%` }}
                         ></div>
                       </div>
-                      <span className="text-sm text-gray-900">{(route.avg_occupancy || 0).toFixed(1)}%</span>
+                      <span className="text-sm text-gray-900 dark:text-white">{(route.avg_occupancy || 0).toFixed(1)}%</span>
                     </div>
                   </td>
                 </tr>

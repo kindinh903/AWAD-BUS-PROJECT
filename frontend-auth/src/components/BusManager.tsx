@@ -208,15 +208,15 @@ export const BusManager: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Section>
+    <Container className="dark:bg-gray-900">
+      <Section className="bg-white dark:bg-gray-800 dark:text-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <DirectionsBusIcon className="text-blue-600" />
               Bus Fleet Management
             </h2>
-            <p className="text-gray-600 mt-1">Manage your bus fleet and assign seat maps</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Manage your bus fleet and assign seat maps</p>
           </div>
           <button
             onClick={handleOpenCreate}
@@ -229,12 +229,12 @@ export const BusManager: React.FC = () => {
 
         {/* Notifications */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg text-red-800 dark:text-red-200">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg text-green-800 dark:text-green-200">
             {success}
           </div>
         )}
@@ -243,27 +243,27 @@ export const BusManager: React.FC = () => {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Loading buses...</p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Loading buses...</p>
           </div>
         ) : buses.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 rounded-lg">
-            <DirectionsBusIcon className="text-gray-400 mx-auto mb-3" style={{ fontSize: '48px' }} />
-            <p className="text-gray-600">No buses found. Add your first bus to get started.</p>
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <DirectionsBusIcon className="text-gray-400 dark:text-gray-600 mx-auto mb-3" style={{ fontSize: '48px' }} />
+            <p className="text-gray-600 dark:text-gray-400">No buses found. Add your first bus to get started.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {buses.map((bus) => (
               <div
                 key={bus.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                       <DirectionsBusIcon fontSize="small" />
                       {bus.name}
                     </h3>
-                    <p className="text-sm text-gray-600 font-mono">{bus.plate_number}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">{bus.plate_number}</p>
                   </div>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded flex items-center gap-1 ${getStatusColor(
@@ -277,60 +277,60 @@ export const BusManager: React.FC = () => {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Type:</span>
-                    <span className="font-medium text-gray-900">{bus.bus_type}</span>
+                    <span className="text-gray-600 dark:text-gray-300">Type:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{bus.bus_type}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total Seats:</span>
-                    <span className="font-medium text-gray-900">{bus.total_seats}</span>
+                    <span className="text-gray-600 dark:text-gray-300">Total Seats:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{bus.total_seats}</span>
                   </div>
                   {bus.manufacturer && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Make:</span>
-                      <span className="font-medium text-gray-900">{bus.manufacturer}</span>
+                      <span className="text-gray-600 dark:text-gray-300">Make:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{bus.manufacturer}</span>
                     </div>
                   )}
                   {bus.model && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Model:</span>
-                      <span className="font-medium text-gray-900">{bus.model}</span>
+                      <span className="text-gray-600 dark:text-gray-300">Model:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{bus.model}</span>
                     </div>
                   )}
                   {bus.year && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Year:</span>
-                      <span className="font-medium text-gray-900">{bus.year}</span>
+                      <span className="text-gray-600 dark:text-gray-300">Year:</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{bus.year}</span>
                     </div>
                   )}
                 </div>
 
                 {/* Seat Map Assignment Status */}
-                <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2 text-sm">
-                    <GridOnIcon fontSize="small" className="text-gray-600" />
-                    <span className="text-gray-600">Seat Map:</span>
+                    <GridOnIcon fontSize="small" className="text-gray-600 dark:text-gray-400" />
+                    <span className="text-gray-600 dark:text-gray-300">Seat Map:</span>
                   </div>
                   {bus.seat_map ? (
                     <div className="mt-1">
-                      <p className="text-sm font-medium text-blue-600">{bus.seat_map.name}</p>
-                      <p className="text-xs text-gray-500">{bus.seat_map.total_seats} seats configured</p>
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-300">{bus.seat_map.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{bus.seat_map.total_seats} seats configured</p>
                     </div>
                   ) : (
-                    <p className="text-sm text-orange-600 mt-1">No seat map assigned</p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400 mt-1">No seat map assigned</p>
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleOpenEdit(bus)}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
                   >
                     <EditIcon fontSize="small" />
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(bus.id, bus.name)}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 rounded hover:bg-red-100 dark:hover:bg-red-800 transition-colors"
                   >
                     <DeleteIcon fontSize="small" />
                     Delete
@@ -350,12 +350,12 @@ export const BusManager: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+            <div className="p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded text-red-800 dark:text-red-200 text-sm">
               {error}
             </div>
           )}
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
+            <div className="p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded text-green-800 dark:text-green-200 text-sm">
               {success}
             </div>
           )}
@@ -381,14 +381,14 @@ export const BusManager: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Bus Type
               </label>
               <select
                 name="busType"
                 value={formData.busType}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                 required
               >
                 <option value="Standard">Standard</option>
@@ -436,7 +436,7 @@ export const BusManager: React.FC = () => {
           />
 
           {!editingBus && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded text-blue-800 text-sm">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded text-blue-800 dark:text-blue-200 text-sm">
               <p className="font-medium mb-1">Next Steps:</p>
               <p>After creating the bus, go to the <strong>Seat Maps</strong> tab to assign a seat layout to this bus.</p>
             </div>
@@ -446,7 +446,7 @@ export const BusManager: React.FC = () => {
             <button
               type="button"
               onClick={handleCloseDialog}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Cancel
             </button>

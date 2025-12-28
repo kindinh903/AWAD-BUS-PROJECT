@@ -192,15 +192,15 @@ export const RouteManager: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Section>
+    <Container className="dark:bg-gray-900">
+      <Section className="bg-white dark:bg-gray-800 dark:text-white rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <RouteIcon className="text-blue-600" />
               Route Management
             </h2>
-            <p className="text-gray-600 mt-1">Create and manage bus routes</p>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Create and manage bus routes</p>
           </div>
           <button
             onClick={handleOpenCreate}
@@ -213,12 +213,12 @@ export const RouteManager: React.FC = () => {
 
         {/* Notifications */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg text-red-800 dark:text-red-200">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
+          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg text-green-800 dark:text-green-200">
             {success}
           </div>
         )}
@@ -227,10 +227,10 @@ export const RouteManager: React.FC = () => {
         {isLoading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Loading routes...</p>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Loading routes...</p>
           </div>
         ) : routes.length === 0 ? (
-          <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <RouteIcon className="text-gray-400 mx-auto mb-3" style={{ fontSize: '48px' }} />
             <p className="text-gray-600 dark:text-gray-400">No routes found. Create your first route to get started.</p>
           </div>
@@ -239,22 +239,22 @@ export const RouteManager: React.FC = () => {
             {routes.map((route) => (
               <div
                 key={route.id}
-                className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {route.origin} → {route.destination}
                     </h3>
                     {route.description && (
-                      <p className="text-sm text-gray-600 mt-1">{route.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{route.description}</p>
                     )}
                   </div>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded ${
                       route.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                     }`}
                   >
                     {route.is_active ? 'Active' : 'Inactive'}
@@ -262,33 +262,33 @@ export const RouteManager: React.FC = () => {
                 </div>
 
                 <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                     <AccessTimeIcon fontSize="small" />
                     <span>{formatDuration(route.duration_minutes)}</span>
                   </div>
                   {route.distance && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                       <StraightenIcon fontSize="small" />
                       <span>{route.distance} km</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-sm text-gray-900 font-semibold">
+                  <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white font-semibold">
                     <AttachMoneyIcon fontSize="small" />
                     <span>{formatPrice(route.base_price)}</span>
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-3 border-t border-gray-200">
+                <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => handleOpenEdit(route)}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors"
                   >
                     <EditIcon fontSize="small" />
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(route.id)}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-200 rounded hover:bg-red-100 dark:hover:bg-red-800 transition-colors"
                   >
                     <DeleteIcon fontSize="small" />
                     Delete
@@ -308,12 +308,12 @@ export const RouteManager: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+            <div className="p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded text-red-800 dark:text-red-200 text-sm">
               {error}
             </div>
           )}
           {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
+            <div className="p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded text-green-800 dark:text-green-200 text-sm">
               {success}
             </div>
           )}
@@ -371,7 +371,7 @@ export const RouteManager: React.FC = () => {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Description (Optional)
             </label>
             <textarea
@@ -379,7 +379,7 @@ export const RouteManager: React.FC = () => {
               value={formData.description}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
               placeholder="e.g., Express route with rest stops"
             />
           </div>
@@ -388,7 +388,7 @@ export const RouteManager: React.FC = () => {
             <button
               type="button"
               onClick={handleCloseDialog}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Cancel
             </button>
