@@ -8,6 +8,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import StraightenIcon from '@mui/icons-material/Straighten';
 import { Input } from './ui/Input';
+import { CitySelect } from './ui/CitySelect';
 import { Dialog } from './ui/Dialog';
 import { Container, Section } from './ui/Container';
 
@@ -136,9 +137,9 @@ export const RouteManager: React.FC = () => {
       const payload = {
         origin: formData.origin.trim(),
         destination: formData.destination.trim(),
-        durationMinutes: formData.durationMinutes,
-        distance: formData.distance ? parseFloat(formData.distance) : undefined,
-        basePrice: parseFloat(formData.basePrice),
+        durationMinutes: Number(formData.durationMinutes),
+        distance: formData.distance ? Number(formData.distance) : undefined,
+        basePrice: Number(formData.basePrice),
         description: formData.description.trim() || undefined,
       };
 
@@ -319,20 +320,18 @@ export const RouteManager: React.FC = () => {
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <Input
+            <CitySelect
               label="From (Origin)"
               name="origin"
               value={formData.origin}
-              onChange={handleInputChange}
-              placeholder="e.g., Ho Chi Minh City"
+              onChange={e => setFormData(prev => ({ ...prev, origin: e.target.value }))}
               required
             />
-            <Input
+            <CitySelect
               label="To (Destination)"
               name="destination"
               value={formData.destination}
-              onChange={handleInputChange}
-              placeholder="e.g., Hai Phong"
+              onChange={e => setFormData(prev => ({ ...prev, destination: e.target.value }))}
               required
             />
           </div>

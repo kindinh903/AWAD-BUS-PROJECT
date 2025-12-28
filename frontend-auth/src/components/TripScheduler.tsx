@@ -299,8 +299,9 @@ export const TripScheduler: React.FC = () => {
         }
 
         // Combine date with time to create ISO datetime strings
-        const startDateTime = `${formData.date}T${formData.departure}:00`;
-        const endDateTime = `${formData.date}T${formData.arrival}:00`;
+        // Ensure RFC3339 format by appending 'Z' (UTC) if no timezone is present
+        const startDateTime = `${formData.date}T${formData.departure}:00Z`;
+        const endDateTime = `${formData.date}T${formData.arrival}:00Z`;
 
         // Get selected bus ID from busPlate field
         const selectedBusId = formData.busPlate || undefined;
