@@ -251,13 +251,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 {tab === 'trips' ? 'Trip Scheduling' : tab === 'seat-maps' ? 'Seat Maps' : tab}
               </button>
             ))}
-            <Link
-              to="/admin/trip-operations"
-              className="py-2 px-3 font-medium text-sm flex items-center gap-2 whitespace-nowrap bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-t-lg border-2 border-blue-500 border-b-0 -mb-[2px]"
-            >
-              <CheckCircle className="h-4 w-4" />
-              Operations & Check-In
-            </Link>
           </nav>
         </div>
       </div>

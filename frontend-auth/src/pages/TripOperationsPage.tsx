@@ -200,21 +200,21 @@ export default function TripOperationsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
                     <button
                         onClick={() => navigate(-1)}
-                        className="p-2 hover:bg-gray-100 rounded-lg"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg"
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </button>
                     <div className="flex items-center gap-3">
                         <Bus className="h-8 w-8 text-blue-600" />
                         <div>
-                            <h1 className="text-2xl font-bold">Trip Operations</h1>
-                            <p className="text-sm text-gray-500">Manage trips, passengers, and check-ins</p>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Trip Operations</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-300">Manage trips, passengers, and check-ins</p>
                         </div>
                     </div>
                 </div>
@@ -222,10 +222,10 @@ export default function TripOperationsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Trip List */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg shadow-sm p-4">
+                        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-slate-700">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="font-semibold">Trips</h2>
-                                <button onClick={loadTrips} className="p-1 hover:bg-gray-100 rounded">
+                                <button onClick={loadTrips} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded">
                                     <RefreshCw className="h-4 w-4" />
                                 </button>
                             </div>
@@ -239,13 +239,13 @@ export default function TripOperationsPage() {
                                         placeholder="Search trips..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-400"
                                     />
                                 </div>
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                                 >
                                     <option value="all">All Status</option>
                                     <option value="scheduled">Scheduled</option>
@@ -263,29 +263,29 @@ export default function TripOperationsPage() {
                                         key={trip.id}
                                         onClick={() => handleTripSelect(trip)}
                                         className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedTrip?.id === trip.id
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'hover:border-gray-300 hover:bg-gray-50'
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
+                                            : 'hover:border-gray-300 hover:bg-gray-50 dark:hover:border-slate-500 dark:hover:bg-slate-800'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between mb-1">
-                                            <span className="font-medium text-sm">
+                                            <span className="font-medium text-sm text-gray-900 dark:text-white">
                                                 {trip.route?.origin} → {trip.route?.destination}
                                             </span>
-                                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(trip.status)}`}>
+                                            <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${getStatusColor(trip.status)}`}> 
                                                 {trip.status}
                                             </span>
                                         </div>
-                                        <div className="text-xs text-gray-500">
+                                        <div className="text-xs text-gray-500 dark:text-gray-300">
                                             {formatDateTime(trip.start_time)}
                                         </div>
-                                        <div className="text-xs text-gray-400 mt-1">
+                                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                             {trip.bus?.plate_number}
                                         </div>
                                     </div>
                                 ))}
 
                                 {filteredTrips.length === 0 && (
-                                    <div className="text-center py-8 text-gray-500 text-sm">
+                                    <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                                         No trips found
                                     </div>
                                 )}
@@ -298,13 +298,13 @@ export default function TripOperationsPage() {
                         {selectedTrip ? (
                             <div className="space-y-4">
                                 {/* Trip Info Card */}
-                                <div className="bg-white rounded-lg shadow-sm p-6">
+                                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-slate-700">
                                     <div className="flex items-start justify-between mb-4">
                                         <div>
-                                            <h2 className="text-xl font-bold">
+                                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                                                 {selectedTrip.route?.origin} → {selectedTrip.route?.destination}
                                             </h2>
-                                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-300">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar className="h-4 w-4" />
                                                     {formatDateTime(selectedTrip.start_time)}
@@ -321,8 +321,8 @@ export default function TripOperationsPage() {
                                     </div>
 
                                     {/* Status Update Actions */}
-                                    <div className="border-t pt-4">
-                                        <h3 className="text-sm font-medium text-gray-700 mb-3">Update Status</h3>
+                                    <div className="border-t border-gray-200 dark:border-slate-700 pt-4">
+                                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Update Status</h3>
                                         <div className="flex flex-wrap gap-2">
                                             {['scheduled', 'active', 'departed', 'completed', 'cancelled'].map((status) => (
                                                 <button
@@ -330,8 +330,8 @@ export default function TripOperationsPage() {
                                                     onClick={() => handleStatusUpdate(status)}
                                                     disabled={selectedTrip.status === status}
                                                     className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${selectedTrip.status === status
-                                                        ? 'bg-blue-600 text-white border-blue-600'
-                                                        : 'hover:bg-gray-100 border-gray-300'
+                                                        ? 'bg-blue-600 dark:bg-blue-500 text-white border-blue-600 dark:border-blue-500'
+                                                        : 'hover:bg-gray-100 dark:hover:bg-slate-700 border-gray-300 dark:border-slate-600 text-gray-900 dark:text-slate-100'
                                                         }`}
                                                 >
                                                     {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -342,15 +342,15 @@ export default function TripOperationsPage() {
                                 </div>
 
                                 {/* Passengers Section */}
-                                <div className="bg-white rounded-lg shadow-sm p-6">
+                                <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-slate-700">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-2">
                                             <Users className="h-5 w-5 text-blue-600" />
-                                            <h3 className="font-semibold">Passengers</h3>
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">Passengers</h3>
                                         </div>
                                         <button
                                             onClick={() => loadPassengers(selectedTrip.id)}
-                                            className="text-sm text-blue-600 hover:text-blue-700"
+                                            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                                         >
                                             Refresh
                                         </button>
@@ -359,19 +359,19 @@ export default function TripOperationsPage() {
                                     {bookingsLoading ? (
                                         <div className="text-center py-8">
                                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                                            <p className="text-sm text-gray-500">Loading passengers...</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">Loading passengers...</p>
                                         </div>
                                     ) : bookings.length > 0 ? (
                                         <div className="space-y-3">
                                             {bookings.map((booking) => (
-                                                <div key={booking.booking_id} className="border rounded-lg overflow-hidden">
+                                                <div key={booking.booking_id} className="border rounded-lg overflow-hidden border-gray-200 dark:border-slate-700">
                                                     <button
                                                         onClick={() => toggleBookingExpand(booking.booking_id)}
-                                                        className="w-full p-3 flex items-center justify-between bg-gray-50 hover:bg-gray-100"
+                                                        className="w-full p-3 flex items-center justify-between bg-gray-50 dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800"
                                                     >
                                                         <div className="flex items-center gap-3">
-                                                            <span className="font-medium">{booking.booking_reference}</span>
-                                                            <span className="text-sm text-gray-500">
+                                                            <span className="font-medium text-gray-900 dark:text-white">{booking.booking_reference}</span>
+                                                            <span className="text-sm text-gray-500 dark:text-gray-300">
                                                                 {booking.passengers?.length || 0} passenger(s)
                                                             </span>
                                                         </div>
@@ -383,8 +383,8 @@ export default function TripOperationsPage() {
                                                     </button>
 
                                                     {expandedBookings.has(booking.booking_id) && (
-                                                        <div className="p-3 border-t">
-                                                            <div className="text-sm text-gray-500 mb-3">
+                                                        <div className="p-3 border-t border-gray-200 dark:border-slate-700">
+                                                            <div className="text-sm text-gray-500 dark:text-gray-300 mb-3">
                                                                 <div className="flex items-center gap-1">
                                                                     <Mail className="h-4 w-4" />
                                                                     {booking.contact_email}
@@ -399,11 +399,11 @@ export default function TripOperationsPage() {
                                                                 {booking.passengers?.map((passenger) => (
                                                                     <div
                                                                         key={passenger.passenger_id}
-                                                                        className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                                                                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-900 rounded"
                                                                     >
                                                                         <div>
-                                                                            <span className="font-medium">{passenger.full_name}</span>
-                                                                            <span className="text-sm text-gray-500 ml-2">
+                                                                            <span className="font-medium text-gray-900 dark:text-white">{passenger.full_name}</span>
+                                                                            <span className="text-sm text-gray-500 dark:text-gray-300 ml-2">
                                                                                 Seat {passenger.seat_number}
                                                                             </span>
                                                                         </div>
@@ -411,10 +411,10 @@ export default function TripOperationsPage() {
                                                                             onClick={() => handleCheckIn(passenger)}
                                                                             disabled={passenger.checked_in || checkingIn === passenger.passenger_id}
                                                                             className={`flex items-center gap-1 px-3 py-1 rounded text-sm ${passenger.checked_in
-                                                                                ? 'bg-green-100 text-green-700 cursor-default'
+                                                                                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-200 cursor-default'
                                                                                 : checkingIn === passenger.passenger_id
-                                                                                    ? 'bg-gray-300 text-gray-500 cursor-wait'
-                                                                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                                                                    ? 'bg-gray-300 dark:bg-slate-700 text-gray-500 dark:text-gray-400 cursor-wait'
+                                                                                    : 'bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-400'
                                                                                 }`}
                                                                         >
                                                                             <CheckCircle className="h-4 w-4" />
@@ -429,8 +429,8 @@ export default function TripOperationsPage() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-8 text-gray-500">
-                                            <Users className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                            <Users className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                                             <p>No bookings for this trip yet</p>
                                             <p className="text-sm mt-1">Passengers will appear here once bookings are made</p>
                                         </div>
@@ -438,10 +438,10 @@ export default function TripOperationsPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-                                <Bus className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                                <h3 className="text-lg font-medium text-gray-700 mb-2">Select a Trip</h3>
-                                <p className="text-gray-500">
+                            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-12 text-center border border-gray-200 dark:border-slate-700">
+                                <Bus className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                                <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-2">Select a Trip</h3>
+                                <p className="text-gray-500 dark:text-gray-400">
                                     Choose a trip from the list to view details and manage passengers
                                 </p>
                             </div>
