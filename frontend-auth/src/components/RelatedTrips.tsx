@@ -130,7 +130,7 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
                                 <span>{formatDate(trip.start_time)}</span>
                             </div>
                             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                ${trip.price}
+                                {trip.price}₫
                             </span>
                         </div>
 

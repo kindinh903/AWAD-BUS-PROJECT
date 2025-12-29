@@ -8,7 +8,7 @@ import {
   MapPin,
   Bus,
   Users,
-  DollarSign,
+  Coins,
   Save,
   X,
   Search,
@@ -502,8 +502,8 @@ export const TripScheduler: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <DollarSign className="h-4 w-4 text-green-600 mr-1" />
-                      <span className="text-lg font-semibold text-gray-900 dark:text-white">${trip.price}</span>
+                      <Coins className="h-4 w-4 text-green-600 mr-1" />
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">{trip.price}₫</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -702,7 +702,7 @@ export const TripScheduler: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Price ($)
+                      Price (₫)
                     </label>
                     <input
                       type="number"

@@ -98,7 +98,8 @@ export default function TripDetailsPage() {
 
     setLoading(true);
     try {
-      const response = await bookingAPI.getSeatsWithStatus(trip.id);
+      // Use tripAPI to fetch seat data for the trip
+      const response = await tripAPI.getSeatsWithStatus(trip.id);
       setSeats(response.data.data);
     } catch (error) {
       console.error('Failed to load seats:', error);
@@ -114,7 +115,8 @@ export default function TripDetailsPage() {
 
     try {
       setIsRefreshing(true);
-      const response = await bookingAPI.getSeatsWithStatus(trip.id);
+      // Use tripAPI to fetch seat data for the trip
+      const response = await tripAPI.getSeatsWithStatus(trip.id);
       const newSeats = response.data.data;
 
       setSeats(newSeats);
@@ -290,7 +292,7 @@ export default function TripDetailsPage() {
                   </div>
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded text-right">
                     <div className="text-xs text-gray-500 dark:text-gray-300">Price</div>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">${trip.price}</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{new Intl.NumberFormat('vi-VN').format(trip.price)} ₫</div>
                     <div className="text-xs text-gray-400 dark:text-gray-400">{trip.availableSeats}/{trip.totalSeats} seats</div>
                   </div>
                 </div>
@@ -325,7 +327,7 @@ export default function TripDetailsPage() {
               <div className="w-56">
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-4">
                   <div className="text-xs text-gray-500 dark:text-gray-300">Trip Summary</div>
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">${trip.price}</div>
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">{new Intl.NumberFormat('vi-VN').format(trip.price)} ₫</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{trip.departure} • {trip.duration}</div>
                   <div className="mt-3">
                     <button

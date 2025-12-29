@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Users,
-  DollarSign,
+  Coins,
   Shield,
   Database,
   Activity,
@@ -184,7 +184,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         {summaryData.map(card => {
           const IconMap: { [key: string]: any } = {
             'total-bookings': Users,
-            revenue: DollarSign,
+            revenue: Coins,
             'active-users': Activity,
             'system-status': Database,
           };
