@@ -9,7 +9,10 @@ import {
   Calendar,
   Grid,
   Bus,
+  CheckCircle,
+  ArrowRight,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { analyticsAPI } from '../lib/api';
 import { TripScheduler } from './TripScheduler';
 import { RouteManager } from './RouteManager';
@@ -155,6 +158,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="mb-6">
+        <Link
+          to="/admin/trip-operations"
+          className="block bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle className="h-6 w-6" />
+                <h3 className="text-xl font-bold">Trip Operations & Check-In</h3>
+              </div>
+              <p className="text-blue-100">
+                Manage trips, view passengers, and check-in passengers for boarding
+              </p>
+            </div>
+            <ArrowRight className="h-8 w-8" />
+          </div>
+        </Link>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {summaryData.map(card => {
@@ -204,7 +228,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
       {/* Tabs */}
       <div className="mb-6">
         <div className="border-b border-gray-200 dark:border-gray-700">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="-mb-px flex space-x-8 overflow-x-auto">
             {['overview', 'users', 'routes', 'trips', 'seat-maps', 'buses', 'reports'].map(tab => (
               <button
                 key={tab}
@@ -215,7 +239,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                     setIsCreatingSeatMap(false);
                   }
                 }}
-                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize flex items-center gap-2 ${
+                className={`py-2 px-1 border-b-2 font-medium text-sm capitalize flex items-center gap-2 whitespace-nowrap ${
                   selectedTab === tab
                     ? 'border-red-500 text-red-600 dark:text-red-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600'
@@ -227,6 +251,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 {tab === 'trips' ? 'Trip Scheduling' : tab === 'seat-maps' ? 'Seat Maps' : tab}
               </button>
             ))}
+            <Link
+              to="/admin/trip-operations"
+              className="py-2 px-3 font-medium text-sm flex items-center gap-2 whitespace-nowrap bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-t-lg border-2 border-blue-500 border-b-0 -mb-[2px]"
+            >
+              <CheckCircle className="h-4 w-4" />
+              Operations & Check-In
+            </Link>
           </nav>
         </div>
       </div>
