@@ -130,7 +130,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white dark:bg-gray-900 p-4 rounded-lg">
       {/* Bus Front Indicator */}
       <div className="flex justify-center">
         <div className="bg-gray-800 dark:bg-gray-700 text-white px-8 py-2 rounded-t-full">

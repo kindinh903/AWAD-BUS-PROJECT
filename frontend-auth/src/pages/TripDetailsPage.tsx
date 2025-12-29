@@ -66,7 +66,7 @@ export default function TripDetailsPage() {
           departure: new Date(apiTrip.start_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           arrival: new Date(apiTrip.end_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
           duration: `${Math.floor((apiTrip.route?.duration_minutes || 0) / 60)}h ${(apiTrip.route?.duration_minutes || 0) % 60}m`,
-          price: apiTrip.price / 1000, // Convert from VND to display format
+          price: apiTrip.price, // Use price as-is from API
           busType: apiTrip.bus?.bus_type || 'Standard',
           company: 'Bus Booking System',
           availableSeats: apiTrip.available_seats || 0,
@@ -230,25 +230,25 @@ export default function TripDetailsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="container-custom max-w-6xl mx-auto">
         <button
           onClick={() => currentStep === 'details' ? navigate('/dashboard') : setCurrentStep('details')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4"
+          className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 mb-4"
         >
           <ArrowBackIcon sx={{ fontSize: 16 }} />
           {currentStep === 'details' ? 'Back to Dashboard' : 'Back'}
         </button>
 
         {currentStep !== 'details' && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
               {['seats', 'passengers', 'summary', 'confirmation'].map((step, index) => (
                 <React.Fragment key={step}>
                   <div className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold ${currentStep === step ? 'bg-blue-600 text-white' :
                       ['seats', 'passengers', 'summary', 'confirmation'].indexOf(currentStep) > index ?
-                        'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'
+                        'bg-green-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                       }`}>
                       {index + 1}
                     </div>
@@ -258,7 +258,7 @@ export default function TripDetailsPage() {
                   </div>
                   {index < 3 && (
                     <div className={`flex-1 h-1 mx-2 ${['seats', 'passengers', 'summary', 'confirmation'].indexOf(currentStep) > index ?
-                      'bg-green-500' : 'bg-gray-200'
+                      'bg-green-500' : 'bg-gray-200 dark:bg-gray-700'
                       }`} />
                   )}
                 </React.Fragment>
@@ -272,39 +272,39 @@ export default function TripDetailsPage() {
             <div className="flex items-start justify-between gap-6">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <DirectionsBusIcon sx={{ fontSize: 24 }} className="text-blue-600" />
-                  <h1 className="text-2xl font-bold">{trip.from} → {trip.to}</h1>
+                  <DirectionsBusIcon sx={{ fontSize: 24 }} className="text-blue-600 dark:text-blue-400" />
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{trip.from} → {trip.to}</h1>
                 </div>
-                <div className="text-sm text-gray-500 mb-4">{trip.company} • {trip.busType} • {trip.duration}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-300 mb-4">{trip.company} • {trip.busType} • {trip.duration}</div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                  <div className="p-3 bg-gray-50 rounded">
-                    <div className="text-xs text-gray-500">Departure</div>
-                    <div className="font-semibold">{trip.departure}</div>
-                    <div className="text-xs text-gray-400">{trip.from}</div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                    <div className="text-xs text-gray-500 dark:text-gray-300">Departure</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{trip.departure}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-400">{trip.from}</div>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded">
-                    <div className="text-xs text-gray-500">Arrival</div>
-                    <div className="font-semibold">{trip.arrival}</div>
-                    <div className="text-xs text-gray-400">{trip.to}</div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                    <div className="text-xs text-gray-500 dark:text-gray-300">Arrival</div>
+                    <div className="font-semibold text-gray-900 dark:text-gray-100">{trip.arrival}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-400">{trip.to}</div>
                   </div>
-                  <div className="p-3 bg-gray-50 rounded text-right">
-                    <div className="text-xs text-gray-500">Price</div>
-                    <div className="text-2xl font-bold text-blue-600">${trip.price}</div>
-                    <div className="text-xs text-gray-400">{trip.availableSeats}/{trip.totalSeats} seats</div>
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded text-right">
+                    <div className="text-xs text-gray-500 dark:text-gray-300">Price</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">${trip.price}</div>
+                    <div className="text-xs text-gray-400 dark:text-gray-400">{trip.availableSeats}/{trip.totalSeats} seats</div>
                   </div>
                 </div>
 
                 <div className="mb-4">
-                  <h3 className="font-semibold mb-2">Route & Stops</h3>
-                  <div className="text-sm text-gray-600">Pickup and dropoff points will be shown here. (Mock data)</div>
+                  <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Route & Stops</h3>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Pickup and dropoff points will be shown here. (Mock data)</div>
                 </div>
 
                 <div className="mb-4">
-                  <h3 className="font-semibold mb-2">Amenities</h3>
+                  <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Amenities</h3>
                   <div className="flex flex-wrap gap-3">
                     {trip.amenities.map((amenity: string, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded text-sm">
+                      <div key={idx} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded text-sm text-gray-900 dark:text-gray-100">
                         {amenityIcon(amenity)}
                         <span>{amenity}</span>
                       </div>
@@ -313,8 +313,8 @@ export default function TripDetailsPage() {
                 </div>
 
                 <div className="mb-4">
-                  <h3 className="font-semibold mb-2">Policies</h3>
-                  <ul className="text-sm text-gray-600 list-disc pl-5">
+                  <h3 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">Policies</h3>
+                  <ul className="text-sm text-gray-600 dark:text-gray-300 list-disc pl-5">
                     <li>Free cancellation up to 24 hours before departure.</li>
                     <li>Bring valid ID for verification at boarding.</li>
                     <li>Luggage policy: 1 small bag and 1 checked luggage.</li>
@@ -323,25 +323,25 @@ export default function TripDetailsPage() {
               </div>
 
               <div className="w-56">
-                <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <div className="text-xs text-gray-500">Trip Summary</div>
-                  <div className="text-lg font-bold text-blue-600 mt-2">${trip.price}</div>
-                  <div className="text-sm text-gray-600 mt-1">{trip.departure} • {trip.duration}</div>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-4">
+                  <div className="text-xs text-gray-500 dark:text-gray-300">Trip Summary</div>
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">${trip.price}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{trip.departure} • {trip.duration}</div>
                   <div className="mt-3">
                     <button
                       onClick={handleBookNowClick}
-                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold"
+                      className="w-full bg-blue-600 dark:bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-semibold"
                     >
                       Book Now
                     </button>
                   </div>
                 </div>
 
-                <div className="bg-white border border-gray-100 p-4 rounded-lg">
-                  <div className="text-sm text-gray-500 mb-2">Driver</div>
-                  <div className="font-medium">Nguyen Van A</div>
-                  <div className="text-xs text-gray-400">License: 30A-12345</div>
-                  <div className="mt-3 text-sm text-gray-500">Vehicle: {trip.company} • Plate: 29B-123.45</div>
+                <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-lg">
+                  <div className="text-sm text-gray-500 dark:text-gray-300 mb-2">Driver</div>
+                  <div className="font-medium text-gray-900 dark:text-gray-100">Nguyen Van A</div>
+                  <div className="text-xs text-gray-400 dark:text-gray-400">License: 30A-12345</div>
+                  <div className="mt-3 text-sm text-gray-500 dark:text-gray-300">Vehicle: {trip.company} • Plate: 29B-123.45</div>
                 </div>
               </div>
             </div>
@@ -359,7 +359,7 @@ export default function TripDetailsPage() {
         )}
 
         {currentStep === 'seats' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Select Your Seats</h2>
               {isRefreshing && (
@@ -399,7 +399,7 @@ export default function TripDetailsPage() {
         )}
 
         {currentStep === 'passengers' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <PassengerForm
               seats={seats}
               selectedSeatIds={selectedSeatIds}
@@ -410,7 +410,7 @@ export default function TripDetailsPage() {
         )}
 
         {currentStep === 'summary' && (
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <BookingSummary
               tripDetails={{
                 id: trip.id,
