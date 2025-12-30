@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   Filter,
   Clock,
-  DollarSign,
+  Coins,
   Bus,
   Wifi,
   Snowflake,
@@ -14,6 +14,7 @@ import {
   ChevronUp,
   X,
 } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 
 export interface TripFiltersState {
   priceRange: {
@@ -76,10 +77,10 @@ const SORT_OPTIONS = [
 
 // Price range presets
 const PRICE_PRESETS = [
-  { label: 'Budget', min: 0, max: 15 },
-  { label: 'Standard', min: 15, max: 30 },
-  { label: 'Premium', min: 30, max: 50 },
-  { label: 'All', min: 0, max: 100 },
+  { label: 'Budget', min: 0, max: 200000 },
+  { label: 'Standard', min: 200000, max: 500000 },
+  { label: 'Premium', min: 500000, max: 1000000 },
+  { label: 'All', min: 0, max: 2000000 },
 ];
 
 export const TripFilters: React.FC<TripFiltersProps> = ({
@@ -157,14 +158,14 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm ${className}`}>
       {/* Filter Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3">
-          <Filter className="h-5 w-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">Filters</h3>
+          <Filter className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Filters</h3>
           {activeFiltersCount > 0 && (
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+            <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium px-2 py-1 rounded-full">
               {activeFiltersCount}
             </span>
           )}
@@ -174,7 +175,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
           {activeFiltersCount > 0 && (
             <button
               onClick={clearAllFilters}
-              className="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 flex items-center gap-1"
             >
               <RotateCcw className="h-4 w-4" />
               Clear All
@@ -182,7 +183,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-gray-500 hover:text-gray-700 p-1"
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-1"
           >
             {isExpanded ? (
               <ChevronUp className="h-4 w-4" />
@@ -200,7 +201,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
           <select
             value={filters.sortBy}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="text-sm border border-gray-300 rounded-md px-3 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {SORT_OPTIONS.map(option => (
               <option key={option.value} value={option.value}>
@@ -217,8 +218,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
                 onClick={() => toggleArrayFilter('busTypes', type.id)}
                 className={`text-xs px-3 py-1 rounded-full font-medium transition-colors ${
                   filters.busTypes.includes(type.id)
-                    ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                    : 'bg-gray-100 text-gray-600 border border-gray-300 hover:bg-gray-200'
+                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
                 {type.label}
@@ -232,13 +233,13 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
             return (
               <span
                 key={slot}
-                className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2 py-1 rounded-full"
+                className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-1 rounded-full"
               >
                 <Clock className="h-3 w-3" />
                 {timeSlot?.label}
                 <button
                   onClick={() => toggleArrayFilter('timeSlots', slot)}
-                  className="hover:text-blue-900"
+                  className="hover:text-blue-900 dark:hover:text-blue-100"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -251,13 +252,13 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
             return (
               <span
                 key={amenity}
-                className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2 py-1 rounded-full"
+                className="inline-flex items-center gap-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-1 rounded-full"
               >
                 {amenityConfig && <amenityConfig.icon className="h-3 w-3" />}
                 {amenityConfig?.label}
                 <button
                   onClick={() => toggleArrayFilter('amenities', amenity)}
-                  className="hover:text-green-900"
+                  className="hover:text-green-900 dark:hover:text-green-100"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -266,7 +267,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
           })}
 
           {filters.amenities.length > 3 && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
               +{filters.amenities.length - 3} more amenities
             </span>
           )}
@@ -275,16 +276,16 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
 
       {/* Extended Filters */}
       {isExpanded && (
-        <div className="border-t border-gray-200 p-4 space-y-6">
+        <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-6">
           {/* Price Range Filter */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <label className="font-medium text-gray-900 flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
+              <label className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                <Coins className="h-4 w-4" />
                 Price Range
               </label>
-              <span className="text-sm text-gray-600">
-                ${filters.priceRange.min} - ${filters.priceRange.max}
+              <span className="text-sm text-gray-600 dark:text-gray-300">
+                {formatCurrency(filters.priceRange.min)} - {formatCurrency(filters.priceRange.max)}
               </span>
             </div>
 
@@ -296,8 +297,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
                   onClick={() => updatePriceRange(preset.min, preset.max)}
                   className={`text-xs px-2 py-1 rounded border transition-colors ${
                     filters.priceRange.min === preset.min && filters.priceRange.max === preset.max
-                      ? 'bg-blue-100 text-blue-700 border-blue-300'
-                      : 'bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100'
+                      ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700'
+                      : 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   {preset.label}
@@ -307,7 +308,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
 
             {/* Dual Range Slider */}
             <div className="relative">
-              <div className="h-2 bg-gray-200 rounded-full relative">
+              <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full relative">
                 <div
                   className="absolute h-2 bg-blue-500 rounded-full"
                   style={{
@@ -337,7 +338,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
 
           {/* Departure Time Filter */}
           <div>
-            <label className="font-medium text-gray-900 flex items-center gap-2 mb-3">
+            <label className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
               <Clock className="h-4 w-4" />
               Departure Time
             </label>
@@ -348,8 +349,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
                   onClick={() => toggleArrayFilter('timeSlots', slot.id)}
                   className={`p-3 text-left border rounded-lg transition-colors ${
                     filters.timeSlots.includes(slot.id)
-                      ? 'bg-blue-50 border-blue-300 text-blue-700'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                      ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                   }`}
                 >
                   <div className="font-medium text-sm">{slot.label}</div>
@@ -361,7 +362,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
 
           {/* Bus Type Filter */}
           <div>
-            <label className="font-medium text-gray-900 flex items-center gap-2 mb-3">
+            <label className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
               <Bus className="h-4 w-4" />
               Bus Type
             </label>
@@ -374,8 +375,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
                     onClick={() => toggleArrayFilter('busTypes', type.id)}
                     className={`p-4 text-left border rounded-lg transition-colors flex items-center gap-3 ${
                       filters.busTypes.includes(type.id)
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300'
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                     }`}
                   >
                     <IconComponent className="h-5 w-5" />
@@ -391,7 +392,7 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
 
           {/* Amenities Filter */}
           <div>
-            <label className="font-medium text-gray-900 flex items-center gap-2 mb-3">
+            <label className="font-medium text-gray-900 dark:text-white flex items-center gap-2 mb-3">
               <Wifi className="h-4 w-4" />
               Amenities
             </label>
@@ -404,8 +405,8 @@ export const TripFilters: React.FC<TripFiltersProps> = ({
                     onClick={() => toggleArrayFilter('amenities', amenity.id)}
                     className={`p-3 text-left border rounded-lg transition-colors flex items-center gap-2 ${
                       filters.amenities.includes(amenity.id)
-                        ? 'bg-green-50 border-green-300 text-green-700'
-                        : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300'
+                        : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
                     }`}
                   >
                     <IconComponent className="h-4 w-4" />

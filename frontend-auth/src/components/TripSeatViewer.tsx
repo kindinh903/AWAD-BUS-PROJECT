@@ -69,19 +69,19 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
 
   const getSeatColor = (seat: Seat) => {
     if (!seat.is_bookable || seat.seat_type === 'aisle') {
-      return 'bg-gray-200 cursor-not-allowed';
+      return 'bg-gray-200 dark:bg-gray-700 cursor-not-allowed';
     }
     switch (seat.status) {
       case 'available':
-        return 'bg-green-100 hover:bg-green-200 border-green-300';
+        return 'bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 border-green-300 dark:border-green-700';
       case 'booked':
-        return 'bg-red-100 border-red-300';
+        return 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700';
       case 'reserved':
-        return 'bg-yellow-100 border-yellow-300';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700';
       case 'unavailable':
-        return 'bg-gray-300 border-gray-400';
+        return 'bg-gray-300 dark:bg-gray-600 border-gray-400 dark:border-gray-500';
       default:
-        return 'bg-gray-100';
+        return 'bg-gray-100 dark:bg-gray-800';
     }
   };
 
@@ -91,13 +91,13 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
     }
     switch (seat.status) {
       case 'available':
-        return <CheckCircleIcon sx={{ fontSize: 12 }} className="text-green-600" />;
+        return <CheckCircleIcon sx={{ fontSize: 12 }} className="text-green-600 dark:text-green-400" />;
       case 'booked':
-        return <CancelIcon sx={{ fontSize: 12 }} className="text-red-600" />;
+        return <CancelIcon sx={{ fontSize: 12 }} className="text-red-600 dark:text-red-400" />;
       case 'reserved':
-        return <AccessTimeIcon sx={{ fontSize: 12 }} className="text-yellow-600" />;
+        return <AccessTimeIcon sx={{ fontSize: 12 }} className="text-yellow-600 dark:text-yellow-400" />;
       case 'unavailable':
-        return <ErrorIcon sx={{ fontSize: 12 }} className="text-gray-600" />;
+        return <ErrorIcon sx={{ fontSize: 12 }} className="text-gray-600 dark:text-gray-400" />;
       default:
         return null;
     }
@@ -121,9 +121,9 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold mb-2">Trip Seat Details</h2>
@@ -162,16 +162,16 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
+        <div className="p-6 overflow-y-auto grow bg-white dark:bg-gray-900">
           {isLoading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-4">Loading seat map...</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-4">Loading seat map...</p>
             </div>
           ) : error ? (
             <div className="text-center py-12">
               <ErrorIcon sx={{ fontSize: 48 }} className="text-red-500 mx-auto mb-4" />
-              <p className="text-red-600">{error}</p>
+              <p className="text-red-600 dark:text-red-400">{error}</p>
               <button
                 onClick={fetchSeats}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -182,22 +182,22 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
           ) : (
             <>
               {/* Legend */}
-              <div className="flex items-center justify-center gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-center gap-6 mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-green-100 border border-green-300 rounded"></div>
-                  <span className="text-sm">Available</span>
+                  <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded"></div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-red-100 border border-red-300 rounded"></div>
-                  <span className="text-sm">Booked</span>
+                  <div className="w-6 h-6 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded"></div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Booked</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-yellow-100 border border-yellow-300 rounded"></div>
-                  <span className="text-sm">Reserved</span>
+                  <div className="w-6 h-6 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded"></div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Reserved</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-gray-200 rounded"></div>
-                  <span className="text-sm">Aisle/Unavailable</span>
+                  <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Aisle/Unavailable</span>
                 </div>
               </div>
 
@@ -213,7 +213,7 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
                 {/* Seats */}
                 {rows.map(rowNum => (
                   <div key={rowNum} className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 w-6">{rowNum}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 w-6">{rowNum}</span>
                     <div className="flex gap-2">
                       {seatsByRow[rowNum].map((seat, _idx) => {
                         const isAisle = seat.seat_type === 'aisle' || !seat.is_bookable;
@@ -235,13 +235,13 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
                             {!isAisle && (
                               <>
                                 <div className="flex flex-col items-center">
-                                  <span className="text-xs font-bold">{seat.seat_number}</span>
+                                  <span className="text-xs font-bold dark:text-white">{seat.seat_number}</span>
                                   {getSeatIcon(seat)}
                                 </div>
                                 
                                 {/* Tooltip */}
                                 {seat.status !== 'available' && (
-                                  <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                                  <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 dark:bg-gray-700 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 border border-gray-700 dark:border-gray-600">
                                     {seat.status === 'booked' && seat.booking_reference && (
                                       <div>
                                         <div>Ref: {seat.booking_reference}</div>
@@ -274,14 +274,14 @@ export const TripSeatViewer: React.FC<TripSeatViewerProps> = ({ tripId, tripInfo
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t flex justify-between items-center">
-          <div className="text-sm text-gray-600">
+        <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center shrink-0">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             <PeopleIcon sx={{ fontSize: 16, mr: 0.5 }} className="inline" />
             Occupancy: {stats.total > 0 ? ((stats.booked / stats.total) * 100).toFixed(1) : 0}%
           </div>
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600 text-white rounded-lg transition-colors"
           >
             Close
           </button>
