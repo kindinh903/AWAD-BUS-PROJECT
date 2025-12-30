@@ -7,6 +7,7 @@ import {
   Settings,
   ArrowLeft,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { seatMapAPI } from '../lib/api';
 import type {
   SeatMap,
@@ -94,7 +95,9 @@ export const SeatMapEditor: React.FC<SeatMapEditorProps> = ({
       setSeatMap(response.data.data);
       setShowCreateForm(false);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load seat map');
+      const errorMessage = err.response?.data?.error || 'Failed to load seat map';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -179,9 +182,12 @@ export const SeatMapEditor: React.FC<SeatMapEditorProps> = ({
       const response = await seatMapAPI.bulkUpdateSeats(seatMap.id, { seats: updates });
       setSeatMap(response.data.data);
       setPendingChanges(new Map());
+      toast.success('Seat map updated successfully');
       onSave?.(response.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to save changes');
+      const errorMessage = err.response?.data?.error || 'Failed to save changes';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -190,6 +196,7 @@ export const SeatMapEditor: React.FC<SeatMapEditorProps> = ({
   // Create new seat map
   const createSeatMap = async () => {
     if (!newSeatMapForm.name) {
+      toast.error('Name is required');
       setError('Name is required');
       return;
     }
@@ -201,9 +208,12 @@ export const SeatMapEditor: React.FC<SeatMapEditorProps> = ({
       const response = await seatMapAPI.create(newSeatMapForm);
       setSeatMap(response.data.data);
       setShowCreateForm(false);
+      toast.success('Seat map created successfully');
       onSave?.(response.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create seat map');
+      const errorMessage = err.response?.data?.error || 'Failed to create seat map';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -229,8 +239,11 @@ export const SeatMapEditor: React.FC<SeatMapEditorProps> = ({
       setSeatMap(response.data.data);
       setPendingChanges(new Map());
       setSelectedSeats(new Set());
+      toast.success('Layout regenerated successfully');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to regenerate layout');
+      const errorMessage = err.response?.data?.error || 'Failed to regenerate layout';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -565,8 +578,8 @@ export const SeatMapEditor: React.FC<SeatMapEditorProps> = ({
             <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <li>• Click seats to select them</li>
               <li>• Choose a seat type from above</li>
-              <li>• Click "Apply Selected Type"</li>
-              <li>• Don't forget to save!</li>
+              <li>• Click &quot;Apply Selected Type&quot;</li>
+              <li>• Don&apos;t forget to save!</li>
             </ul>
           </div>
         </div>

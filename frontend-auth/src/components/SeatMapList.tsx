@@ -10,6 +10,7 @@ import {
   XCircle,
   Search,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { seatMapAPI, adminAPI } from '../lib/api';
 import type { SeatMap } from '../types/seatMap';
 
@@ -54,7 +55,9 @@ export const SeatMapList: React.FC<SeatMapListProps> = ({ onEdit, onCreateNew })
       setSeatMaps(seatMapsRes.data.data || []);
       setBuses(busesRes.data.data || []);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load data');
+      const errorMessage = err.response?.data?.error || 'Failed to load data';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -74,8 +77,11 @@ export const SeatMapList: React.FC<SeatMapListProps> = ({ onEdit, onCreateNew })
     try {
       await seatMapAPI.delete(id);
       setSeatMaps(seatMaps.filter(sm => sm.id !== id));
+      toast.success('Seat map deleted successfully');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to delete seat map');
+      const errorMessage = err.response?.data?.error || 'Failed to delete seat map';
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -94,8 +100,11 @@ export const SeatMapList: React.FC<SeatMapListProps> = ({ onEdit, onCreateNew })
       setShowAssignModal(false);
       setSelectedSeatMapForAssign(null);
       setSelectedBusId('');
+      toast.success('Seat map assigned to bus successfully');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to assign seat map to bus');
+      const errorMessage = err.response?.data?.error || 'Failed to assign seat map to bus';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setAssigningBus(null);
     }
