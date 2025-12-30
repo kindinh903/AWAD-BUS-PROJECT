@@ -4,6 +4,7 @@ import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { tripAPI } from '../lib/api';
+import { formatCurrency } from '../lib/utils';
 
 interface Trip {
     id: string;
@@ -130,7 +131,7 @@ export default function RelatedTrips({ tripId, limit = 4 }: RelatedTripsProps) {
                                 <span>{formatDate(trip.start_time)}</span>
                             </div>
                             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                {trip.price}₫
+                                {formatCurrency(trip.price)}
                             </span>
                         </div>
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { bookingAPI } from '../lib/api';
 import type { Booking } from '../types/booking';
+import { formatCurrency } from '../lib/utils';
 
 const BookingHistory: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -150,7 +151,7 @@ const BookingHistory: React.FC = () => {
                     {booking.total_seats} seat{booking.total_seats > 1 ? 's' : ''}
                   </p>
                   <p className="text-lg font-bold text-blue-600">
-                    ${booking.total_amount.toFixed(2)}
+                    {formatCurrency(booking.total_amount)}
                   </p>
                 </div>
               </div>

@@ -82,7 +82,7 @@ export default function StatisticChart({ role }: StatisticChartProps) {
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', r: 4 }}
                 activeDot={{ r: 6 }}
-                name="Revenue ($)"
+                name="Revenue (₫)"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -234,7 +234,7 @@ export default function StatisticChart({ role }: StatisticChartProps) {
             <p className="text-xs text-gray-600">Weekly increase</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-green-600">$48.5K</p>
+            <p className="text-2xl font-bold text-green-600">1.2B ₫</p>
             <p className="text-xs text-gray-600">Total revenue</p>
           </div>
           <div>

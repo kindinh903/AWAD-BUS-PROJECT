@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Seat, SeatStatus } from '../types/booking';
+import { formatCurrency } from '../lib/utils';
 
 interface SeatMapProps {
   tripId: string;
@@ -174,9 +175,7 @@ const SeatMap: React.FC<SeatMapProps> = ({
                         status?.status === 'booked' ||
                         status?.status === 'reserved'
                       }
-                      title={`${seat.seat_number} - ${seat.seat_type.toUpperCase()} - $${(
-                        basePrice * seat.price_multiplier
-                      ).toFixed(2)}`}
+                      title={`${seat.seat_number} - ${seat.seat_type.toUpperCase()} - ${formatCurrency(basePrice * seat.price_multiplier)}`}
                     >
                       <span className="text-lg">{getSeatIcon(seat)}</span>
                       <span className="text-[10px]">{seat.seat_number}</span>
@@ -226,21 +225,18 @@ const SeatMap: React.FC<SeatMapProps> = ({
                   key={seatId}
                   className="bg-white dark:bg-gray-700 dark:text-white px-3 py-1 rounded-full text-sm font-medium"
                 >
-                  {seat.seat_number} - $
-                  {(basePrice * seat.price_multiplier).toFixed(2)}
+                  {seat.seat_number} - {formatCurrency(basePrice * seat.price_multiplier)}
                 </span>
               );
             })}
           </div>
           <div className="mt-3 text-right">
             <span className="text-lg font-bold dark:text-white">
-              Total: $
-              {selectedSeats
+              Total: {formatCurrency(selectedSeats
                 .reduce((total, seatId) => {
                   const seat = seats.find(s => s.id === seatId);
                   return total + (seat ? basePrice * seat.price_multiplier : 0);
-                }, 0)
-                .toFixed(2)}
+                }, 0))}
             </span>
           </div>
         </div>

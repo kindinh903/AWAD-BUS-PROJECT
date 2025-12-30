@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Passenger } from '../types/booking';
 import type { Seat } from '../types/booking';
+import { formatCurrency } from '../lib/utils';
 
 interface BookingSummaryProps {
   tripDetails: {
@@ -128,7 +129,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       <p className="text-sm text-gray-600 dark:text-gray-400">Age: {passenger.age}</p>
                     )}
                   </div>
-                  <p className="font-semibold dark:text-white">${seatPrice.toFixed(2)}</p>
+                  <p className="font-semibold dark:text-white">{formatCurrency(seatPrice)}</p>
                 </div>
               </div>
             );
@@ -195,7 +196,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold dark:text-white">Total Amount:</span>
           <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            ${calculateTotal().toFixed(2)}
+            {formatCurrency(calculateTotal())}
           </span>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">

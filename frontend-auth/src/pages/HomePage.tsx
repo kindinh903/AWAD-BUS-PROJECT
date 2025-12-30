@@ -23,6 +23,7 @@ import { StaggerItem, StaggerGrid } from '../components/ui/Stagger';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { tripAPI } from '../lib/api';
 import { CityAutocomplete } from '../components/CityAutocomplete';
+import { formatCurrency } from '../lib/utils';
 
 interface Trip {
   id: string;
@@ -146,7 +147,7 @@ export default function HomePage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
+    return formatCurrency(price);
   };
 
   const formatTime = (dateString: string) => {

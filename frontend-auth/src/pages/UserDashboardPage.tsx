@@ -14,6 +14,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import PrintIcon from '@mui/icons-material/Print';
 import { bookingAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
+import { formatCurrency } from '../lib/utils';
 
 interface Trip {
     id: string;
@@ -312,7 +313,7 @@ export default function UserDashboardPage() {
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                                    ${booking.total_amount?.toFixed(2)}
+                                                    {formatCurrency(booking.total_amount || 0)}
                                                 </p>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400">
                                                     {booking.total_seats} seat(s)
