@@ -138,7 +138,7 @@ export const BusManager: React.FC = () => {
       const payload = {
         name: formData.name.trim(),
         plateNumber: formData.plateNumber.trim(),
-        totalSeats: formData.totalSeats,
+        totalSeats: parseInt(formData.totalSeats.toString()),
         busType: formData.busType,
         manufacturer: formData.manufacturer.trim() || undefined,
         model: formData.model.trim() || undefined,
