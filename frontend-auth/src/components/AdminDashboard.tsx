@@ -103,7 +103,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
     {
       id: 'revenue',
       title: 'Revenue',
-      value: `${((dashboardData.this_month?.total_revenue || 0) / 1000000).toFixed(1)}M VND`,
+      value: `${((dashboardData.this_month?.total_revenue || 0) / 1000000).toFixed(1)}M ₫`,
       change: undefined,
       icon: '💰',
       color: 'green' as const,
@@ -282,7 +282,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 p-4 rounded-lg border border-green-200 dark:border-green-700">
                   <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Today's Revenue</div>
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {((dashboardData.today?.total_revenue || 0) / 1000000).toFixed(2)}M VND
+                    {((dashboardData.today?.total_revenue || 0) / 1000000).toFixed(2)}M ₫
                   </div>
                 </div>
                 <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
@@ -297,7 +297,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ user }) => {
                 <div className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900 dark:to-orange-800 p-4 rounded-lg border border-orange-200 dark:border-orange-700">
                   <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">This Month's Revenue</div>
                   <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                    {((dashboardData.this_month?.total_revenue || 0) / 1000000).toFixed(2)}M VND
+                    {((dashboardData.this_month?.total_revenue || 0) / 1000000).toFixed(2)}M ₫
                   </div>
                 </div>
               </div>

@@ -15,8 +15,10 @@ import {
   Filter,
   Eye,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { TripSeatViewer } from './TripSeatViewer';
 import { adminAPI } from '../lib/api';
+import { formatCurrency } from '../lib/utils';
 
 // Extended trip interface for scheduling
 export interface ScheduledTrip {
@@ -107,6 +109,7 @@ export const TripScheduler: React.FC = () => {
       setBuses(response.data.data || []);
     } catch (error) {
       console.error('Failed to fetch buses:', error);
+      toast.error('Failed to load buses');
     }
   };
 
@@ -116,6 +119,7 @@ export const TripScheduler: React.FC = () => {
       setRoutes(response.data.data || []);
     } catch (error) {
       console.error('Failed to fetch routes:', error);
+      toast.error('Failed to load routes');
     }
   };
 
@@ -151,6 +155,7 @@ export const TripScheduler: React.FC = () => {
       setTrips(transformedTrips);
     } catch (error) {
       console.error('Failed to fetch trips:', error);
+      toast.error('Failed to load trips');
     } finally {
       setIsLoading(false);
     }
@@ -222,8 +227,18 @@ export const TripScheduler: React.FC = () => {
   const openModal = (trip?: ScheduledTrip) => {
     if (trip) {
       setEditingTrip(trip);
-      setFormData(trip);
-      setSelectedRouteId(''); // Editing not supported via API yet
+      
+      // Find route ID
+      const route = routes.find(r => r.origin === trip.from && r.destination === trip.to);
+      setSelectedRouteId(route ? route.id : '');
+
+      // Find bus ID based on plate number
+      const bus = buses.find(b => b.license_plate === trip.busPlate);
+      
+      setFormData({
+        ...trip,
+        busPlate: bus ? bus.id : '', // Use ID for the form select
+      });
     } else {
       setEditingTrip(null);
       setSelectedRouteId('');
@@ -258,50 +273,43 @@ export const TripScheduler: React.FC = () => {
     e.preventDefault();
 
     if (!selectedRouteId || !formData.departure || !formData.arrival || !formData.date) {
-      alert('Please select a route and fill in all required fields');
+      toast.error('Please select a route and fill in all required fields');
+      return;
+    }
+
+    if ((formData.price || 0) < 2000) {
+      toast.error('Ticket price must be at least 2,000₫');
       return;
     }
 
     try {
       setIsLoading(true);
 
+      // Combine date with time to create ISO datetime strings
+      const startDateTime = `${formData.date}T${formData.departure}:00Z`;
+      const endDateTime = `${formData.date}T${formData.arrival}:00Z`;
+
       if (editingTrip) {
-        // For now, editing is not implemented on backend
-        // Just update local state
-        const tripData: ScheduledTrip = {
-          id: editingTrip.id,
-          from: formData.from!,
-          to: formData.to!,
-          departure: formData.departure!,
-          arrival: formData.arrival!,
-          date: formData.date!,
-          duration: calculateDuration(formData.departure!, formData.arrival!),
-          price: formData.price || 0,
-          busType: formData.busType || 'Standard',
-          company: formData.company || '',
-          availableSeats: formData.availableSeats || formData.totalSeats || 35,
-          totalSeats: formData.totalSeats || 35,
-          amenities: formData.amenities || [],
-          rating: editingTrip.rating,
-          status: formData.status || 'scheduled',
-          driverName: formData.driverName || '',
-          busPlate: formData.busPlate || '',
-          createdAt: editingTrip.createdAt,
-          updatedAt: new Date(),
-        };
-        setTrips(prev => prev.map(trip => trip.id === editingTrip.id ? tripData : trip));
+        await adminAPI.updateTrip(editingTrip.id, {
+          routeId: selectedRouteId,
+          busId: formData.busPlate || undefined,
+          startTime: startDateTime,
+          endTime: endDateTime,
+          price: formData.price,
+          notes: formData.driverName ? `Driver: ${formData.driverName}` : undefined,
+          status: formData.status,
+        });
+
+        // Refresh trips list from backend to get updated data
+        await fetchTrips();
+        toast.success('Trip updated successfully!');
       } else {
         // Create new trip - call backend API
         if (!selectedRouteId) {
-          alert('Please select a route');
+          toast.error('Please select a route');
           setIsLoading(false);
           return;
         }
-
-        // Combine date with time to create ISO datetime strings
-        // Ensure RFC3339 format by appending 'Z' (UTC) if no timezone is present
-        const startDateTime = `${formData.date}T${formData.departure}:00Z`;
-        const endDateTime = `${formData.date}T${formData.arrival}:00Z`;
 
         // Get selected bus ID from busPlate field
         const selectedBusId = formData.busPlate || undefined;
@@ -318,18 +326,18 @@ export const TripScheduler: React.FC = () => {
 
         // Refresh trips list
         await fetchTrips();
-        alert('Trip created successfully!');
+        toast.success('Trip created successfully!');
       }
 
       closeModal();
     } catch (error: any) {
       console.error('Failed to save trip:', error);
       if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
-        alert('Cannot connect to server. Please make sure the backend is running on http://localhost:8080');
+        toast.error('Cannot connect to server. Please make sure the backend is running on http://localhost:8080');
       } else if (error.response?.status === 404) {
-        alert('Backend endpoint not found. Please restart the Go backend server to load the new CreateTrip endpoint.');
+        toast.error('Backend endpoint not found. Please restart the Go backend server.');
       } else {
-        alert(error.response?.data?.details || error.response?.data?.error || 'Failed to save trip');
+        toast.error(error.response?.data?.details || error.response?.data?.error || 'Failed to save trip');
       }
     } finally {
       setIsLoading(false);
@@ -503,7 +511,7 @@ export const TripScheduler: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <Coins className="h-4 w-4 text-green-600 mr-1" />
-                      <span className="text-lg font-semibold text-gray-900 dark:text-white">{trip.price}₫</span>
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(trip.price)}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -591,7 +599,7 @@ export const TripScheduler: React.FC = () => {
                           ...prev,
                           from: route.origin,
                           to: route.destination,
-                          price: route.base_price,
+                          price: Math.max(route.base_price, 2000),
                         }));
                       }
                     }}
@@ -601,7 +609,7 @@ export const TripScheduler: React.FC = () => {
                     <option value="">Select a route</option>
                     {routes.filter(r => r.is_active).map(route => (
                       <option key={route.id} value={route.id}>
-                        {route.origin} → {route.destination} ({route.duration_minutes}min, {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(route.base_price)})
+                        {route.origin} → {route.destination} ({route.duration_minutes}min, {formatCurrency(Math.max(route.base_price, 2000))})
                       </option>
                     ))}
                   </select>
@@ -707,7 +715,7 @@ export const TripScheduler: React.FC = () => {
                     <input
                       type="number"
                       step="0.01"
-                      min="0"
+                      min="2000"
                       value={formData.price || ''}
                       onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
                       className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
@@ -731,13 +739,13 @@ export const TripScheduler: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Select Bus (Optional)
                     </label>
                     <select
                       value={formData.busPlate || ''}
                       onChange={(e) => handleInputChange('busPlate', e.target.value)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white"
                     >
                       <option value="">No bus assigned yet</option>
                       {buses.map((bus: any) => (
@@ -752,8 +760,8 @@ export const TripScheduler: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Total Seats (Read-only, from bus seat map)
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Total Seats (Read-only)
                     </label>
                     <input
                       type="number"

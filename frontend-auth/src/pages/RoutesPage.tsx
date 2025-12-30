@@ -16,6 +16,7 @@ import { Button } from '../components/ui/Button';
 import { Container, Section } from '../components/ui/Container';
 import { StaggerGrid, StaggerItem } from '../components/ui/Stagger';
 import { CardSkeleton } from '../components/ui/Skeleton';
+import { formatCurrency } from '../lib/utils';
 
 interface Trip {
     id: string;
@@ -86,7 +87,7 @@ export default function RoutesPage() {
         setMinSeats(0);
     };
 
-    const formatPrice = (price: number) => new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
+    const formatPrice = (price: number) => formatCurrency(price);
     const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('vi-VN', { weekday: 'short', month: 'short', day: 'numeric' });
 

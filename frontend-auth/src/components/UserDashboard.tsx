@@ -15,6 +15,7 @@ import { userSummaryCards, BusTrip } from '../lib/mockData';
 import { TripFilters, TripFiltersState, doesTripMatchFilters, sortTrips } from './TripFilters';
 import { tripAPI } from '../lib/api';
 import { CityAutocomplete } from './CityAutocomplete';
+import { formatCurrency } from '../lib/utils';
 
 // Helper function to calculate duration between two timestamps
 const calculateDuration = (startTime: string, endTime: string): string => {
@@ -224,9 +225,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6 transition-colors duration-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-lg mb-6">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-700 dark:to-indigo-700 text-white p-6 rounded-xl shadow-lg mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -239,7 +240,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             </p>
           </div>
           <div className="text-right">
-            <div className="bg-blue-700 px-4 py-2 rounded-lg">
+            <div className="bg-blue-700 dark:bg-blue-800 px-4 py-2 rounded-lg">
               <span className="text-sm font-semibold">PASSENGER</span>
             </div>
           </div>
@@ -265,12 +266,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
           return (
             <div
               key={card.id}
-              className={`bg-white p-6 rounded-xl shadow-md border-l-4 ${colorClasses[card.color].split(' ')[0]}`}
+              className={`bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border-l-4 ${colorClasses[card.color].split(' ')[0]}`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">{card.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">{card.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {card.value}
                   </p>
                 </div>
@@ -287,15 +288,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
       {/* Main Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Book New Trip */}
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <ConfirmationNumberIcon sx={{ fontSize: 24 }} className="text-blue-600" />
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <ConfirmationNumberIcon sx={{ fontSize: 24 }} className="text-blue-600 dark:text-blue-400" />
             Book Your Next Trip
           </h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   From
                 </label>
                 <CityAutocomplete
@@ -307,7 +308,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   To
                 </label>
                 <CityAutocomplete
@@ -321,11 +322,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Date
                 </label>
                 <div className="relative">
-                  <CalendarTodayIcon sx={{ fontSize: 16 }} className="absolute left-3 top-3 text-gray-400" />
+                  <CalendarTodayIcon sx={{ fontSize: 16 }} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
                   <input
                     type="date"
                     value={bookingForm.date}
@@ -335,16 +336,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                         date: e.target.value,
                       }))
                     }
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Time
                 </label>
                 <div className="relative">
-                  <AccessTimeIcon sx={{ fontSize: 16 }} className="absolute left-3 top-3 text-gray-400" />
+                  <AccessTimeIcon sx={{ fontSize: 16 }} className="absolute left-3 top-3 text-gray-400 dark:text-gray-500" />
                   <select
                     value={bookingForm.time}
                     onChange={e =>
@@ -353,7 +354,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                         time: e.target.value,
                       }))
                     }
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="morning">Morning (6-12)</option>
                     <option value="afternoon">Afternoon (12-18)</option>
@@ -365,7 +366,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
             <button
               onClick={handleSearch}
               disabled={isSearching}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-700 dark:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white py-3 rounded-lg font-semibold transition-all duration-200 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSearching && (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -376,17 +377,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <AccessTimeIcon sx={{ fontSize: 24 }} className="text-green-600" />
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <AccessTimeIcon sx={{ fontSize: 24 }} className="text-green-600 dark:text-green-400" />
             Recent Bookings
           </h2>
           <div className="space-y-3">
             {recentBookings.map(booking => {
               const statusStyles = {
-                confirmed: 'bg-green-50 border-green-500 text-green-700',
-                completed: 'bg-blue-50 border-blue-500 text-blue-700',
-                cancelled: 'bg-red-50 border-red-500 text-red-700',
+                confirmed: 'bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-700 text-green-700 dark:text-green-300',
+                completed: 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-700 text-blue-700 dark:text-blue-300',
+                cancelled: 'bg-red-50 dark:bg-red-900/30 border-red-500 dark:border-red-700 text-red-700 dark:text-red-300',
               };
 
               const statusLabels = {
@@ -402,10 +403,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <div className="font-semibold">
+                      <div className="font-semibold dark:text-gray-200">
                         {booking.from} → {booking.to}
                       </div>
-                      <div className="text-sm opacity-75">
+                      <div className="text-sm opacity-75 dark:text-gray-400">
                         {booking.date} • {booking.time}
                       </div>
                       <div className="text-xs mt-1">
@@ -417,8 +418,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold">
-                        ${booking.price.toFixed(2)}
+                      <div className="font-bold dark:text-gray-200">
+                        {formatCurrency(booking.price)}
                       </div>
                     </div>
                   </div>
@@ -428,7 +429,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
           </div>
 
           <div className="mt-4 text-center">
-            <button className="text-blue-600 hover:text-blue-800 font-medium">
+            <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium">
               View All Bookings
             </button>
           </div>
@@ -437,17 +438,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
       {/* Search Results */}
       {showResults && (
-        <div className="bg-white p-6 rounded-xl shadow-md mb-6">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowResults(false)}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
               >
                 ← New Search
               </button>
-              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <DirectionsBusIcon sx={{ fontSize: 24 }} className="text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <DirectionsBusIcon sx={{ fontSize: 24 }} className="text-blue-600 dark:text-blue-400" />
                 Available Buses ({filteredTrips.length} results)
               </h2>
             </div>
@@ -467,11 +468,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
           <div className="space-y-4">
             {filteredTrips.length === 0 ? (
               <div className="text-center py-8">
-                <DirectionsBusIcon sx={{ fontSize: 48 }} className="text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">
+                <DirectionsBusIcon sx={{ fontSize: 48 }} className="text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">
                   No buses found for your search criteria.
                 </p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                   Try adjusting your filters or search terms.
                 </p>
               </div>
@@ -479,44 +480,44 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
               filteredTrips.map(trip => (
                 <div
                   key={trip.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-4">
                           <div className="text-center">
-                            <div className="font-bold text-lg">
+                            <div className="font-bold text-lg dark:text-white">
                               {trip.departure}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {trip.from}
                             </div>
                           </div>
                           <div className="flex-1 text-center">
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {trip.duration}
                             </div>
-                            <div className="border-t border-gray-300 my-1"></div>
-                            <div className="text-xs text-gray-400">
+                            <div className="border-t border-gray-300 dark:border-gray-600 my-1"></div>
+                            <div className="text-xs text-gray-400 dark:text-gray-500">
                               {trip.company}
                             </div>
                           </div>
                           <div className="text-center">
-                            <div className="font-bold text-lg">
+                            <div className="font-bold text-lg dark:text-white">
                               {trip.arrival}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {trip.to}
                             </div>
                           </div>
                         </div>
 
                         <div className="text-right ml-6">
-                          <div className="text-2xl font-bold text-blue-600">
-                            ${trip.price}
+                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            {formatCurrency(trip.price)}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {trip.availableSeats}/{trip.totalSeats} seats
                           </div>
                         </div>
@@ -527,10 +528,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                           <span
                             className={`px-2 py-1 text-xs rounded-full font-medium ${
                               trip.busType === 'VIP'
-                                ? 'bg-purple-100 text-purple-800'
+                                ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300'
                                 : trip.busType === 'Sleeper'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-gray-100 text-gray-800'
+                                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
                             }`}
                           >
                             {trip.busType}
@@ -538,7 +539,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
                           <div className="flex items-center gap-1">
                             <StarIcon sx={{ fontSize: 16 }} className="text-yellow-400 fill-current" />
-                            <span className="text-sm font-medium">
+                            <span className="text-sm font-medium dark:text-gray-200">
                               {trip.rating}
                             </span>
                           </div>
@@ -549,14 +550,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
                               .map((amenity: string, index: number) => (
                                 <div
                                   key={index}
-                                  className="flex items-center gap-1 text-xs text-gray-500"
+                                  className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"
                                 >
                                   {getAmenityIcon(amenity)}
                                   <span>{amenity}</span>
                                 </div>
                               ))}
                             {trip.amenities.length > 4 && (
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-gray-400 dark:text-gray-500">
                                 +{trip.amenities.length - 4} more
                               </span>
                             )}
@@ -565,7 +566,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
                           <button
                             onClick={() => navigate(`/trips/${trip.id}`, { state: { trip } })}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                           >
                             Book Now
                           </button>
@@ -581,44 +582,44 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ user }) => {
 
       {/* Quick Actions */}
       {!showResults && (
-        <div className="bg-white p-6 rounded-xl shadow-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
             Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => alert('Payment methods feature coming soon!')}
-              className="p-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg hover:from-blue-200 hover:to-blue-300 transition-all duration-200 text-center"
+              className="p-4 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950 dark:to-blue-900 rounded-lg hover:from-blue-200 hover:to-blue-300 dark:hover:from-blue-900 dark:hover:to-blue-800 transition-all duration-200 text-center border border-transparent dark:border-blue-800"
             >
               <div className="text-2xl mb-2">💳</div>
-              <div className="font-semibold text-blue-700">Payment Methods</div>
-              <div className="text-xs text-blue-600 mt-1">
+              <div className="font-semibold text-blue-700 dark:text-blue-100">Payment Methods</div>
+              <div className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                 Manage cards & wallets
               </div>
             </button>
 
             <button
               onClick={() => alert('Loyalty program: You have 2,450 points!')}
-              className="p-4 bg-gradient-to-br from-green-100 to-green-200 rounded-lg hover:from-green-200 hover:to-green-300 transition-all duration-200 text-center"
+              className="p-4 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-950 dark:to-green-900 rounded-lg hover:from-green-200 hover:to-green-300 dark:hover:from-green-900 dark:hover:to-green-800 transition-all duration-200 text-center border border-transparent dark:border-green-800"
             >
-              <StarIcon sx={{ fontSize: 32 }} className="text-green-600 mx-auto mb-2" />
-              <div className="font-semibold text-green-700">
+              <StarIcon sx={{ fontSize: 32 }} className="text-green-600 dark:text-green-400 mx-auto mb-2" />
+              <div className="font-semibold text-green-700 dark:text-green-100">
                 Loyalty Program
               </div>
-              <div className="text-xs text-green-600 mt-1">
+              <div className="text-xs text-green-600 dark:text-green-300 mt-1">
                 View points & rewards
               </div>
             </button>
 
             <button
               onClick={() => alert('Profile settings feature coming soon!')}
-              className="p-4 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg hover:from-orange-200 hover:to-orange-300 transition-all duration-200 text-center"
+              className="p-4 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-950 dark:to-orange-900 rounded-lg hover:from-orange-200 hover:to-orange-300 dark:hover:from-orange-900 dark:hover:to-orange-800 transition-all duration-200 text-center border border-transparent dark:border-orange-800"
             >
-              <PersonIcon sx={{ fontSize: 32 }} className="text-orange-600 mx-auto mb-2" />
-              <div className="font-semibold text-orange-700">
+              <PersonIcon sx={{ fontSize: 32 }} className="text-orange-600 dark:text-orange-400 mx-auto mb-2" />
+              <div className="font-semibold text-orange-700 dark:text-orange-100">
                 Profile Settings
               </div>
-              <div className="text-xs text-orange-600 mt-1">
+              <div className="text-xs text-orange-600 dark:text-orange-300 mt-1">
                 Update your info
               </div>
             </button>

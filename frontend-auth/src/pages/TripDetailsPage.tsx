@@ -16,6 +16,7 @@ import RelatedTrips from '../components/RelatedTrips';
 import { bookingAPI, tripAPI } from '../lib/api';
 import type { Seat, Passenger } from '../types/booking';
 import { usePolling } from '../hooks/usePolling';
+import { formatCurrency } from '../lib/utils';
 
 type BookingStep = 'details' | 'seats' | 'passengers' | 'summary' | 'confirmation';
 
@@ -292,7 +293,7 @@ export default function TripDetailsPage() {
                   </div>
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded text-right">
                     <div className="text-xs text-gray-500 dark:text-gray-300">Price</div>
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{new Intl.NumberFormat('vi-VN').format(trip.price)} ₫</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(trip.price)}</div>
                     <div className="text-xs text-gray-400 dark:text-gray-400">{trip.availableSeats}/{trip.totalSeats} seats</div>
                   </div>
                 </div>
@@ -327,7 +328,7 @@ export default function TripDetailsPage() {
               <div className="w-56">
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg mb-4">
                   <div className="text-xs text-gray-500 dark:text-gray-300">Trip Summary</div>
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">{new Intl.NumberFormat('vi-VN').format(trip.price)} ₫</div>
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400 mt-2">{formatCurrency(trip.price)}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-300 mt-1">{trip.departure} • {trip.duration}</div>
                   <div className="mt-3">
                     <button

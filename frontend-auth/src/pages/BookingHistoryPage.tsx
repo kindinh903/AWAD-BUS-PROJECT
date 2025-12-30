@@ -12,6 +12,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import DownloadIcon from '@mui/icons-material/Download';
 import { bookingAPI, reviewAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
+import { formatCurrency } from '../lib/utils';
 import ReviewForm from '../components/ReviewForm';
 
 interface Trip {
@@ -265,7 +266,7 @@ export default function BookingHistoryPage() {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-blue-600">
-                                                ${booking.total_amount?.toFixed(2)}
+                                                {formatCurrency(booking.total_amount || 0)}
                                             </span>
                                             {expandedBookings.has(booking.id) ? (
                                                 <ExpandLessIcon sx={{ fontSize: 20 }} className="text-gray-400" />
