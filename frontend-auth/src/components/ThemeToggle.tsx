@@ -22,7 +22,7 @@ export default function ThemeToggle() {
       <select
         value={theme}
         onChange={e => setTheme(e.target.value as any)}
-        className="text-sm border rounded px-2 py-1 bg-white dark:bg-slate-800"
+        className="text-sm border border-gray-200 dark:border-slate-700 rounded px-2 py-1 bg-white dark:bg-slate-800"
         aria-label="Select theme"
       >
         <option value="light">Light</option>
