@@ -112,7 +112,7 @@ func (e *NotificationTemplateEngine) RenderBookingConfirmation(data BookingConfi
             
             <div class="footer">
                 <p>This is an automated confirmation.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -168,7 +168,7 @@ func (e *NotificationTemplateEngine) RenderPaymentReceipt(data PaymentReceiptDat
             
             <div class="footer">
                 <p>This is your official payment receipt. Please keep it for your records.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -230,7 +230,7 @@ func (e *NotificationTemplateEngine) RenderTripReminder(data TripReminderData) (
             
             <div class="footer">
                 <p>This is an automated reminder.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -293,7 +293,7 @@ func (e *NotificationTemplateEngine) RenderCancellation(data CancellationData) (
             
             <div class="footer">
                 <p>This is an automated notification.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>

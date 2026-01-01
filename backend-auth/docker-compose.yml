@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
@@ -78,7 +78,7 @@ services:
       # AI Chatbot Configuration
       AI_PROVIDER: gemini
       AI_ENABLED: "true"
-      GEMINI_API_KEY: AIzaSyBd0cgw8jF7VZaNrIhIjzkzeEejWkOlwc0
+      GEMINI_API_KEY: AIzaSyDhpBU5JuuYlFgcWA-s8hr4V7wDXiIRlX8
       GEMINI_MODEL: gemini-3-flash-preview
       GEMINI_MAX_TOKENS: "1024"
       GEMINI_TEMPERATURE: "0.7"
