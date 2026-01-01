@@ -129,7 +129,7 @@ func (s *EmailService) createTicketEmailBody(toName, bookingRef, ticketNumber st
             
             <div class="footer">
                 <p>This is an automated message, please do not reply to this email.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -342,7 +342,7 @@ func (s *EmailService) createPaymentReceiptTemplate(toName, bookingRef string, a
             
             <div class="footer">
                 <p>This is an automated receipt. Please keep it for your records.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -411,7 +411,7 @@ func (s *EmailService) createTripReminderTemplate(toName, bookingRef, seats, dep
             
             <div class="footer">
                 <p>This is an automated reminder.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>
@@ -469,7 +469,7 @@ func (s *EmailService) createCancellationTemplate(toName, bookingRef, reason str
             
             <div class="footer">
                 <p>This is an automated notification.</p>
-                <p>&copy; 2024 Bus Booking System. All rights reserved.</p>
+                <p>&copy; 2025 Bus Booking System. All rights reserved.</p>
             </div>
         </div>
     </div>

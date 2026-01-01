@@ -282,7 +282,7 @@ export default function HomePage() {
                       >
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
+                            <div className="flex flex-wrap items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors break-words">
                               <span>{trip.route?.origin || 'Origin'}</span>
                               <ArrowForwardIcon sx={{ fontSize: 16 }} className="text-blue-500" />
                               <span>{trip.route?.destination || 'Destination'}</span>
@@ -291,7 +291,7 @@ export default function HomePage() {
                               {trip.bus?.name || 'Bus'} • {trip.bus?.bus_type || 'Standard'}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right ml-4 md:ml-8">
                             <p className="text-lg font-bold text-blue-600">
                               {formatPrice(trip.price)}
                             </p>
