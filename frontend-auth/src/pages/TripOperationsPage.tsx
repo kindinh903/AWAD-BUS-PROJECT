@@ -59,12 +59,56 @@ export default function TripOperationsPage() {
     const [bookingsLoading, setBookingsLoading] = useState(false);
     const [checkingIn, setCheckingIn] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [passengerSearch, setPassengerSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set());
+    const [tripsWithPassengers, setTripsWithPassengers] = useState<Map<string, boolean>>(new Map());
 
     useEffect(() => {
         loadTrips();
     }, []);
+
+    // Search for passenger/booking across all trips (debounced)
+    useEffect(() => {
+        if (!passengerSearch.trim()) {
+            setTripsWithPassengers(new Map());
+            return;
+        }
+
+        // Debounce the search to avoid race conditions
+        const timeoutId = setTimeout(() => {
+            const searchLower = passengerSearch.toLowerCase();
+            const matchingTrips = new Map<string, boolean>();
+
+            // Search through all trips for matching passengers
+            const searchPromises = trips.map(async (trip) => {
+                try {
+                    const response = await adminAPI.getTripPassengers(trip.id);
+                    const passengers = response.data.data || [];
+                    
+                    const hasMatch = passengers.some((p: any) => 
+                        p.full_name?.toLowerCase().includes(searchLower) ||
+                        p.booking_reference?.toLowerCase().includes(searchLower) ||
+                        p.contact_name?.toLowerCase().includes(searchLower)
+                    );
+                    
+                    if (hasMatch) {
+                        matchingTrips.set(trip.id, true);
+                    }
+                } catch (error) {
+                    // Ignore errors for individual trips
+                }
+            });
+
+            Promise.all(searchPromises).then(() => {
+                // Only update if the search query hasn't changed
+                setTripsWithPassengers(matchingTrips);
+            });
+        }, 300); // 300ms debounce delay
+
+        // Cleanup function to cancel pending search if user keeps typing
+        return () => clearTimeout(timeoutId);
+    }, [passengerSearch]); // Only depend on passengerSearch, not trips
 
     const loadTrips = async () => {
         try {
@@ -137,8 +181,17 @@ export default function TripOperationsPage() {
         if (!selectedTrip) return;
         try {
             await adminAPI.updateTripStatus(selectedTrip.id, newStatus);
-            setSelectedTrip({ ...selectedTrip, status: newStatus });
-            loadTrips(); // Refresh the list
+            
+            // Update the selected trip status
+            const updatedTrip = { ...selectedTrip, status: newStatus };
+            setSelectedTrip(updatedTrip);
+            
+            // Update the trip in the trips list without reloading
+            setTrips(prevTrips => 
+                prevTrips.map(trip => 
+                    trip.id === selectedTrip.id ? updatedTrip : trip
+                )
+            );
         } catch (error) {
             console.error('Failed to update status:', error);
             alert('Failed to update trip status');
@@ -185,7 +238,11 @@ export default function TripOperationsPage() {
             trip.route?.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
             trip.bus?.plate_number.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === 'all' || trip.status.toLowerCase() === statusFilter;
-        return matchesSearch && matchesStatus;
+        
+        // If passenger search is active, only show trips with matching passengers
+        const matchesPassenger = !passengerSearch.trim() || tripsWithPassengers.has(trip.id);
+        
+        return matchesSearch && matchesStatus && matchesPassenger;
     });
 
     if (loading) {
@@ -236,12 +293,30 @@ export default function TripOperationsPage() {
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                     <input
                                         type="text"
-                                        placeholder="Search trips..."
+                                        placeholder="Search by route or bus..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-400"
                                     />
                                 </div>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Find by passenger name or booking ref..."
+                                        value={passengerSearch}
+                                        onChange={(e) => setPassengerSearch(e.target.value)}
+                                        className="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder:text-slate-400"
+                                    />
+                                </div>
+                                {passengerSearch.trim() && (
+                                    <div className="text-xs text-green-600 dark:text-green-400 px-2">
+                                        {tripsWithPassengers.size > 0 
+                                            ? `Found in ${tripsWithPassengers.size} trip${tripsWithPassengers.size !== 1 ? 's' : ''}`
+                                            : 'No trips found with matching passengers'
+                                        }
+                                    </div>
+                                )}
                                 <select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -264,7 +339,7 @@ export default function TripOperationsPage() {
                                         onClick={() => handleTripSelect(trip)}
                                         className={`p-3 border rounded-lg cursor-pointer transition-all ${selectedTrip?.id === trip.id
                                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-400'
-                                            : 'hover:border-gray-300 hover:bg-gray-50 dark:hover:border-slate-500 dark:hover:bg-slate-800'
+                                            : 'border-gray-200 dark:border-slate-700 hover:border-gray-400 dark:hover:border-slate-500 hover:bg-gray-50 dark:hover:bg-slate-800'
                                             }`}
                                     >
                                         <div className="flex items-center justify-between mb-1">

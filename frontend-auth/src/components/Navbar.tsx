@@ -168,19 +168,15 @@ export default function Navbar() {
             <ThemeToggle />
 
             {isAuthenticated ? (
-              <div className="hidden md:flex items-center gap-3">
+              <div className="hidden md:flex items-center gap-3 ml-2">
                 {/* User dropdown */}
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm">
                     {username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
                       {username.split(' ')[0]}
-                    </span>
-                    <span className={`text-xs ${userRole === 'admin' ? 'text-red-600' : 'text-blue-600'
-                      }`}>
-                      {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
                     </span>
                   </div>
                 </div>
@@ -270,9 +266,6 @@ export default function Navbar() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">{username}</p>
-                    <p className={`text-sm ${userRole === 'admin' ? 'text-red-600' : 'text-blue-600'}`}>
-                      {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-                    </p>
                   </div>
                 </div>
                 {/* My Tickets for regular users, Dashboard for admin */}
