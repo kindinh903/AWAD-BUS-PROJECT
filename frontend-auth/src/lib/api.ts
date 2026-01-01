@@ -320,6 +320,7 @@ export const bookingAPI = {
   // Create booking
   createBooking: (data: {
     trip_id: string;
+    user_id?: string | null;  // Add user_id support
     contact_email: string;
     contact_phone: string;
     contact_name: string;

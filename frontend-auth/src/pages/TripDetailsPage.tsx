@@ -170,8 +170,12 @@ export default function TripDetailsPage() {
         return;
       }
 
+      // Get user info from token to link booking to authenticated user
+      const userInfo = tokenManager.getUserInfo();
+      
       const response = await bookingAPI.createBooking({
         trip_id: trip.id,
+        user_id: userInfo?.userId || null,  // Link to user if authenticated
         contact_email: contactInfo.email,
         contact_phone: contactInfo.phone,
         contact_name: contactInfo.name,
