@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,6 +21,12 @@ type PaymentUsecase struct {
 	paymentProvider   services.PaymentProvider
 	notificationQueue *services.NotificationQueue
 	templateEngine    *services.NotificationTemplateEngine
+	// Dependencies for sending ticket emails
+	passengerRepo repositories.PassengerRepository
+	ticketRepo    repositories.TicketRepository
+	tripRepo      repositories.TripRepository
+	ticketService *services.TicketService
+	emailService  *services.EmailService
 }
 
 func NewPaymentUsecase(
@@ -30,6 +37,11 @@ func NewPaymentUsecase(
 	paymentProvider services.PaymentProvider,
 	notificationQueue *services.NotificationQueue,
 	templateEngine *services.NotificationTemplateEngine,
+	passengerRepo repositories.PassengerRepository,
+	ticketRepo repositories.TicketRepository,
+	tripRepo repositories.TripRepository,
+	ticketService *services.TicketService,
+	emailService *services.EmailService,
 ) *PaymentUsecase {
 	return &PaymentUsecase{
 		paymentRepo:       paymentRepo,
@@ -39,6 +51,11 @@ func NewPaymentUsecase(
 		paymentProvider:   paymentProvider,
 		notificationQueue: notificationQueue,
 		templateEngine:    templateEngine,
+		passengerRepo:     passengerRepo,
+		ticketRepo:        ticketRepo,
+		tripRepo:          tripRepo,
+		ticketService:     ticketService,
+		emailService:      emailService,
 	}
 }
 
@@ -152,6 +169,22 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 
 	if err := uc.paymentRepo.Update(ctx, payment); err != nil {
 		log.Printf("Warning: Failed to update payment with external ID: %v", err)
+	}
+
+	// AUTO-SUCCESS IN MOCK MODE: Immediately trigger payment success webhook
+	// This simulates instant payment success for testing
+	useMockPayment := os.Getenv("USE_MOCK_PAYMENT") == "true"
+	if useMockPayment {
+		log.Printf("🎫 [MOCK MODE] Auto-triggering payment success for order: %s", orderCodeStr)
+		go func() {
+			time.Sleep(2 * time.Second) // Small delay to simulate processing
+			bgCtx := context.Background()
+			if err := uc.ProcessWebhook(bgCtx, orderCodeStr, "payment.success", "{\"mock\":true}", "mock-signature"); err != nil {
+				log.Printf("❌ [MOCK MODE] Failed to auto-process payment: %v", err)
+			} else {
+				log.Printf("✅ [MOCK MODE] Payment auto-completed successfully")
+			}
+		}()
 	}
 
 	return &CreatePaymentResponse{
@@ -324,6 +357,9 @@ func (uc *PaymentUsecase) handlePaymentSuccess(ctx context.Context, payment *ent
 	// Send payment receipt notification asynchronously
 	go uc.sendPaymentReceiptNotification(booking, payment)
 
+	// Send ticket emails asynchronously
+	go uc.sendTicketEmails(ctx, booking.ID)
+
 	log.Printf("[Payment] Payment %s processed successfully for booking %s", payment.ID, booking.BookingReference)
 
 	return nil
@@ -409,6 +445,72 @@ func (uc *PaymentUsecase) sendPaymentReceiptNotification(booking *entities.Booki
 	if err := uc.notificationQueue.Enqueue(notification); err != nil {
 		log.Printf("Failed to enqueue payment receipt notification: %v", err)
 	}
+}
+
+// sendTicketEmails sends e-ticket emails to passengers after payment success
+func (uc *PaymentUsecase) sendTicketEmails(ctx context.Context, bookingID uuid.UUID) error {
+	log.Printf("[TicketEmail] Starting ticket email sending for booking: %s", bookingID)
+	
+	// Get booking with all details
+	booking, err := uc.bookingRepo.GetByID(ctx, bookingID)
+	if err != nil {
+		log.Printf("[TicketEmail] Failed to get booking: %v", err)
+		return fmt.Errorf("failed to get booking: %w", err)
+	}
+
+	// Get trip details
+	trip, err := uc.tripRepo.GetByID(ctx, booking.TripID)
+	if err != nil {
+		log.Printf("[TicketEmail] Failed to get trip: %v", err)
+		return fmt.Errorf("failed to get trip: %w", err)
+	}
+
+	// Get passengers
+	passengers, err := uc.passengerRepo.GetByBookingID(ctx, bookingID)
+	if err != nil {
+		log.Printf("[TicketEmail] Failed to get passengers: %v", err)
+		return fmt.Errorf("failed to get passengers: %w", err)
+	}
+
+	// Get tickets
+	tickets, err := uc.ticketRepo.GetByBookingID(ctx, bookingID)
+	if err != nil {
+		log.Printf("[TicketEmail] Failed to get tickets: %v", err)
+		return fmt.Errorf("failed to get tickets: %w", err)
+	}
+
+	log.Printf("[TicketEmail] Found %d tickets to send", len(tickets))
+
+	// Send email for each ticket
+	for i, ticket := range tickets {
+		if i >= len(passengers) {
+			break
+		}
+		passenger := passengers[i]
+
+		// Generate PDF for this ticket
+		pdfBytes, err := uc.ticketService.GenerateTicketPDF(ticket, booking, trip, passenger)
+		if err != nil {
+			log.Printf("[TicketEmail] Failed to generate PDF for ticket %s: %v", ticket.TicketNumber, err)
+			continue
+		}
+
+		// Send email with PDF attachment
+		if err := uc.emailService.SendTicketEmail(
+			booking.ContactEmail,
+			booking.ContactName,
+			booking.BookingReference,
+			ticket.TicketNumber,
+			pdfBytes,
+		); err != nil {
+			log.Printf("[TicketEmail] Failed to send email for ticket %s: %v", ticket.TicketNumber, err)
+		} else {
+			log.Printf("[TicketEmail] Successfully sent ticket email for %s", ticket.TicketNumber)
+		}
+	}
+
+	log.Printf("[TicketEmail] Completed ticket email sending for booking: %s", bookingID)
+	return nil
 }
 
 // GetPaymentByBookingID retrieves payment(s) for a booking

@@ -55,6 +55,10 @@ func (r *bookingRepository) GetByUserID(ctx context.Context, userID uuid.UUID, p
 
 	// Get paginated results
 	err := r.db.WithContext(ctx).
+		Preload("Trip").
+		Preload("Trip.Route").
+		Preload("Trip.Bus").
+		Preload("Passengers").
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
 		Limit(pageSize).

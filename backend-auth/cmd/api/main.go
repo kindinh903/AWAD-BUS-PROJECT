@@ -304,6 +304,11 @@ func initDependencies(db *gorm.DB) *Container {
 		paymentProvider,
 		notificationQueue,
 		notificationTemplateEng,
+		passengerRepo,
+		ticketRepo,
+		tripRepo,
+		services.NewTicketService(),
+		services.NewEmailService(),
 	)
 	analyticsUsecase := usecases.NewAnalyticsUsecase(
 		bookingRepo,
