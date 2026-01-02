@@ -79,6 +79,16 @@ export const TripScheduler: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedRouteId, setSelectedRouteId] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  // Advanced filters
+  const [originFilter, setOriginFilter] = useState('');
+  const [destinationFilter, setDestinationFilter] = useState('');
+  const [busTypeFilter, setBusTypeFilter] = useState<string[]>([]);
+  const [departureTimeFilter, setDepartureTimeFilter] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000000]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [formData, setFormData] = useState<Partial<ScheduledTrip>>({
     from: '',
     to: '',
@@ -161,7 +171,20 @@ export const TripScheduler: React.FC = () => {
     }
   };
 
-  // Filter trips based on search and status
+  // Helper function for departure time matching
+  const matchesDepartureTime = (trip: ScheduledTrip) => {
+    if (departureTimeFilter.length === 0) return true;
+    const [hours] = trip.departure.split(':').map(Number);
+    return departureTimeFilter.some(time => {
+      if (time === 'morning' && hours >= 6 && hours < 12) return true;
+      if (time === 'afternoon' && hours >= 12 && hours < 18) return true;
+      if (time === 'evening' && hours >= 18 && hours < 22) return true;
+      if (time === 'night' && (hours >= 22 || hours < 6)) return true;
+      return false;
+    });
+  };
+
+  // Filter trips based on search and all filters
   const filteredTrips = trips.filter(trip => {
     const matchesSearch =
       trip.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -171,9 +194,53 @@ export const TripScheduler: React.FC = () => {
       trip.busPlate.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || trip.status === statusFilter;
+    const matchesOrigin = !originFilter || trip.from.toLowerCase().includes(originFilter.toLowerCase());
+    const matchesDestination = !destinationFilter || trip.to.toLowerCase().includes(destinationFilter.toLowerCase());
+    const matchesBusType = busTypeFilter.length === 0 || busTypeFilter.includes(trip.busType.toLowerCase());
+    const matchesPrice = trip.price >= priceRange[0] && trip.price <= priceRange[1];
+    const matchesTime = matchesDepartureTime(trip);
 
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesOrigin && matchesDestination && matchesBusType && matchesPrice && matchesTime;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredTrips.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTrips = filteredTrips.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, originFilter, destinationFilter, busTypeFilter, departureTimeFilter, priceRange]);
+
+  // Toggle filter functions
+  const toggleBusType = (type: string) => {
+    setBusTypeFilter(prev => 
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+    );
+  };
+
+  const toggleDepartureTime = (time: string) => {
+    setDepartureTimeFilter(prev => 
+      prev.includes(time) ? prev.filter(t => t !== time) : [...prev, time]
+    );
+  };
+
+  const clearAdvancedFilters = () => {
+    setOriginFilter('');
+    setDestinationFilter('');
+    setBusTypeFilter([]);
+    setDepartureTimeFilter([]);
+    setPriceRange([0, 2000000]);
+  };
+
+  const activeFiltersCount = 
+    (originFilter ? 1 : 0) +
+    (destinationFilter ? 1 : 0) +
+    busTypeFilter.length +
+    departureTimeFilter.length +
+    (priceRange[0] > 0 || priceRange[1] < 2000000 ? 1 : 0);
 
   const calculateDuration = (departure: string, arrival: string) => {
     if (!departure || !arrival) return '0h 00m';
@@ -369,7 +436,11 @@ export const TripScheduler: React.FC = () => {
             <Calendar className="h-6 w-6 text-blue-600" />
             Trip Scheduler
           </h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Create, edit, and manage bus trip schedules</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">
+            Create, edit, and manage bus trip schedules
+            {!isLoading && ` • ${filteredTrips.length} ${filteredTrips.length === 1 ? 'trip' : 'trips'} found`}
+            {!isLoading && totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
+          </p>
         </div>
         <button
           onClick={() => openModal()}
@@ -381,33 +452,177 @@ export const TripScheduler: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search trips by city, company, driver, or bus plate..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-white"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-white"
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border dark:border-gray-700">
+        <div className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+              <input
+                type="text"
+                placeholder="Search trips by city, company, driver, or bus plate..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-white"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-white"
+              >
+                <option value="all">All Status</option>
+                <option value="scheduled">Scheduled</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors relative"
             >
-              <option value="all">All Status</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+              <Filter className="h-4 w-4" />
+              Advanced Filters
+              {activeFiltersCount > 0 && (
+                <span className="absolute -top-2 -right-2 px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">
+                  {activeFiltersCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <div className="border-t dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Advanced Filters</h3>
+              {activeFiltersCount > 0 && (
+                <button
+                  onClick={clearAdvancedFilters}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Origin City */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <MapPin className="inline h-4 w-4 mr-1" />
+                  From City
+                </label>
+                <input
+                  type="text"
+                  placeholder="Any city"
+                  value={originFilter}
+                  onChange={(e) => setOriginFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+
+              {/* Destination City */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <MapPin className="inline h-4 w-4 mr-1" />
+                  To City
+                </label>
+                <input
+                  type="text"
+                  placeholder="Any city"
+                  value={destinationFilter}
+                  onChange={(e) => setDestinationFilter(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+
+              {/* Bus Type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Bus className="inline h-4 w-4 mr-1" />
+                  Bus Type
+                </label>
+                <div className="space-y-2">
+                  {['standard', 'vip', 'sleeper'].map(type => (
+                    <label key={type} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={busTypeFilter.includes(type)}
+                        onChange={() => toggleBusType(type)}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">{type}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Departure Time */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Clock className="inline h-4 w-4 mr-1" />
+                  Departure Time
+                </label>
+                <div className="space-y-2">
+                  {[
+                    { value: 'morning', label: 'Morning (6AM-12PM)' },
+                    { value: 'afternoon', label: 'Afternoon (12PM-6PM)' },
+                    { value: 'evening', label: 'Evening (6PM-10PM)' },
+                    { value: 'night', label: 'Night (10PM-6AM)' }
+                  ].map(time => (
+                    <label key={time.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={departureTimeFilter.includes(time.value)}
+                        onChange={() => toggleDepartureTime(time.value)}
+                        className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{time.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <Coins className="inline h-4 w-4 mr-1" />
+                  Price Range
+                </label>
+                <div className="space-y-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="2000000"
+                    step="50000"
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-600"
+                  />
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 flex-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block">Min</span>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {formatCurrency(priceRange[0])}
+                      </span>
+                    </div>
+                    <span className="text-gray-400">—</span>
+                    <div className="px-3 py-2 bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 flex-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 block">Max</span>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                        {formatCurrency(priceRange[1])}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Statistics Cards */}
@@ -463,7 +678,7 @@ export const TripScheduler: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredTrips.map((trip) => (
+              {paginatedTrips.map((trip) => (
                 <tr key={trip.id} className="hover:bg-gray-50 dark:hover:bg-gray-900">
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
@@ -560,6 +775,54 @@ export const TripScheduler: React.FC = () => {
             <div className="text-center py-8">
               <Bus className="h-12 w-12 text-gray-300 dark:text-gray-700 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400">No trips found matching your criteria.</p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              
+              <div className="flex gap-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} className="px-2 py-2 text-gray-500">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>

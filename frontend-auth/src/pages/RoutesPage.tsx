@@ -46,6 +46,10 @@ export default function RoutesPage() {
     const [busTypes, setBusTypes] = useState<string[]>([]);
     const [departureTime, setDepartureTime] = useState<string[]>([]);
     const [showFilters, setShowFilters] = useState(false);
+    
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // Time range helper
     const getHourFromTime = (dateString: string) => {
@@ -90,6 +94,17 @@ export default function RoutesPage() {
         (minSeats > 0 ? 1 : 0) +
         busTypes.length +
         departureTime.length;
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredTrips.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedTrips = filteredTrips.slice(startIndex, endIndex);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [origin, destination, busTypes, departureTime, priceRange, minSeats]);
 
     useEffect(() => {
         const fetchTrips = async () => {
@@ -634,6 +649,7 @@ export default function RoutesPage() {
                                     </h2>
                                     <p className="text-gray-600 dark:text-gray-400 mt-1">
                                         {loading ? 'Searching...' : `${filteredTrips.length} ${filteredTrips.length === 1 ? 'trip' : 'trips'} found`}
+                                        {!loading && totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
                                     </p>
                                 </div>
                             </div>
@@ -647,8 +663,9 @@ export default function RoutesPage() {
                                     ))}
                                 </StaggerGrid>
                             ) : filteredTrips.length > 0 ? (
-                                <StaggerGrid cols={1}>
-                                    {filteredTrips.map((trip) => (
+                                <>
+                                    <StaggerGrid cols={1}>
+                                        {paginatedTrips.map((trip) => (
                                         <StaggerItem key={trip.id}>
                                             <Card hover className="group">
                                                 <CardContent className="p-6">
@@ -698,6 +715,61 @@ export default function RoutesPage() {
                                         </StaggerItem>
                                     ))}
                                 </StaggerGrid>
+                                
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <div className="mt-8 flex items-center justify-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2"
+                                        >
+                                            Previous
+                                        </Button>
+                                        
+                                        <div className="flex gap-2">
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                                                // Show first page, last page, current page, and pages around current
+                                                if (
+                                                    page === 1 ||
+                                                    page === totalPages ||
+                                                    (page >= currentPage - 1 && page <= currentPage + 1)
+                                                ) {
+                                                    return (
+                                                        <button
+                                                            key={page}
+                                                            onClick={() => setCurrentPage(page)}
+                                                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                                                                currentPage === page
+                                                                    ? 'bg-blue-600 text-white'
+                                                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
+                                                            }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    );
+                                                } else if (
+                                                    page === currentPage - 2 ||
+                                                    page === currentPage + 2
+                                                ) {
+                                                    return <span key={page} className="px-2 py-2 text-gray-500">...</span>;
+                                                }
+                                                return null;
+                                            })}
+                                        </div>
+                                        
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-4 py-2"
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
                             ) : (
                                 <Card className="text-center py-16 border border-gray-200 dark:border-slate-700">
                                     <CardContent>
