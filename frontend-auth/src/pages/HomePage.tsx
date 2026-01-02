@@ -179,156 +179,76 @@ export default function HomePage() {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative container mx-auto px-4 py-16 md:py-24">
-          <div className="max-w-5xl mx-auto">
+        <div className="relative container mx-auto px-4 py-20 md:py-32">
+          <div className="max-w-4xl mx-auto text-center">
             {/* Top Banner */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-yellow-300 text-gray-900 rounded-full px-6 py-3 mb-6 shadow-lg">
-                <AutoAwesomeIcon sx={{ fontSize: 20 }} />
-                <span className="text-sm md:text-base font-bold">24 YEARS OF TRUST & DEVELOPMENT</span>
-              </div>
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-yellow-300 text-gray-900 rounded-full px-6 py-3 mb-8 shadow-lg">
+              <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+              <span className="text-sm md:text-base font-bold">24 YEARS OF TRUST & DEVELOPMENT</span>
+            </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-4 leading-tight drop-shadow-lg">
-                Vietnam's Leading
-                <span className="block text-yellow-300">Bus Service</span>
-              </h1>
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight drop-shadow-2xl">
+              Vietnam's Leading
+              <span className="block text-yellow-300">Bus Service</span>
+            </h1>
 
-              <p className="text-lg md:text-xl text-orange-50 mb-8 max-w-3xl mx-auto font-medium">
-                Quality Service • Safe Journey • Trusted by Millions
+            <p className="text-xl md:text-2xl text-orange-50 mb-12 max-w-3xl mx-auto font-medium">
+              Quality Service • Safe Journey • Trusted by Millions
+            </p>
+
+            {/* CTA Section */}
+            <div className="space-y-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8">
+                Ready to start your journey?
+              </h2>
+              
+              <button
+                onClick={() => navigate('/routes')}
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-5 px-16 rounded-2xl text-xl shadow-2xl hover:shadow-3xl transition-all duration-300 inline-flex items-center gap-4 hover:scale-105 transform"
+              >
+                <DirectionsBusIcon sx={{ fontSize: 32 }} />
+                BOOK YOUR TICKET NOW
+                <ArrowForwardIcon sx={{ fontSize: 28 }} />
+              </button>
+
+              <p className="text-white/90 text-sm mt-4">
+                Browse 500+ destinations across Vietnam
               </p>
             </div>
 
-            {/* Search Form Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 backdrop-blur-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="tripType" 
-                      defaultChecked 
-                      className="w-4 h-4 text-orange-600 focus:ring-orange-500"
-                    />
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">One Way</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="tripType" 
-                      className="w-4 h-4 text-orange-600 focus:ring-orange-500"
-                    />
-                    <span className="text-gray-700 dark:text-gray-300 font-medium">Round Trip</span>
-                  </label>
-                </div>
+            {/* Trust Badges */}
+            <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors">
+                <div className="text-4xl mb-2">🚌</div>
+                <div className="text-white font-semibold text-sm">Modern Fleet</div>
               </div>
-
-              <form onSubmit={handleSearch}>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Departure Point
-                    </label>
-                    <CityAutocomplete
-                      value={origin}
-                      onChange={setOrigin}
-                      placeholder="From city"
-                      exclude={destination}
-                      icon="origin"
-                    />
-                  </div>
-
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Arrival Point
-                    </label>
-                    <CityAutocomplete
-                      value={destination}
-                      onChange={setDestination}
-                      placeholder="To city"
-                      exclude={origin}
-                      icon="destination"
-                    />
-                  </div>
-
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Departure Date
-                    </label>
-                    <div className="relative">
-                      <CalendarTodayIcon sx={{ fontSize: 20 }} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="date"
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Number of Seats
-                    </label>
-                    <select className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                      <option>1</option>
-                      <option>2</option>
-                      <option>3</option>
-                      <option>4</option>
-                      <option>5+</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <button
-                    type="submit"
-                    className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-4 px-12 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-300 inline-flex items-center gap-3"
-                  >
-                    <SearchIcon sx={{ fontSize: 24 }} />
-                    FIND TICKETS
-                  </button>
-                </div>
-              </form>
-
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🚌</span>
-                    <span>Modern Fleet</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">⭐</span>
-                    <span>Top Rated Service</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🔒</span>
-                    <span>Safe & Secure</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">💳</span>
-                    <span>Easy Payment</span>
-                  </div>
-                </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors">
+                <div className="text-4xl mb-2">⭐</div>
+                <div className="text-white font-semibold text-sm">Top Rated</div>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors">
+                <div className="text-4xl mb-2">🔒</div>
+                <div className="text-white font-semibold text-sm">Safe & Secure</div>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 hover:bg-white/30 transition-colors">
+                <div className="text-4xl mb-2">💳</div>
+                <div className="text-white font-semibold text-sm">Easy Payment</div>
               </div>
             </div>
 
-            {/* Quick Route Suggestions */}
-            <div className="mt-6 text-center">
-              <p className="text-white/80 text-sm mb-3">Popular Routes:</p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {['HCM - Hanoi', 'HCM - Da Nang', 'HCM - Nha Trang', 'Hanoi - Hai Phong'].map((route) => (
-                  <button
-                    key={route}
-                    onClick={() => {
-                      const [from, to] = route.split(' - ');
-                      setOrigin(from);
-                      setDestination(to);
-                    }}
-                    className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
-                  >
-                    {route}
-                  </button>
-                ))}
+            {/* Quick Stats */}
+            <div className="mt-12 flex flex-wrap justify-center gap-8 text-white/90">
+              <div className="flex items-center gap-2">
+                <PeopleIcon sx={{ fontSize: 24 }} />
+                <span className="font-semibold">2M+ Travelers</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <LocationOnIcon sx={{ fontSize: 24 }} />
+                <span className="font-semibold">500+ Destinations</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <DirectionsBusIcon sx={{ fontSize: 24 }} />
+                <span className="font-semibold">1000+ Daily Trips</span>
               </div>
             </div>
           </div>
