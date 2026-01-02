@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { paymentAPI, bookingAPI } from '../lib/api';
 import { tokenManager } from '../lib/tokenManager';
-import QRCode from 'qrcode';
 
 interface PaymentData {
     payment_id: string;
@@ -46,7 +45,6 @@ export default function PaymentPage() {
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [polling, setPolling] = useState(false);
-    const [qrDataURL, setQrDataURL] = useState<string | null>(null);
 
     // Check if we're returning from payment gateway
     const paymentId = searchParams.get('payment_id');
@@ -120,36 +118,6 @@ export default function PaymentPage() {
         fetchBooking();
     }, [bookingId, searchParams]);
 
-    // Generate QR code image when payment data changes
-    useEffect(() => {
-        if (payment?.qr_code_url) {
-            // Check if it's already a URL (starts with http)
-            if (payment.qr_code_url.startsWith('http')) {
-                setQrDataURL(payment.qr_code_url);
-            } else {
-                // It's raw QR data, generate QR code image
-                QRCode.toDataURL(payment.qr_code_url, {
-                    width: 300,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
-                })
-                    .then(url => {
-                        setQrDataURL(url);
-                    })
-                    .catch(err => {
-                        console.error('Failed to generate QR code:', err);
-                        setQrDataURL(null);
-                    });
-            }
-        } else {
-            setQrDataURL(null);
-        }
-    }, [payment?.qr_code_url]);
-
-    // 
     // Poll payment status when we have a payment_id
     useEffect(() => {
         if (!paymentId || !polling) return;
@@ -309,25 +277,6 @@ export default function PaymentPage() {
                                     <div className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-2">
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                                         Waiting for payment confirmation...
-                                    </div>
-                                )}
-                                
-                                {/* QR Code Display */}
-                                {qrDataURL && (
-                                    <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-blue-200 dark:border-blue-700">
-                                        <div className="text-sm text-gray-700 dark:text-gray-300 mb-3 text-center font-medium">
-                                            📱 Scan QR Code to Pay
-                                        </div>
-                                        <div className="flex justify-center">
-                                            <img 
-                                                src={qrDataURL} 
-                                                alt="Payment QR Code" 
-                                                className="w-64 h-64 object-contain rounded-lg shadow-md"
-                                            />
-                                        </div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
-                                            Use your banking app to scan and complete payment
-                                        </div>
                                     </div>
                                 )}
                             </div>

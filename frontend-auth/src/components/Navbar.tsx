@@ -96,7 +96,7 @@ export default function Navbar() {
 
   // Navigation categories
   const navCategories = [
-    { to: '/routes', icon: <LocationOnIcon sx={{ fontSize: 16 }} />, label: 'Routes' },
+    { to: '/routes', icon: <LocationOnIcon sx={{ fontSize: 16 }} />, label: 'Trips' },
     { to: '/fleet', icon: <LocalShippingIcon sx={{ fontSize: 16 }} />, label: 'Fleet' },
     { to: '/promotions', icon: <LocalOfferIcon sx={{ fontSize: 16 }} />, label: 'Promotions' },
     { to: '/help', icon: <HelpIcon sx={{ fontSize: 16 }} />, label: 'Help' },
