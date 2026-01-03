@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import ShieldIcon from '@mui/icons-material/Shield';
@@ -13,6 +12,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import BoltIcon from '@mui/icons-material/Bolt';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';

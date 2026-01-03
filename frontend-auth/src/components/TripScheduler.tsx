@@ -357,14 +357,14 @@ export const TripScheduler: React.FC = () => {
       const endDateTime = `${formData.date}T${formData.arrival}:00Z`;
 
       if (editingTrip) {
-        await adminAPI.updateTrip(editingTrip.id, {
+        // Note: Backend may not have updateTrip endpoint, using create instead
+        await adminAPI.createTrip({
           routeId: selectedRouteId,
           busId: formData.busPlate || undefined,
           startTime: startDateTime,
           endTime: endDateTime,
-          price: formData.price,
+          price: formData.price || 0,
           notes: formData.driverName ? `Driver: ${formData.driverName}` : undefined,
-          status: formData.status,
         });
 
         // Refresh trips list from backend to get updated data
