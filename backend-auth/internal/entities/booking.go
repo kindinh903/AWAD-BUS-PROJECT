@@ -111,15 +111,17 @@ type SeatReservation struct {
 	ID        uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	TripID    uuid.UUID  `json:"trip_id" gorm:"type:uuid;not null;index"`
 	SeatID    uuid.UUID  `json:"seat_id" gorm:"type:uuid;not null;index"`
-	SessionID string     `json:"session_id" gorm:"not null;index"` // Session or user identifier
-	ExpiresAt time.Time  `json:"expires_at" gorm:"not null;index"` // When the reservation expires
+	BookingID *uuid.UUID `json:"booking_id,omitempty" gorm:"type:uuid;index"` // Optional link to booking
+	SessionID string     `json:"session_id" gorm:"not null;index"`             // Session or user identifier
+	ExpiresAt time.Time  `json:"expires_at" gorm:"not null;index"`             // When the reservation expires
 	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
 	DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
 
 	// Relations
-	Trip *Trip `json:"trip,omitempty" gorm:"foreignKey:TripID"`
-	Seat *Seat `json:"seat,omitempty" gorm:"foreignKey:SeatID"`
+	Trip    *Trip    `json:"trip,omitempty" gorm:"foreignKey:TripID"`
+	Seat    *Seat    `json:"seat,omitempty" gorm:"foreignKey:SeatID"`
+	Booking *Booking `json:"booking,omitempty" gorm:"foreignKey:BookingID"`
 }
 
 // TableName overrides the table name

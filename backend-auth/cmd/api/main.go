@@ -341,6 +341,7 @@ func initDependencies(db *gorm.DB) *Container {
 		bookingAnalyticsRepo,
 		routeAnalyticsRepo,
 		tripRepo,
+		seatReservationRepo,
 		notificationQueue,
 		notificationTemplateEng,
 		emailService,

@@ -161,6 +161,7 @@ type SeatReservationRepository interface {
 	GetByTripID(ctx context.Context, tripID uuid.UUID) ([]*entities.SeatReservation, error)
 	DeleteExpired(ctx context.Context) error
 	DeleteBySessionID(ctx context.Context, sessionID string) error
+	DeleteByBookingID(ctx context.Context, bookingID uuid.UUID) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	IsSeatsAvailable(ctx context.Context, tripID uuid.UUID, seatIDs []uuid.UUID) (bool, error)
 }
