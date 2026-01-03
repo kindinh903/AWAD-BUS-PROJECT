@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import SearchIcon from '@mui/icons-material/Search';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 import ShieldIcon from '@mui/icons-material/Shield';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -22,7 +20,6 @@ import { Container, Section } from '../components/ui/Container';
 import { StaggerItem, StaggerGrid } from '../components/ui/Stagger';
 import { CardSkeleton } from '../components/ui/Skeleton';
 import { tripAPI } from '../lib/api';
-import { CityAutocomplete } from '../components/CityAutocomplete';
 import { formatCurrency } from '../lib/utils';
 
 interface Trip {
@@ -83,11 +80,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
 
-  // Search form state
-  const [origin, setOrigin] = useState('');
-  const [destination, setDestination] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-
   // Fetch available trips for today and extract popular routes
   useEffect(() => {
     const fetchData = async () => {
@@ -136,15 +128,6 @@ export default function HomePage() {
     };
     fetchData();
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (origin) params.set('origin', origin);
-    if (destination) params.set('destination', destination);
-    if (date) params.set('date', date);
-    navigate(`/routes?${params.toString()}`);
-  };
 
   const formatPrice = (price: number) => {
     return formatCurrency(price);
