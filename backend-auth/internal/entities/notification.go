@@ -35,6 +35,7 @@ const (
 	NotificationStatusQueued    NotificationStatus = "queued"
 	NotificationStatusSending   NotificationStatus = "sending"
 	NotificationStatusSent      NotificationStatus = "sent"
+	NotificationStatusRead      NotificationStatus = "read"
 	NotificationStatusFailed    NotificationStatus = "failed"
 	NotificationStatusCancelled NotificationStatus = "cancelled"
 )

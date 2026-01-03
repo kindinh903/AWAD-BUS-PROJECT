@@ -19,6 +19,7 @@ import RoutesPage from './pages/RoutesPage';
 import FleetPage from './pages/FleetPage';
 import PromotionsPage from './pages/PromotionsPage';
 import HelpPage from './pages/HelpPage';
+import NotificationsPage from './pages/NotificationsPage';
 import { useAuthInit } from './hooks/useAuthInit';
 
 function App() {
@@ -91,6 +92,16 @@ function App() {
           element={
             <ProtectedRoute>
               <BookingHistoryPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Notifications - protected, requires authentication */}
+        <Route
+          path="notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           }
         />
