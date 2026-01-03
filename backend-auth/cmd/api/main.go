@@ -596,6 +596,10 @@ func setupRouter(container *Container) *gin.Engine {
 			bookingHandler := handlers.NewBookingHandler(container.BookingUsecase)
 			authorizedBookings.GET("/my-bookings", bookingHandler.GetUserBookings)
 		}
+
+		// Notification routes (authenticated users)
+		notificationHandler := handlers.NewNotificationHandler(container.NotificationRepo)
+		handlers.RegisterNotificationRoutes(v1, notificationHandler, middleware.AuthMiddleware(container.JWTSecret))
 	}
 
 	return router

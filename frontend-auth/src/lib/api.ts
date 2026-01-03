@@ -433,4 +433,27 @@ export const analyticsAPI = {
     }),
 };
 
+// Notification API
+export const notificationAPI = {
+  // Get user notifications
+  getNotifications: (limit = 20) =>
+    api.get('/notifications', { params: { limit } }),
+
+  // Get unread count
+  getUnreadCount: () =>
+    api.get('/notifications/unread-count'),
+
+  // Mark notification as read
+  markAsRead: (id: string) =>
+    api.put(`/notifications/${id}/read`),
+
+  // Mark all as read
+  markAllAsRead: () =>
+    api.put('/notifications/mark-all-read'),
+
+  // Delete notification
+  deleteNotification: (id: string) =>
+    api.delete(`/notifications/${id}`),
+};
+
 export default api;
