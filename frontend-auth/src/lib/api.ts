@@ -454,6 +454,10 @@ export const notificationAPI = {
   // Delete notification
   deleteNotification: (id: string) =>
     api.delete(`/notifications/${id}`),
+
+  // Create test notifications (development only)
+  createTestNotifications: () =>
+    api.post('/notifications/test'),
 };
 
 export default api;

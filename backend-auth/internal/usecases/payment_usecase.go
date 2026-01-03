@@ -111,7 +111,7 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 
 	// Create payment record
 	now := time.Now()
-	expiresAt := now.Add(15 * time.Minute)  // Change from 30 to 15 minutes
+	expiresAt := now.Add(15 * time.Minute) // Change from 30 to 15 minutes
 	expiresAtUnix := expiresAt.Unix()
 
 	payment := &entities.Payment{
@@ -198,7 +198,7 @@ func (uc *PaymentUsecase) CreatePayment(ctx context.Context, req CreatePaymentRe
 // Handles PayOS webhook events and updates payment/booking status accordingly
 func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID, eventType, rawPayload, signature string) error {
 	log.Printf("[Webhook] Processing event: %s for payment: %s", eventType, externalPaymentID)
-	
+
 	// 1. Log webhook receipt
 	webhookLog := &entities.PaymentWebhookLog{
 		ExternalPaymentID: externalPaymentID,
@@ -265,7 +265,7 @@ func (uc *PaymentUsecase) ProcessWebhook(ctx context.Context, externalPaymentID,
 
 	// 5. Process webhook based on event type
 	log.Printf("[Webhook] Processing event type: %s", eventType)
-	
+
 	switch eventType {
 	case "payment.completed", "payment.success", "PAID":
 		err = uc.handlePaymentSuccess(ctx, payment)
@@ -445,12 +445,24 @@ func (uc *PaymentUsecase) sendPaymentReceiptNotification(booking *entities.Booki
 	if err := uc.notificationQueue.Enqueue(notification); err != nil {
 		log.Printf("Failed to enqueue payment receipt notification: %v", err)
 	}
+
+	// Create in-app notification as well
+	inAppNotification := &entities.Notification{
+		UserID:    booking.UserID,
+		BookingID: &booking.ID,
+		Type:      entities.NotificationTypePaymentReceipt,
+		Channel:   entities.NotificationChannelInApp,
+		Status:    entities.NotificationStatusSent,
+		Subject:   "Payment Successful",
+		Body:      fmt.Sprintf("Your payment of %s đ has been processed successfully", fmt.Sprintf("%.0f", payment.Amount)),
+	}
+	uc.notificationRepo.Create(ctx, inAppNotification)
 }
 
 // sendTicketEmails sends e-ticket emails to passengers after payment success
 func (uc *PaymentUsecase) sendTicketEmails(ctx context.Context, bookingID uuid.UUID) error {
 	log.Printf("[TicketEmail] Starting ticket email sending for booking: %s", bookingID)
-	
+
 	// Get booking with all details
 	booking, err := uc.bookingRepo.GetByID(ctx, bookingID)
 	if err != nil {

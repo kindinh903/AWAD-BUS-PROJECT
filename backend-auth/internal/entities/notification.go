@@ -25,6 +25,7 @@ const (
 	NotificationChannelEmail NotificationChannel = "email"
 	NotificationChannelSMS   NotificationChannel = "sms"
 	NotificationChannelPush  NotificationChannel = "push"
+	NotificationChannelInApp NotificationChannel = "in_app"
 )
 
 // NotificationStatus represents the delivery status

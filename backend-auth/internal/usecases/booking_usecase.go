@@ -13,14 +13,15 @@ import (
 )
 
 type BookingUsecase struct {
-	bookingRepo     repositories.BookingRepository
-	passengerRepo   repositories.PassengerRepository
-	reservationRepo repositories.SeatReservationRepository
-	ticketRepo      repositories.TicketRepository
-	tripRepo        repositories.TripRepository
-	seatMapRepo     repositories.SeatMapRepository
-	ticketService   *services.TicketService
-	emailService    *services.EmailService
+	bookingRepo      repositories.BookingRepository
+	passengerRepo    repositories.PassengerRepository
+	reservationRepo  repositories.SeatReservationRepository
+	ticketRepo       repositories.TicketRepository
+	tripRepo         repositories.TripRepository
+	seatMapRepo      repositories.SeatMapRepository
+	notificationRepo repositories.NotificationRepository
+	ticketService    *services.TicketService
+	emailService     *services.EmailService
 }
 
 func NewBookingUsecase(
@@ -30,16 +31,18 @@ func NewBookingUsecase(
 	ticketRepo repositories.TicketRepository,
 	tripRepo repositories.TripRepository,
 	seatMapRepo repositories.SeatMapRepository,
+	notificationRepo repositories.NotificationRepository,
 ) *BookingUsecase {
 	return &BookingUsecase{
-		bookingRepo:     bookingRepo,
-		passengerRepo:   passengerRepo,
-		reservationRepo: reservationRepo,
-		ticketRepo:      ticketRepo,
-		tripRepo:        tripRepo,
-		seatMapRepo:     seatMapRepo,
-		ticketService:   services.NewTicketService(),
-		emailService:    services.NewEmailService(),
+		bookingRepo:      bookingRepo,
+		passengerRepo:    passengerRepo,
+		reservationRepo:  reservationRepo,
+		ticketRepo:       ticketRepo,
+		tripRepo:         tripRepo,
+		seatMapRepo:      seatMapRepo,
+		notificationRepo: notificationRepo,
+		ticketService:    services.NewTicketService(),
+		emailService:     services.NewEmailService(),
 	}
 }
 
@@ -281,6 +284,18 @@ func (uc *BookingUsecase) ConfirmBooking(ctx context.Context, bookingID uuid.UUI
 		if err := uc.sendTicketEmails(bgCtx, bookingID); err != nil {
 			fmt.Printf("Failed to send ticket emails for booking %s: %v\n", bookingID, err)
 		}
+
+		// Create in-app notification for booking confirmation
+		inAppNotification := &entities.Notification{
+			UserID:    booking.UserID,
+			BookingID: &booking.ID,
+			Type:      entities.NotificationTypeBookingConfirmation,
+			Channel:   entities.NotificationChannelInApp,
+			Status:    entities.NotificationStatusSent,
+			Subject:   "Booking Confirmed",
+			Body:      fmt.Sprintf("Your booking %s has been confirmed", booking.BookingReference),
+		}
+		uc.notificationRepo.Create(bgCtx, inAppNotification)
 	}()
 
 	return nil
