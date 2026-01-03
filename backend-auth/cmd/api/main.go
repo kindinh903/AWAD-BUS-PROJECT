@@ -295,7 +295,7 @@ func initDependencies(db *gorm.DB) *Container {
 	tripUsecase := usecases.NewTripUsecase(tripRepo, busRepo, routeRepo, cacheService)
 	routeStopUsecase := usecases.NewRouteStopUsecase(routeStopRepo, routeRepo)
 	seatMapUsecase := usecases.NewSeatMapUsecase(seatMapRepo, busRepo, cacheService)
-	bookingUsecase := usecases.NewBookingUsecase(bookingRepo, passengerRepo, seatReservationRepo, ticketRepo, tripRepo, seatMapRepo)
+	bookingUsecase := usecases.NewBookingUsecase(bookingRepo, passengerRepo, seatReservationRepo, ticketRepo, tripRepo, seatMapRepo, notificationRepo)
 	paymentUsecase := usecases.NewPaymentUsecase(
 		paymentRepo,
 		paymentWebhookLogRepo,

@@ -39,9 +39,15 @@ func (h *NotificationHandler) GetUserNotifications(c *gin.Context) {
 		return
 	}
 
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
-	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userID.(uuid.UUID), limit)
+	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userUUID, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
@@ -80,7 +86,13 @@ func (h *NotificationHandler) GetUnreadCount(c *gin.Context) {
 		return
 	}
 
-	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userID.(uuid.UUID), 100)
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userUUID, 100)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
@@ -133,7 +145,8 @@ func (h *NotificationHandler) MarkAsRead(c *gin.Context) {
 	}
 
 	// Verify user owns this notification
-	if *notification.UserID != userID.(uuid.UUID) {
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil || *notification.UserID != userUUID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
@@ -168,7 +181,13 @@ func (h *NotificationHandler) MarkAllAsRead(c *gin.Context) {
 		return
 	}
 
-	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userID.(uuid.UUID), 100)
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userUUID, 100)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
@@ -226,7 +245,8 @@ func (h *NotificationHandler) DeleteNotification(c *gin.Context) {
 	}
 
 	// Verify user owns this notification
-	if *notification.UserID != userID.(uuid.UUID) {
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil || *notification.UserID != userUUID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 		return
 	}
@@ -242,6 +262,72 @@ func (h *NotificationHandler) DeleteNotification(c *gin.Context) {
 	})
 }
 
+// CreateTestNotification creates test notifications for development
+func (h *NotificationHandler) CreateTestNotification(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	// Create multiple test notifications
+	testNotifications := []entities.Notification{
+		{
+			UserID:  &userUUID,
+			Type:    entities.NotificationTypePaymentReceipt,
+			Channel: entities.NotificationChannelInApp,
+			Subject: "Payment Successful",
+			Body:    "Your payment of 280,000đ has been processed successfully",
+			Status:  entities.NotificationStatusSent,
+		},
+		{
+			UserID:  &userUUID,
+			Type:    entities.NotificationTypeBookingConfirmation,
+			Channel: entities.NotificationChannelInApp,
+			Subject: "Booking Confirmed",
+			Body:    "Your booking for Ho Chi Minh City → Nha Trang on Jan 5, 2026 at 7:00 AM has been confirmed",
+			Status:  entities.NotificationStatusSent,
+		},
+		{
+			UserID:  &userUUID,
+			Type:    entities.NotificationTypeTripReminder,
+			Channel: entities.NotificationChannelInApp,
+			Subject: "Trip Reminder",
+			Body:    "Your trip to Nha Trang is tomorrow at 7:00 AM. Don't forget to arrive 15 minutes early!",
+			Status:  entities.NotificationStatusSent,
+		},
+	}
+
+	created := 0
+	var lastError error
+	for _, notif := range testNotifications {
+		if err := h.notificationRepo.Create(c.Request.Context(), &notif); err != nil {
+			lastError = err
+			continue
+		}
+		created++
+	}
+
+	if created == 0 && lastError != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":   "Failed to create test notifications",
+			"details": lastError.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Test notifications created",
+		"count":   created,
+	})
+}
+
 // RegisterNotificationRoutes registers notification routes
 func RegisterNotificationRoutes(router *gin.RouterGroup, handler *NotificationHandler, authMiddleware gin.HandlerFunc) {
 	notifications := router.Group("/notifications")
@@ -252,5 +338,8 @@ func RegisterNotificationRoutes(router *gin.RouterGroup, handler *NotificationHa
 		notifications.PUT("/:id/read", handler.MarkAsRead)
 		notifications.PUT("/mark-all-read", handler.MarkAllAsRead)
 		notifications.DELETE("/:id", handler.DeleteNotification)
+
+		// Test endpoint - remove in production
+		notifications.POST("/test", handler.CreateTestNotification)
 	}
 }

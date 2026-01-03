@@ -20,6 +20,7 @@ import FleetPage from './pages/FleetPage';
 import PromotionsPage from './pages/PromotionsPage';
 import HelpPage from './pages/HelpPage';
 import NotificationsPage from './pages/NotificationsPage';
+import TestNotificationsPage from './pages/TestNotificationsPage';
 import { useAuthInit } from './hooks/useAuthInit';
 
 function App() {
@@ -102,6 +103,16 @@ function App() {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Test Notifications - protected, development only */}
+        <Route
+          path="test-notifications"
+          element={
+            <ProtectedRoute>
+              <TestNotificationsPage />
             </ProtectedRoute>
           }
         />
