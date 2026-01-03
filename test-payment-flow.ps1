@@ -1,7 +1,7 @@
 # Payment Flow Test Script
 # This script tests the complete payment workflow using PowerShell
 
-$BaseUrl = "https://awad-bus-project-production.up.railway.app/api/v1"
+$BaseUrl = "https://awad-bus-project-production-aecc.up.railway.app/api/v1"
 $FrontendUrl = "https://awad-bus-project.vercel.app"
 $testEmail = "user@busproject.com"
 $testPassword = "user123"

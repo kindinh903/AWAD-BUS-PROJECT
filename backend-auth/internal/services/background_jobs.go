@@ -28,6 +28,7 @@ type BackgroundJobScheduler struct {
 	bookingAnalyticsRepo    repositories.BookingAnalyticsRepository
 	routeAnalyticsRepo      repositories.RouteAnalyticsRepository
 	tripRepo                repositories.TripRepository
+	seatReservationRepo     repositories.SeatReservationRepository
 	notificationQueue       *NotificationQueue
 	notificationTemplateEng *NotificationTemplateEngine
 	emailService            *EmailService
@@ -51,6 +52,7 @@ func NewBackgroundJobScheduler(
 	bookingAnalyticsRepo repositories.BookingAnalyticsRepository,
 	routeAnalyticsRepo repositories.RouteAnalyticsRepository,
 	tripRepo repositories.TripRepository,
+	seatReservationRepo repositories.SeatReservationRepository,
 	notificationQueue *NotificationQueue,
 	notificationTemplateEng *NotificationTemplateEngine,
 	emailService *EmailService,
@@ -65,10 +67,11 @@ func NewBackgroundJobScheduler(
 		bookingAnalyticsRepo:    bookingAnalyticsRepo,
 		routeAnalyticsRepo:      routeAnalyticsRepo,
 		tripRepo:                tripRepo,
+		seatReservationRepo:     seatReservationRepo,
 		notificationQueue:       notificationQueue,
 		notificationTemplateEng: notificationTemplateEng,
 		emailService:            emailService,
-		bookingExpiryMinutes:    30,
+		bookingExpiryMinutes:    2, // Changed to 2 minutes
 		tripReminderHours:       24,
 		cleanupRetentionDays:    30,
 		ctx:                     ctx,
@@ -185,9 +188,49 @@ func (s *BackgroundJobScheduler) executeJob(name string, jobFunc func() error) (
 // expireUnpaidBookings marks bookings as expired if payment not received within timeout
 // This prevents seat inventory from being locked indefinitely
 func (s *BackgroundJobScheduler) expireUnpaidBookings() error {
-	// Note: This is a simplified implementation since GetByStatus doesn't exist
-	// In production, you would add GetByStatus to BookingRepository interface
-	log.Println("Expire unpaid bookings job executed (implementation pending)")
+	ctx := context.Background()
+	
+	// Get all pending bookings
+	pendingBookings, err := s.bookingRepo.GetByStatus(ctx, entities.BookingStatusPending)
+	if err != nil {
+		return fmt.Errorf("failed to get pending bookings: %w", err)
+	}
+
+	now := time.Now()
+	expiryThreshold := now.Add(-time.Duration(s.bookingExpiryMinutes) * time.Minute)
+	expiredCount := 0
+	
+	for _, booking := range pendingBookings {
+		// Check if booking is older than expiry threshold (2 minutes)
+		if booking.CreatedAt.Before(expiryThreshold) {
+			// Update booking status to expired
+			booking.Status = entities.BookingStatusExpired
+			booking.PaymentStatus = entities.PaymentStatusFailed
+			expiredAt := now
+			booking.ExpiresAt = &expiredAt
+			
+			if err := s.bookingRepo.Update(ctx, booking); err != nil {
+				log.Printf("Failed to expire booking %s: %v", booking.ID, err)
+				continue
+			}
+			
+			// Release seat reservations associated with this booking
+			if err := s.seatReservationRepo.DeleteByBookingID(ctx, booking.ID); err != nil {
+				log.Printf("Failed to delete seat reservations for booking %s: %v", booking.ID, err)
+			}
+			
+			expiredCount++
+			log.Printf("Expired booking %s (created at: %s, age: %v)", 
+				booking.BookingReference, 
+				booking.CreatedAt.Format("2006-01-02 15:04:05"),
+				now.Sub(booking.CreatedAt))
+		}
+	}
+	
+	if expiredCount > 0 {
+		log.Printf("Successfully expired %d unpaid bookings", expiredCount)
+	}
+	
 	return nil
 } // processScheduledNotifications sends notifications that are due to be sent
 func (s *BackgroundJobScheduler) processScheduledNotifications() error {

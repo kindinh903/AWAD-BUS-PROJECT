@@ -62,6 +62,12 @@ func (r *seatReservationRepository) DeleteBySessionID(ctx context.Context, sessi
 		Delete(&entities.SeatReservation{}).Error
 }
 
+func (r *seatReservationRepository) DeleteByBookingID(ctx context.Context, bookingID uuid.UUID) error {
+	return r.db.WithContext(ctx).
+		Where("booking_id = ?", bookingID).
+		Delete(&entities.SeatReservation{}).Error
+}
+
 func (r *seatReservationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&entities.SeatReservation{}, "id = ?", id).Error
 }
