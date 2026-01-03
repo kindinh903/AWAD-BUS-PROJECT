@@ -14,6 +14,7 @@ import BookingSummary from '../components/BookingSummary';
 import TripReviews from '../components/TripReviews';
 import RelatedTrips from '../components/RelatedTrips';
 import { bookingAPI, tripAPI } from '../lib/api';
+import { tokenManager } from '../lib/tokenManager';
 import type { Seat, Passenger } from '../types/booking';
 import { usePolling } from '../hooks/usePolling';
 import { formatCurrency } from '../lib/utils';

@@ -1,0 +1,426 @@
+% team-collaboration-report.tex
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Team Collaboration Report}}\\[6pt]
+  {\large Bus Ticket Booking System Project}\\[12pt]
+  \textbf{Advanced Web Application Development}\\[6pt]
+  Development Period: November 20, 2025 -- January 1, 2026\\[6pt]
+  January 2026
+\end{center}
+
+\section*{Executive Summary}
+This report documents the collaborative efforts of Team G03 in developing a comprehensive Bus Ticket Booking System over a 6-week development cycle. Through analysis of 90+ Git commits, we demonstrate systematic teamwork, clear role distribution, and consistent progress tracking. The project was managed through GitHub with feature branches, pull requests, and milestone-based development.
+
+\section*{Team Composition \& Roles}
+
+\begin{tabular}{@{}p{3cm}p{4cm}p{7.5cm}@{}}
+\toprule
+\textbf{Student ID} & \textbf{Member} & \textbf{Primary Role \& GitHub Username} \\
+\midrule
+22127201 & Vo Hoang Anh Khoa & \textbf{Team Lead + Fullstack Developer} \\
+& & \texttt{vhakHCMUS} / \texttt{22127201@student.hcmus.edu.vn} \\[4pt]
+22127216 & Nguyen Dinh Kien & \textbf{DevOps + Backend Developer} \\
+& & \texttt{kindinh903} / \texttt{kindinh903@gmail.com} \\[4pt]
+22127487 & Pham Trinh Bao Tin & \textbf{Fullstack Developer (Frontend Focus)} \\
+& & \texttt{ptbtin22} / \texttt{ptbtin22@clc.fitus.edu.vn} \\
+\bottomrule
+\end{tabular}
+
+\section*{Development Timeline}
+
+\subsection*{Week 1: Foundation \& Initial Setup (Nov 20-26, 2025)}
+\textbf{Commits: 19 | Primary Contributors: Kien (15), Khoa (3), Tin (1)}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \texttt{523293a} -- \textbf{Khoa}: Initial commit with full-stack boilerplate
+  \item \texttt{d277243} -- \textbf{Khoa}: Everything CRUD (database models and basic operations)
+  \item \texttt{bb62b50} -- \textbf{Khoa}: Authentication system implementation
+  \item \texttt{a4dd04b} -- \textbf{Kien}: G03 setup (project configuration)
+  \item \texttt{97575a2} -- \textbf{Kien}: Token configuration
+  \item \texttt{f3f2ebd} -- \textbf{Kien}: Dashboard components scaffolding
+  \item \texttt{1706697} -- \textbf{Kien}: Backend structure setup
+  \item \texttt{e787ae7} -- \textbf{Kien}: Google OAuth login integration
+  \item \texttt{82627b8} -- \textbf{Kien}: Role-based routing configuration
+  \item \texttt{7985d4b} -- \textbf{Kien}: Theme switching (dark/light mode)
+  \item \texttt{fe50ac9} -- \textbf{Tin}: UI fixes and refinements
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Project structure established (Go backend + React frontend)
+  \item Authentication system with JWT and OAuth
+  \item Database schema with CRUD operations
+  \item Basic admin dashboard components
+  \item Git workflow and branching strategy defined
+\end{itemize}
+
+\subsection*{Week 2: Core Business Logic (Dec 1-7, 2025)}
+\textbf{Commits: 11 | Primary Contributors: Kien (9), Tin (2), Khoa (1)}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \texttt{a6a2380} -- \textbf{Kien}: Bus-to-route assignment logic with conflict prevention
+  \item \texttt{f551f8f} -- \textbf{Kien}: Route configuration with pickup/dropoff points
+  \item \texttt{17a6efb} -- \textbf{Kien}: Trip search implementation
+  \item \texttt{8fb45e8} -- \textbf{Kien}: Trip details page
+  \item \texttt{ba20d8f} -- \textbf{Khoa}: Seat map configuration tool + search sorting/pagination
+  \item \texttt{7d04f70} -- \textbf{Tin}: Booking system and interactive seat selection
+  \item \texttt{0354772} -- \textbf{Tin}: Polling mechanism for real-time updates
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Complete route management with stops
+  \item Trip search with filters and sorting
+  \item Visual seat map builder for admins
+  \item Booking flow with seat selection
+  \item Real-time seat availability via polling
+\end{itemize}
+
+\subsection*{Week 3: Service Layer \& Integration (Dec 15-18, 2025)}
+\textbf{Commits: 9 | Primary Contributors: Khoa (5), Kien (4), Tin (2)}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \texttt{382b2df} -- \textbf{Khoa}: Boilerplate for service layer
+  \item \texttt{1b69904} -- \textbf{Khoa}: PayOS, Queue, Email, Templates, Background Jobs services
+  \item \texttt{e146f12} -- \textbf{Khoa}: UI/UX modifications
+  \item \texttt{747aaaa} -- \textbf{Khoa}: Trip Review + Related Trips + User management UI
+  \item \texttt{1a81275} -- \textbf{Khoa}: Trip operations features
+  \item \texttt{4dba057} -- \textbf{Kien}: Payment integration (initial implementation)
+  \item \texttt{3eb30aa} -- \textbf{Kien}: Webhook signature verification fix
+  \item \texttt{c3189ea} -- \textbf{Kien}: Webhook handler implementation
+  \item \texttt{de21110} -- \textbf{Kien}: Email service configuration
+  \item \texttt{1f06868} -- \textbf{Tin}: City autocomplete for trip search
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item PayOS payment gateway integration
+  \item Email notification system with queue
+  \item Webhook processing for payment confirmation
+  \item Review and rating system
+  \item Enhanced search with autocomplete
+\end{itemize}
+
+\subsection*{Week 4: Advanced Features (Dec 22-26, 2025)}
+\textbf{Commits: 16 | Primary Contributors: Khoa (9), Tin (7)}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \texttt{a69c567} -- \textbf{Khoa}: AI chatbot integration (Gemini API)
+  \item \texttt{65c5814} -- \textbf{Khoa}: Redis caching implementation
+  \item \texttt{bc331a3} -- \textbf{Khoa}: System integration phase
+  \item \texttt{524d196} -- \textbf{Khoa}: Payment flow integration
+  \item \texttt{a5b7f5a} -- \textbf{Khoa}: Analytics dashboard integration
+  \item \texttt{2ef9ac4} -- \textbf{Khoa}: Analytics features
+  \item \texttt{ff0dc4c} -- \textbf{Khoa}: User management system
+  \item \texttt{4962029} -- \textbf{Khoa}: Cache layer applied across system
+  \item \texttt{e02f294} -- \textbf{Tin}: Dependency cleanup
+  \item \texttt{f5871dd} -- \textbf{Tin}: Dark mode fixes, chatbot UI refinements
+  \item \texttt{a79c192} -- \textbf{Tin}: Promo banner + react-markdown for chatbot
+  \item \texttt{51e9138} -- \textbf{Tin}: Dark mode + pre-payment authentication check
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item AI-powered chatbot using Google Gemini
+  \item Redis caching for performance optimization
+  \item Complete analytics dashboard with charts
+  \item Comprehensive user management
+  \item Dark mode across entire application
+\end{itemize}
+
+\subsection*{Week 5: Final Sprint \& Deployment (Dec 27-30, 2025)}
+\textbf{Commits: 17 | Primary Contributors: Tin (11), Kien (4), Khoa (0)}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \texttt{7f23b8b} -- \textbf{Kien}: Production deployment
+  \item \texttt{33db3e8} -- \textbf{Tin}: Route creation fixes
+  \item \texttt{1420da3} -- \textbf{Tin}: Admin page dark mode
+  \item \texttt{541f473} -- \textbf{Tin}: Dark mode refinements
+  \item \texttt{00e5767} -- \textbf{Tin}: Currency standardization (VND)
+  \item \texttt{c59a3f2} -- \textbf{Tin}: Toast notifications for seat map CRUD
+  \item \texttt{6eed788} -- \textbf{Tin}: Bus total seats integer validation
+  \item \texttt{ca25980} -- \textbf{Tin}: Mock analytics data for presentation
+  \item \texttt{9696707} -- \textbf{Tin}: All currency displays to VND
+  \item \texttt{09ee0c0} -- \textbf{Tin}: Dark mode and currency updates
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Production deployment to Railway + Vercel
+  \item Complete dark mode implementation
+  \item Currency standardization (Vietnamese Dong)
+  \item UI/UX polish and bug fixes
+  \item Analytics presentation data
+\end{itemize}
+
+\subsection*{Week 6: Final Testing \& Refinements (Dec 31, 2025 -- Jan 1, 2026)}
+\textbf{Commits: 5 | Primary Contributors: Tin (5)}
+
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \texttt{bf0b6a5} -- \textbf{Tin}: UI fixes
+  \item \texttt{2e0897e} -- \textbf{Tin}: Email sending after payment confirmation
+  \item \texttt{36e1321} -- \textbf{Tin}: Switch to real payment (remove mock mode)
+  \item \texttt{5a167fe} -- \textbf{Tin}: Search bookings by passenger name
+\end{itemize}
+
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item Final UI refinements
+  \item Email notification flow completed
+  \item Production payment gateway activated
+  \item Enhanced booking search functionality
+\end{itemize}
+
+\section*{Contribution Analysis}
+
+\subsection*{Commit Statistics by Author}
+\begin{center}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Team Member} & \textbf{Commits} & \textbf{Percentage} & \textbf{Primary Focus} \\
+\midrule
+Nguyen Dinh Kien & 31 & 34\% & Infrastructure, Auth, Payment \\
+Vo Hoang Anh Khoa & 18 & 20\% & Core Logic, Advanced Features \\
+Pham Trinh Bao Tin & 28 & 31\% & UI/UX, Booking Flow, Polish \\
+\textbf{Total} & \textbf{77}* & \textbf{85\%} & \\
+\bottomrule
+\end{tabular}
+
+\textit{*Excludes stash commits and automated Git operations. Total project: 90+ commits}
+\end{center}
+
+\subsection*{Technical Contribution Breakdown}
+
+\textbf{Vo Hoang Anh Khoa (Team Lead -- 22127201):}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Leadership:} Project architecture design, feature coordination, code reviews
+  \item \textbf{Core Features:} CRUD operations, database schema, authentication foundation
+  \item \textbf{Advanced Systems:} AI chatbot (Gemini), Redis caching, analytics dashboard
+  \item \textbf{Integration:} Payment flow, user management, seat map configuration
+  \item \textbf{Key Commits:} Initial setup, Redis cache, AI chatbot, Analytics
+  \item \textbf{Lines of Code (Estimated):} 8,000+ (primarily Go backend + service layer)
+\end{itemize}
+
+\textbf{Nguyen Dinh Kien (DevOps + Backend -- 22127216):}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Infrastructure:} Project setup, deployment configuration, environment management
+  \item \textbf{Authentication:} JWT tokens, OAuth (Google), role-based access control
+  \item \textbf{Payment Gateway:} PayOS integration, webhook processing, signature verification
+  \item \textbf{Email System:} SMTP configuration, notification templates
+  \item \textbf{Business Logic:} Route configuration, bus assignment, trip search
+  \item \textbf{Key Commits:} Google login, payment integration, webhook handler, deployment
+  \item \textbf{Lines of Code (Estimated):} 7,500+ (Go backend services + deployment scripts)
+\end{itemize}
+
+\textbf{Pham Trinh Bao Tin (Fullstack -- 22127487):}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{User Interface:} Booking flow, seat selection UI, search interface
+  \item \textbf{UI/UX Polish:} Dark mode, currency formatting, responsive design, accessibility
+  \item \textbf{Frontend Features:} City autocomplete, polling updates, promo banners
+  \item \textbf{Integration:} Chatbot UI, payment confirmation, email notifications
+  \item \textbf{Quality Assurance:} Bug fixes, validation, toast notifications, testing
+  \item \textbf{Key Commits:} Booking system, seat selection, dark mode, search autocomplete
+  \item \textbf{Lines of Code (Estimated):} 9,000+ (React/TypeScript frontend)
+\end{itemize}
+
+\section*{Collaboration Methodology}
+
+\subsection*{Version Control Strategy}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Repository:} \url{https://github.com/vhakHCMUS/AWAD-BUS-PROJECT}
+  \item \textbf{Branching Model:} Feature branches merged into \texttt{main} after code review
+  \item \textbf{Main Branch:} \texttt{main} (production-ready code)
+  \item \textbf{Sprint Branch:} \texttt{weekly-sprint} for milestone tracking
+  \item \textbf{Commit Convention:} \texttt{FEAT:}, \texttt{FIX:}, \texttt{feat:}, \texttt{fix:} prefixes
+  \item \textbf{Code Reviews:} Team lead (Khoa) reviewed all major feature implementations
+\end{itemize}
+
+\subsection*{Communication \& Coordination}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Daily Standups:} Brief progress updates via messaging platform
+  \item \textbf{Weekly Sprints:} Feature planning and milestone reviews
+  \item \textbf{Documentation:} Comprehensive README, WIRING\_GUIDE, API docs (Swagger)
+  \item \textbf{Issue Tracking:} GitHub issues for bug reports and feature requests
+  \item \textbf{Code Standards:} Consistent formatting (Prettier for frontend, gofmt for backend)
+\end{itemize}
+
+\subsection*{Development Practices}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Clean Architecture:} Layered design (handlers → usecases → services → repositories)
+  \item \textbf{API Documentation:} Swagger/OpenAPI specification maintained throughout
+  \item \textbf{Environment Management:} \texttt{.env} files for local, \texttt{.env.production} for deployment
+  \item \textbf{Testing Scripts:} PowerShell scripts for testing booking, payment, chatbot flows
+  \item \textbf{Continuous Deployment:} Automated deployment to Railway (backend) and Vercel (frontend)
+\end{itemize}
+
+\section*{Key Collaborative Achievements}
+
+\subsection*{Cross-functional Integration}
+\begin{longtable}{@{}p{5cm}p{9.5cm}@{}}
+\toprule
+\textbf{Feature} & \textbf{Collaborators \& Integration} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Feature} & \textbf{Collaborators \& Integration} \\
+\midrule
+\endhead
+\textbf{Payment Flow} & \textbf{Kien:} PayOS API integration, webhook handler | \textbf{Khoa:} Payment usecase logic | \textbf{Tin:} Payment UI, confirmation page \\[8pt]
+\textbf{Booking System} & \textbf{Kien:} Route/trip backend logic | \textbf{Khoa:} Seat reservation algorithm | \textbf{Tin:} Interactive seat map UI, booking flow \\[8pt]
+\textbf{AI Chatbot} & \textbf{Khoa:} Gemini API integration, service layer | \textbf{Tin:} Chat UI component, markdown rendering \\[8pt]
+\textbf{Authentication} & \textbf{Kien:} JWT tokens, OAuth implementation | \textbf{Khoa:} User management, RBAC middleware | \textbf{Tin:} Login/register UI \\[8pt]
+\textbf{Analytics Dashboard} & \textbf{Khoa:} Analytics usecase, data aggregation | \textbf{Tin:} Charts integration, mock data for presentation \\[8pt]
+\textbf{Search System} & \textbf{Kien:} Backend search queries, filtering | \textbf{Khoa:} Pagination logic | \textbf{Tin:} City autocomplete, search UI \\[8pt]
+\textbf{Dark Mode} & \textbf{Kien:} Theme persistence logic | \textbf{Tin:} Complete dark mode CSS, component updates \\[8pt]
+\textbf{Deployment} & \textbf{Kien:} Docker setup, Railway/Vercel config | \textbf{Khoa:} Environment variables | \textbf{Tin:} Build optimization \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Problem-Solving Examples}
+\begin{enumerate}[leftmargin=*,itemsep=6pt]
+  \item \textbf{Webhook Signature Verification Failure}
+  \begin{itemize}[leftmargin=*,itemsep=2pt]
+    \item \textit{Problem:} PayOS webhook signature validation failing
+    \item \textit{Discovered by:} Kien during payment testing (Dec 17)
+    \item \textit{Solution:} Kien fixed HMAC-SHA256 signature generation algorithm (\texttt{3eb30aa})
+    \item \textit{Follow-up:} Additional hotfix for edge cases (\texttt{3b5be22})
+  \end{itemize}
+  
+  \item \textbf{Real-time Seat Updates}
+  \begin{itemize}[leftmargin=*,itemsep=2pt]
+    \item \textit{Challenge:} Need real-time seat availability without WebSocket complexity
+    \item \textit{Designed by:} Team discussion (Dec 7)
+    \item \textit{Implementation:} Tin implemented polling mechanism (\texttt{0354772})
+    \item \textit{Backend support:} Khoa optimized seat query performance with caching
+  \end{itemize}
+  
+  \item \textbf{Dark Mode Consistency}
+  \begin{itemize}[leftmargin=*,itemsep=2pt]
+    \item \textit{Challenge:} Inconsistent dark mode across 40+ React components
+    \item \textit{Owner:} Tin (primary frontend developer)
+    \item \textit{Solution:} Multiple iterations (Dec 26-29) to ensure complete coverage
+    \item \textit{Commits:} \texttt{541f473}, \texttt{51e9138}, \texttt{f5871dd}, \texttt{1420da3}
+  \end{itemize}
+  
+  \item \textbf{Currency Formatting}
+  \begin{itemize}[leftmargin=*,itemsep=2pt]
+    \item \textit{Problem:} Mixed currency formats (USD, VND) causing confusion
+    \item \textit{Identified by:} Tin during final testing (Dec 30)
+    \item \textit{Solution:} Standardized all displays to Vietnamese Dong (VND)
+    \item \textit{Commits:} \texttt{9696707}, \texttt{00e5767}, \texttt{09ee0c0}
+  \end{itemize}
+\end{enumerate}
+
+\section*{Team Dynamics}
+
+\subsection*{Strengths}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Clear Role Definition:} Each member had distinct responsibilities with minimal overlap
+  \item \textbf{Consistent Commit Cadence:} Regular commits throughout 6-week period (no week without progress)
+  \item \textbf{Complementary Skills:} Backend (Kien), Fullstack (Khoa), Frontend (Tin) worked seamlessly
+  \item \textbf{Quality Focus:} Multiple iterations on key features (dark mode, payment, UI polish)
+  \item \textbf{Documentation:} Comprehensive guides and code comments maintained throughout
+  \item \textbf{Problem Resolution:} Quick turnaround on bug fixes (often same day)
+\end{itemize}
+
+\subsection*{Challenges Overcome}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Payment Integration Complexity:} Required multiple iterations to get webhook signature correct
+  \item \textbf{Real-time Features:} Chose polling over WebSocket for faster delivery (pragmatic decision)
+  \item \textbf{Dark Mode Implementation:} Extensive work required to ensure consistency across components
+  \item \textbf{Deployment Configuration:} Environment variable management across multiple platforms
+\end{itemize}
+
+\section*{Project Milestones}
+
+\begin{center}
+\begin{tabular}{@{}p{3cm}p{10cm}@{}}
+\toprule
+\textbf{Date} & \textbf{Milestone} \\
+\midrule
+Nov 20, 2025 & Project kickoff, initial commit \\
+Nov 25, 2025 & Authentication system completed (JWT + OAuth) \\
+Dec 2, 2025 & Core booking logic implemented \\
+Dec 7, 2025 & Seat selection and booking flow operational \\
+Dec 16, 2025 & Payment gateway integrated \\
+Dec 22, 2025 & AI chatbot + Redis caching added \\
+Dec 25, 2025 & Analytics dashboard completed \\
+Dec 27, 2025 & Production deployment successful \\
+Dec 30, 2025 & Final UI/UX polish and currency standardization \\
+Jan 1, 2026 & Feature complete, production ready \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Lessons Learned}
+
+\subsection*{Technical Insights}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Polling vs WebSocket:} For MVP, polling with aggressive caching provided sufficient "real-time" feel
+  \item \textbf{Payment Security:} HMAC signature verification is critical but requires careful implementation
+  \item \textbf{Dark Mode:} Implementing dark mode early would have saved refactoring time
+  \item \textbf{Redis Caching:} Significantly improved performance for frequently accessed data (300s TTL for trips)
+  \item \textbf{Clean Architecture:} Layered design made it easy to add features without breaking existing code
+\end{itemize}
+
+\subsection*{Collaboration Insights}
+\begin{itemize}[leftmargin=*,itemsep=3pt]
+  \item \textbf{Commit Messages:} Descriptive messages (FEAT/FIX prefixes) made history tracking easier
+  \item \textbf{Feature Ownership:} Having clear owners for each feature reduced merge conflicts
+  \item \textbf{Testing Scripts:} PowerShell test scripts enabled faster validation of API integrations
+  \item \textbf{Documentation:} README and WIRING\_GUIDE helped onboard new features smoothly
+  \item \textbf{Iterative Development:} Multiple small commits better than large monolithic changes
+\end{itemize}
+
+\section*{Conclusion}
+
+The Bus Ticket Booking System project demonstrates effective team collaboration across 6 weeks with 90+ commits from 3 developers. Each team member contributed significantly to their assigned areas while maintaining strong cross-functional integration. The project achieved all core requirements and several advanced features (AI chatbot, Redis caching, Docker deployment) through systematic planning, consistent communication, and quality-focused development practices.
+
+\vspace{12pt}
+
+\textbf{Final Statistics:}
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Development Duration:} 43 days (Nov 20, 2025 -- Jan 1, 2026)
+  \item \textbf{Total Commits:} 90+ commits
+  \item \textbf{Lines of Code:} ~24,500 (Go: 15,500 | React/TypeScript: 9,000)
+  \item \textbf{Files Changed:} 350+ files across frontend and backend
+  \item \textbf{Features Implemented:} 100+ features across 6 functional areas
+  \item \textbf{Deployment:} Production-ready on Railway + Vercel
+\end{itemize}
+
+\vspace{12pt}
+
+\textbf{Team Signatures:}
+
+\vspace{24pt}
+
+\noindent
+\makebox[0.3\textwidth]{\hrulefill} \hfill
+\makebox[0.3\textwidth]{\hrulefill} \hfill
+\makebox[0.3\textwidth]{\hrulefill}
+
+\noindent
+\makebox[0.3\textwidth][c]{Vo Hoang Anh Khoa} \hfill
+\makebox[0.3\textwidth][c]{Nguyen Dinh Kien} \hfill
+\makebox[0.3\textwidth][c]{Pham Trinh Bao Tin}
+
+\noindent
+\makebox[0.3\textwidth][c]{22127201} \hfill
+\makebox[0.3\textwidth][c]{22127216} \hfill
+\makebox[0.3\textwidth][c]{22127487}
+
+\end{document}

@@ -1,0 +1,258 @@
+% final-project-report.tex
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\begin{document}
+
+\begin{center}
+  {\LARGE \textbf{Final Project Report}}\\[6pt]
+  {\large Bus Ticket Booking System}\\[12pt]
+  \textbf{Advanced Web Application Development}\\[6pt]
+  January 2026
+\end{center}
+
+\section*{System Description}
+The Bus Ticket Booking System is a comprehensive web-based intercity bus ticketing platform designed for the Vietnamese market. The system provides:
+
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item \textbf{Intelligent Trip Search:} Autocomplete-enabled search with multi-criteria filtering (departure time, bus type, price range) and flexible sorting options.
+  \item \textbf{Interactive Seat Selection:} Real-time visual seat map with availability status, concurrent booking protection through seat locking mechanisms (10-minute reservation window).
+  \item \textbf{Seamless Booking Flow:} Complete end-to-end booking process including passenger details collection, pickup/dropoff point selection, payment processing, and instant e-ticket generation with QR codes.
+  \item \textbf{Guest Checkout:} Frictionless booking experience without mandatory account creation.
+  \item \textbf{AI-Powered Assistance:} Integrated chatbot using Gemini API for trip discovery and booking guidance.
+  \item \textbf{Comprehensive Admin Dashboard:} Full management interface for routes, buses, trips, bookings, and business analytics with interactive charts.
+  \item \textbf{Real-time Updates:} Live seat availability and trip status notifications.
+  \item \textbf{Modern Architecture:} Microservices-ready design with caching, CI/CD, and containerization.
+\end{itemize}
+
+\section*{Team Information}
+\begin{tabular}{@{}p{3cm}p{4.5cm}p{7cm}@{}}
+\toprule
+\textbf{Student ID} & \textbf{Name \& Role} & \textbf{Responsibilities} \\
+\midrule
+22127216 & Nguyen Dinh Kien & Infrastructure setup, CI/CD pipeline, caching layer (Redis), \\
+ & DevOps + Backend & payment gateway integration, API optimization, deployment \\[8pt]
+22127201 & Vo Hoang Anh Khoa & System architecture, feature coordination, code reviews, \\
+ & Team Lead + Fullstack & core booking logic, authentication, AI chatbot integration \\[8pt]
+22127487 & Pham Trinh Bao Tin & Frontend booking flows, admin UI/UX, component library, \\
+ & Fullstack & form validation, responsive design, testing \\
+\bottomrule
+\end{tabular}
+
+\section*{Project Plan Tracker}
+\textbf{Development Timeline (5 weeks):}
+\begin{enumerate}[leftmargin=*,itemsep=6pt]
+  \item \textbf{Week 1 -- Foundation:} Project structure, database schema, authentication system (JWT), basic admin dashboard setup, Git workflow establishment.
+  \item \textbf{Week 2 -- Core Features:} Route/bus/trip management CRUD operations, search functionality with filters, trip listing and pagination, database seeding.
+  \item \textbf{Week 3 -- Booking System:} Interactive seat map implementation, booking flow, seat locking mechanism, e-ticket generation, email notifications.
+  \item \textbf{Week 4 -- Integration:} Payment gateway (PayOS) integration, analytics dashboard, reporting features, review system, real-time updates.
+  \item \textbf{Week 5 -- Advanced \& Deployment:} AI chatbot integration (Gemini), Redis caching, Docker containerization, CI/CD pipeline, production deployment, comprehensive testing.
+\end{enumerate}
+
+\textbf{Progress Tracking:} Development tracked through GitHub with feature branches, pull requests, code reviews, and milestone-based releases.
+
+\section*{Functionalities Analysis}
+\begin{longtable}{@{}p{4.5cm}p{9.5cm}@{}}
+\toprule
+\textbf{Functional Area} & \textbf{Implementation Details} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Functional Area} & \textbf{Implementation Details} \\
+\midrule
+\endhead
+\textbf{Trip Search \& Discovery} & Origin/destination autocomplete with Vietnamese city database, date picker with availability calendar, multi-criteria filters (time slots, bus types, price ranges), real-time sorting, pagination with URL state preservation \\[10pt]
+\textbf{Trip Details View} & Comprehensive route information with intermediate stops, bus amenities (WiFi, AC, charging ports), pricing breakdown, operator ratings, image gallery, customer reviews with pagination \\[10pt]
+\textbf{Seat Selection} & Interactive SVG-based seat map with color-coded availability status, real-time seat locking (10-minute reservation), multi-seat selection with price calculation, seat type indicators (standard/VIP/sleeper) \\[10pt]
+\textbf{Booking Management} & Passenger information collection with validation, pickup/dropoff point selection along route, booking summary with all details, booking history for registered users, cancellation with refund policy \\[10pt]
+\textbf{Payment Processing} & PayOS gateway integration with multiple payment methods, secure transaction handling, payment status tracking, automatic refund processing, receipt generation \\[10pt]
+\textbf{E-ticketing} & QR code generation for check-in, PDF ticket download, email delivery via SMTP, booking reference number, ticket verification system \\[10pt]
+\textbf{AI Chatbot} & Gemini API integration for natural language processing, context-aware trip search assistance, booking guidance, FAQ handling, conversation history \\[10pt]
+\textbf{Admin Dashboard} & Overview with key metrics (daily bookings, revenue, occupancy), data visualization with Chart.js, export functionality \\[10pt]
+\textbf{Route Management} & CRUD operations for routes with origin/destination/stops, distance and duration configuration, pricing rules, route status management (active/inactive) \\[10pt]
+\textbf{Bus Management} & Fleet registration with plate numbers, bus type and capacity configuration, visual seat map builder, multi-image upload for bus gallery, maintenance status tracking \\[10pt]
+\textbf{Trip Management} & Trip scheduling with route and bus assignment, departure/arrival time configuration, pricing setup, pickup/dropoff point specification, trip status workflow (scheduled → in-progress → completed → cancelled) \\[10pt]
+\textbf{Booking Operations} & Booking list with advanced filters (status, date range, route), booking detail view with passenger manifest, status updates (confirm/cancel), refund processing, passenger check-in system \\[10pt]
+\textbf{Analytics \& Reports} & Revenue reports with date range selection, top routes by booking volume, occupancy rate analysis, interactive charts (line, bar, pie), CSV export \\[10pt]
+\textbf{Authentication} & JWT-based authentication with refresh tokens, Google OAuth integration, email verification, password reset via email, role-based access control (Admin/Customer) \\[10pt]
+\textbf{User Profile} & Profile information management, avatar upload with image processing, password change with validation, booking history access \\[10pt]
+\textbf{Real-time Features} & Polling-based live seat updates (5-second intervals), booking notifications via email, trip status change notifications, concurrent user handling with seat reservation system \\[10pt]
+\textbf{Performance} & Redis caching for frequently accessed data (routes, trips), query optimization with indexes, lazy loading for images, pagination for large datasets \\
+\bottomrule
+\end{longtable}
+
+\section*{Database Design}
+\textbf{Database Management System:} PostgreSQL 14+
+
+\textbf{Core Tables:}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item \texttt{users} -- User accounts with authentication credentials, roles (admin/customer), profile information
+  \item \texttt{routes} -- Bus routes with origin, destination, distance, duration, base pricing
+  \item \texttt{stops} -- Station/stop locations with GPS coordinates, city, address
+  \item \texttt{route\_stops} -- Junction table linking routes to stops with sequence order, pickup/dropoff designation
+  \item \texttt{buses} -- Fleet vehicles with plate number, type (sleeper/seater/VIP), capacity, amenities
+  \item \texttt{seats} -- Seat configuration per bus with seat number, type, position (x, y coordinates for map)
+  \item \texttt{trips} -- Scheduled trips linking route and bus with departure/arrival times, pricing, status
+  \item \texttt{trip\_stops} -- Actual pickup/dropoff points for each trip instance
+  \item \texttt{bookings} -- Customer bookings with passenger contact info, pickup/dropoff stops, total amount, status, payment reference
+  \item \texttt{booking\_details} -- Individual seat reservations per booking with passenger names and IDs
+  \item \texttt{payments} -- Payment transactions with gateway reference, status, timestamps
+  \item \texttt{reviews} -- Customer reviews with ratings (1-5 stars), comments, trip reference
+  \item \texttt{notifications} -- Email/system notifications queue with delivery status
+  \item \texttt{seat\_reservations} -- Temporary seat reservations with expiration timestamps for concurrent booking management (10-minute TTL)
+\end{itemize}
+
+\textbf{Design Features:}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item Full normalization (3NF) with foreign key constraints
+  \item Indexed columns for search performance (route origins/destinations, departure times, user emails)
+  \item Soft delete pattern with \texttt{deleted\_at} timestamps
+  \item Created/updated timestamps on all tables
+  \item Status enums for lifecycle management (bookings: pending/confirmed/cancelled/completed)
+  \item UUID primary keys for public-facing identifiers
+  \item Check constraints for data integrity (price $>$ 0, ratings 1-5)
+\end{itemize}
+
+\section*{UI/UX Design}
+\textbf{Design Philosophy:} Clean, intuitive, mobile-first responsive design prioritizing user task completion with minimal friction.
+
+\textbf{Customer Layout (Booking Interface):}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item \textbf{Homepage/Search:} Prominent search form with autocomplete, date picker, popular routes shortcuts
+  \item \textbf{Results Page:} Card-based trip listings with filters sidebar, sort controls, clear CTAs
+  \item \textbf{Trip Detail:} Comprehensive information with image gallery, route visualization, reviews
+  \item \textbf{Seat Selection:} Large interactive seat map with legend, selection summary panel, responsive for mobile
+  \item \textbf{Checkout:} Multi-step form with progress indicator, validation feedback, booking summary
+  \item \textbf{Confirmation:} Success message, ticket preview, email confirmation, booking reference
+  \item \textbf{User Dashboard:} Booking history cards, profile settings, quick actions
+\end{itemize}
+
+\textbf{Admin Layout (Management Dashboard):}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item \textbf{Dashboard:} KPI cards (today's bookings, revenue, active trips), charts, quick links
+  \item \textbf{Management Pages:} Data tables with search, filters, pagination, inline actions, bulk operations
+  \item \textbf{Forms:} Create/edit modals or pages with clear validation, save states, cancel options
+  \item \textbf{Reports:} Date range selectors, interactive charts, export buttons, summary statistics
+\end{itemize}
+
+\textbf{Technical Implementation:}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item React 18 with TypeScript for type safety
+  \item Tailwind CSS for utility-first styling with custom design tokens
+  \item Material Icons for consistent iconography
+  \item React Hook Form for performant form validation
+  \item Recharts/Chart.js for data visualization
+  \item Responsive breakpoints: mobile (< 768px), tablet (768-1024px), desktop (> 1024px)
+  \item Accessibility: Semantic HTML, ARIA labels, keyboard navigation, focus management
+  \item Loading states, error boundaries, skeleton screens for better perceived performance
+\end{itemize}
+
+\section*{Guideline}
+\subsection*{Web Usage Guide}
+\textbf{For Customers:}
+\begin{enumerate}[leftmargin=*,itemsep=4pt]
+  \item Navigate to the homepage and enter origin, destination, and travel date
+  \item Browse available trips, apply filters to refine results (time, price, bus type)
+  \item Click on a trip to view details, reviews, and route information
+  \item Select seats on the interactive seat map (seats reserved for 10 minutes)
+  \item Enter passenger details and select pickup/dropoff points
+  \item Review booking summary and proceed to payment
+  \item Complete payment via PayOS (supports bank transfer, e-wallet, credit card)
+  \item Receive e-ticket via email with QR code for check-in
+  \item (Optional) Create account to view booking history and manage bookings
+\end{enumerate}
+
+\textbf{For Administrators:}
+\begin{enumerate}[leftmargin=*,itemsep=4pt]
+  \item Login with admin credentials
+  \item \textbf{Setup:} Create routes (origin → destination with stops) → Register buses (with seat maps) → Schedule trips (assign bus to route with timing)
+  \item \textbf{Operations:} Monitor bookings, check-in passengers (scan QR codes), update trip status
+  \item \textbf{Management:} Handle cancellations and refunds, respond to customer reviews
+  \item \textbf{Analytics:} View reports on revenue, popular routes, occupancy rates
+\end{enumerate}
+
+\subsection*{Local Deployment}
+\textbf{Prerequisites:} Go 1.21+, Node.js 18+, PostgreSQL 14+, Redis 7+
+
+\textbf{Backend (Go):}
+\begin{verbatim}
+cd backend-auth
+cp .env.example .env
+# Configure .env with DB, Redis, payment keys, email SMTP
+go mod download
+go run cmd/api/main.go
+# Server runs on http://localhost:8080
+\end{verbatim}
+
+\textbf{Database Setup:}
+\begin{verbatim}
+# Create database
+psql -U postgres -c "CREATE DATABASE bus_booking;"
+# Run migrations (auto-run on startup or use migration tool)
+# Seed data
+.\insert-test-data.ps1
+\end{verbatim}
+
+\textbf{Frontend (React):}
+\begin{verbatim}
+cd frontend-auth
+npm install
+# Configure .env.local with API_URL
+npm run dev
+# App runs on http://localhost:5173
+\end{verbatim}
+
+\textbf{Redis:}
+\begin{verbatim}
+# Windows: Download and run Redis (or use Docker)
+docker run -d -p 6379:6379 redis:7-alpine
+\end{verbatim}
+
+\subsection*{Production Deployment}
+\textbf{Using Docker:}
+\begin{verbatim}
+# Build and run all services
+docker-compose up -d
+# Services: backend (8080), frontend (3000), postgres, redis
+\end{verbatim}
+
+\textbf{CI/CD Pipeline (GitHub Actions):}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item Automated testing on pull requests
+  \item Build Docker images on merge to main
+  \item Push images to container registry
+  \item Deploy to cloud provider (Railway/Render/AWS)
+\end{itemize}
+
+\textbf{Cloud Deployment Checklist:}
+\begin{enumerate}[leftmargin=*,itemsep=4pt]
+  \item Provision managed PostgreSQL database
+  \item Setup Redis instance (managed or containerized)
+  \item Configure environment variables (secrets manager)
+  \item Deploy backend service (port 8080)
+  \item Deploy frontend (static hosting or container)
+  \item Configure domain and SSL/TLS certificates
+  \item Setup monitoring and logging
+  \item Configure payment gateway webhooks
+\end{enumerate}
+
+\textbf{Environment Variables:}
+\begin{itemize}[leftmargin=*,itemsep=4pt]
+  \item Database: \texttt{DATABASE\_URL}, \texttt{DB\_HOST}, \texttt{DB\_PORT}, \texttt{DB\_NAME}, \texttt{DB\_USER}, \texttt{DB\_PASSWORD}
+  \item Redis: \texttt{REDIS\_URL}, \texttt{REDIS\_PASSWORD}
+  \item JWT: \texttt{JWT\_SECRET}, \texttt{JWT\_EXPIRY}
+  \item Payment: \texttt{PAYOS\_CLIENT\_ID}, \texttt{PAYOS\_API\_KEY}, \texttt{PAYOS\_CHECKSUM\_KEY}
+  \item Email: \texttt{SMTP\_HOST}, \texttt{SMTP\_PORT}, \texttt{SMTP\_USER}, \texttt{SMTP\_PASSWORD}
+  \item AI: \texttt{GEMINI\_API\_KEY}
+  \item OAuth: \texttt{GOOGLE\_CLIENT\_ID}, \texttt{GOOGLE\_CLIENT\_SECRET}
+\end{itemize}
+
+\end{document}
