@@ -9,4 +9,3 @@ type EmailProvider interface {
 	SendTripReminderEmail(toEmail, toName, bookingRef, seatNumbers, departureTime, origin string) error
 	SendCancellationEmail(toEmail, toName, bookingRef, reason string) error
 }
-
