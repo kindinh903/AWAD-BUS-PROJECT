@@ -32,6 +32,7 @@ interface Passenger {
     full_name: string;
     seat_number: string;
     seat_type: string;
+    ticket_id?: string; // Add ticket ID for individual downloads
 }
 
 interface Booking {
@@ -48,6 +49,7 @@ interface Booking {
     created_at: string;
     confirmed_at?: string;
     passengers?: Passenger[];
+    tickets?: Array<{ id: string; passenger_id: string; ticket_number: string }>;
 }
 
 interface Review {
@@ -295,33 +297,44 @@ export default function BookingHistoryPage() {
                                                     {booking.passengers.map((passenger) => (
                                                         <div
                                                             key={passenger.id}
-                                                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded"
+                                                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
                                                         >
-                                                            <span className="font-medium text-gray-900 dark:text-white">{passenger.full_name}</span>
-                                                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                                Seat {passenger.seat_number} ({passenger.seat_type})
-                                                            </span>
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-medium text-gray-900 dark:text-white">{passenger.full_name}</span>
+                                                                    <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                                                                        Seat {passenger.seat_number} ({passenger.seat_type})
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            {booking.status.toLowerCase() === 'confirmed' && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        // Find the ticket for this passenger
+                                                                        const ticket = booking.tickets?.find(t => t.passenger_id === passenger.id);
+                                                                        if (ticket?.id) {
+                                                                            bookingAPI.downloadTicket(ticket.id);
+                                                                        } else {
+                                                                            // Fallback to downloading all tickets if ticket ID not found
+                                                                            bookingAPI.downloadBookingTickets(booking.id);
+                                                                        }
+                                                                    }}
+                                                                    className="ml-3 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors flex items-center gap-1"
+                                                                    title={`Download ticket for ${passenger.full_name}`}
+                                                                >
+                                                                    <DownloadIcon sx={{ fontSize: 16 }} />
+                                                                    Download
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Actions */}
-                                        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                            {booking.status.toLowerCase() === 'confirmed' && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        bookingAPI.downloadBookingTickets(booking.id);
-                                                    }}
-                                                    className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                                >
-                                                    <DownloadIcon sx={{ fontSize: 16 }} />
-                                                    Download Tickets
-                                                </button>
-                                            )}
-
+                                        {/* Review Section */}
+                                        <div className="flex flex-wrap gap-2 pt-2">
                                             {/* Review Section */}
                                             {hasReview(booking.id) ? (
                                                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">

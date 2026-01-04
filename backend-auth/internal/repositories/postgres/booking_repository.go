@@ -59,6 +59,7 @@ func (r *bookingRepository) GetByUserID(ctx context.Context, userID uuid.UUID, p
 		Preload("Trip.Route").
 		Preload("Trip.Bus").
 		Preload("Passengers").
+		Preload("Tickets"). // Add tickets so we can get ticket IDs for each passenger
 		Where("user_id = ?", userID).
 		Order("created_at DESC").
 		Limit(pageSize).

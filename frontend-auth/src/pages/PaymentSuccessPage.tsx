@@ -54,12 +54,6 @@ export default function PaymentSuccessPage() {
         fetchBooking();
     }, [bookingId, bookingRef]);
 
-    const handleDownloadTickets = () => {
-        if (booking?.id) {
-            bookingAPI.downloadBookingTickets(booking.id);
-        }
-    };
-
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -152,17 +146,6 @@ export default function PaymentSuccessPage() {
 
                 {/* Actions */}
                 <div className="space-y-3">
-                    <button
-                        onClick={handleDownloadTickets}
-                        disabled={!booking}
-                        className="w-full py-4 px-6 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Download Tickets
-                    </button>
-
                     <Link
                         to="/"
                         className="block w-full py-4 px-6 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold rounded-xl text-center transition-all duration-300"
