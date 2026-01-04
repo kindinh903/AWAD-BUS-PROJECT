@@ -43,14 +43,7 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showPromoBanner, setShowPromoBanner] = useState(() => {
-    const hiddenUntil = localStorage.getItem('hidePromoBannerUntil');
-    if (!hiddenUntil) return true;
-    
-    // Show banner again if 24 hours have passed
-    const hiddenTime = parseInt(hiddenUntil);
-    return Date.now() > hiddenTime;
-  });
+
   const isAuthenticated = !!tokenManager.getAccessToken();
 
   // Get user info
@@ -87,12 +80,7 @@ export default function Navbar() {
     }
   };
 
-  const handleCloseBanner = () => {
-    setShowPromoBanner(false);
-    // Hide for 24 hours (86400000 milliseconds)
-    const hideUntil = Date.now() + (24 * 60 * 60 * 1000);
-    localStorage.setItem('hidePromoBannerUntil', hideUntil.toString());
-  };
+
 
   // Navigation categories
   const navCategories = [
@@ -108,23 +96,7 @@ export default function Navbar() {
       className={`sticky top-0 z-50 bg-white dark:bg-slate-900 border-b dark:border-slate-700 transition-all duration-300
         ${scrolled ? 'shadow-lg' : 'shadow-sm'}`}
     >
-      {/* Top bar with promo */}
-      {showPromoBanner && (
-        <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-center py-1.5 text-sm">
-          <div className="container mx-auto px-4 flex items-center justify-center">
-            <span>
-              🎉 <span className="font-medium">Special Offer:</span> Use code <span className="font-bold">SAVE20</span> for 20% off your first booking!
-            </span>
-            <button
-              onClick={handleCloseBanner}
-              className="absolute right-4 p-1 hover:bg-white/20 rounded transition-colors"
-              aria-label="Close banner"
-            >
-              <CloseIcon sx={{ fontSize: 16 }} />
-            </button>
-          </div>
-        </div>
-      )}
+
 
       <div className="container mx-auto px-4">
         {/* Main navbar */}
