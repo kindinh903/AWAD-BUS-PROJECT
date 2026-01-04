@@ -98,7 +98,7 @@ func (e *NotificationTemplateEngine) RenderBookingConfirmation(data BookingConfi
                 <p><strong>Route:</strong> %s → %s</p>
                 <p><strong>Departure:</strong> %s</p>
                 <p><strong>Seat(s):</strong> %s (%d seat(s))</p>
-                <p><strong>Total Amount:</strong> $%.2f</p>
+                <p><strong>Total Amount:</strong> %.0f ₫</p>
             </div>
             
             <p><strong>Next Steps:</strong></p>
@@ -151,7 +151,7 @@ func (e *NotificationTemplateEngine) RenderPaymentReceipt(data PaymentReceiptDat
             
             <p>We have successfully received your payment.</p>
             
-            <div class="amount">$%.2f</div>
+            <div class="amount">%.0f ₫</div>
             
             <div class="payment-details">
                 <h3>Payment Details</h3>
@@ -251,7 +251,7 @@ func (e *NotificationTemplateEngine) RenderCancellation(data CancellationData) (
 		refundInfo = fmt.Sprintf(`
             <p><strong>Refund Information:</strong></p>
             <ul>
-                <li>Refund Amount: $%.2f</li>
+                <li>Refund Amount: %.0f ₫</li>
                 <li>Refund Method: %s</li>
                 <li>Processing Time: 5-7 business days</li>
             </ul>
