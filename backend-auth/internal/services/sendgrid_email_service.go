@@ -458,4 +458,3 @@ func (s *SendGridEmailService) sendEmail(email sendGridEmail) error {
 
 	return nil
 }
-
