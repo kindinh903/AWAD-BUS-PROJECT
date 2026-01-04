@@ -311,103 +311,10 @@ export const ReportsAnalytics: React.FC = () => {
       </div>
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Popular Routes Bar Chart */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Routes by Bookings</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={popularRoutes} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#444' : '#e5e7eb'} />
-              <XAxis type="number" tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
-              <YAxis dataKey="route_name" type="category" width={100} tick={{ fill: isDarkMode ? '#e5e7eb' : '#222' }} />
-              <Tooltip formatter={(value: number | undefined) => [value || 0, 'Bookings']} contentStyle={{ background: isDarkMode ? '#222' : '#fff', color: isDarkMode ? '#fff' : '#222' }} />
-              <Bar dataKey="total_bookings" fill="#10b981" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Route Revenue Pie Chart */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Route</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={popularRoutes as any}
-                dataKey="total_revenue"
-                nameKey="route_name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {popularRoutes.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value: number | undefined) => [formatCurrency(value || 0), 'Revenue']} contentStyle={{ background: isDarkMode ? '#222' : '#fff', color: isDarkMode ? '#fff' : '#222' }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+     
 
       {/* Popular Routes Table */}
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Popular Routes Detail</h3>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Route
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Bookings
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Revenue
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Avg Occupancy
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {popularRoutes.map((route, index) => (
-                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-900">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <DirectionsBus className="h-5 w-5 text-gray-400 dark:text-gray-500 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{route.route_name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-300">
-                          {route.origin} → {route.destination}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {route.total_bookings}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 dark:text-green-300">
-                    {formatCurrency(route.total_revenue)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${route.avg_occupancy || 0}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm text-gray-900 dark:text-white">{(route.avg_occupancy || 0).toFixed(1)}%</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      
     </div>
   );
 };

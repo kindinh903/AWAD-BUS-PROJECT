@@ -339,70 +339,7 @@ export default function HomePage() {
         </Container>
       </Section>
 
-      {/* Popular Routes */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              ⭐ Popular Routes
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Most booked destinations by our travelers
-            </p>
-          </div>
-
-          {loadingRoutes ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="bg-gray-100 dark:bg-gray-700 rounded-2xl h-24 animate-pulse"></div>
-              ))}
-            </div>
-          ) : popularRoutes.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {popularRoutes.map((route, index) => (
-                <Link
-                  key={index}
-                  to={`/routes?origin=${encodeURIComponent(route.origin)}&amp;destination=${encodeURIComponent(route.destination)}`}
-                  className="group bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 dark:border-gray-700"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">{route.image}</div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                        {route.origin} → {route.destination}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {route.duration} journey
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">from</div>
-                      <div className="font-bold text-blue-600">{formatPrice(route.price)}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl">
-              <LocationOnIcon sx={{ fontSize: 48 }} className="text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No popular routes available yet.</p>
-              <Link to="/routes" className="mt-4 inline-block text-blue-600 hover:underline">
-                Browse all routes →
-              </Link>
-            </div>
-          )}
-
-          <div className="text-center mt-8">
-            <Link
-              to="/routes"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
-            >
-              Explore All Routes <ArrowForwardIcon sx={{ fontSize: 16 }} />
-            </Link>
-          </div>
-        </div>
-      </section>
+      
 
       {/* Fleet Showcase */}
       <section className="py-16 bg-white dark:bg-gray-800">
@@ -496,31 +433,6 @@ export default function HomePage() {
       </section>
 
       {/* Promotions Banner */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-              <div>
-                <div className="inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1 mb-4">
-                  <LocalOfferIcon sx={{ fontSize: 16 }} />
-                  <span className="text-sm font-medium">Limited Time Offer</span>
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-2">
-                  Get 20% Off Your First Booking!
-                </h3>
-                <p className="text-white/80">Use code SAVE20 at checkout</p>
-              </div>
-              <Link
-                to="/promotions"
-                className="px-8 py-3 bg-white text-orange-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors shadow-lg"
-              >
-                View All Deals
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
