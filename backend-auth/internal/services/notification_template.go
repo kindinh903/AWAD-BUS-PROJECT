@@ -11,11 +11,11 @@ import (
 // NotificationTemplateEngine renders notification templates with data
 // This provides a centralized way to generate notification content
 type NotificationTemplateEngine struct {
-	emailService *EmailService
+	emailService EmailProvider
 }
 
 // NewNotificationTemplateEngine creates a new template engine
-func NewNotificationTemplateEngine(emailService *EmailService) *NotificationTemplateEngine {
+func NewNotificationTemplateEngine(emailService EmailProvider) *NotificationTemplateEngine {
 	return &NotificationTemplateEngine{
 		emailService: emailService,
 	}
