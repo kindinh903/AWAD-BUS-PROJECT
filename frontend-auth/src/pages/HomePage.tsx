@@ -12,7 +12,6 @@ import PeopleIcon from '@mui/icons-material/People';
 import BoltIcon from '@mui/icons-material/Bolt';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -76,9 +75,7 @@ const busTypes = [
 export default function HomePage() {
   const navigate = useNavigate();
   const [availableTrips, setAvailableTrips] = useState<Trip[]>([]);
-  const [popularRoutes, setPopularRoutes] = useState<PopularRoute[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingRoutes, setLoadingRoutes] = useState(true);
 
   // Fetch available trips for today and extract popular routes
   useEffect(() => {
@@ -118,12 +115,13 @@ export default function HomePage() {
           }
         });
 
-        setPopularRoutes(Array.from(routeMap.values()).slice(0, 6));
+        // Popular routes are extracted but not currently displayed in the UI
+        // Uncomment below if you want to use them later:
+        // setPopularRoutes(Array.from(routeMap.values()).slice(0, 6));
       } catch (error) {
         console.error('Failed to fetch trips:', error);
       } finally {
         setLoading(false);
-        setLoadingRoutes(false);
       }
     };
     fetchData();
