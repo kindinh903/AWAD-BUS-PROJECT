@@ -47,10 +47,21 @@ func (h *NotificationHandler) GetUserNotifications(c *gin.Context) {
 
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
 
-	notifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userUUID, limit)
+	allNotifications, err := h.notificationRepo.GetByUserID(c.Request.Context(), userUUID, limit*2) // Get more to account for filtering
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch notifications"})
 		return
+	}
+
+	// Filter to only show in-app notifications (exclude email notifications with HTML)
+	notifications := make([]*entities.Notification, 0)
+	for _, n := range allNotifications {
+		if n.Channel == entities.NotificationChannelInApp {
+			notifications = append(notifications, n)
+			if len(notifications) >= limit {
+				break
+			}
+		}
 	}
 
 	// Count unread
@@ -61,8 +72,30 @@ func (h *NotificationHandler) GetUserNotifications(c *gin.Context) {
 		}
 	}
 
+	// Transform notifications for frontend (map subject->title, body->message)
+	type NotificationResponse struct {
+		ID        string `json:"id"`
+		Type      string `json:"type"`
+		Title     string `json:"title"`
+		Message   string `json:"message"`
+		Status    string `json:"status"`
+		CreatedAt string `json:"created_at"`
+	}
+
+	transformedNotifications := make([]NotificationResponse, len(notifications))
+	for i, n := range notifications {
+		transformedNotifications[i] = NotificationResponse{
+			ID:        n.ID.String(),
+			Type:      string(n.Type),
+			Title:     n.Subject,
+			Message:   n.Body,
+			Status:    string(n.Status),
+			CreatedAt: n.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"notifications": notifications,
+		"notifications": transformedNotifications,
 		"unread_count":  unreadCount,
 		"total":         len(notifications),
 	})
@@ -98,9 +131,10 @@ func (h *NotificationHandler) GetUnreadCount(c *gin.Context) {
 		return
 	}
 
+	// Count only unread in-app notifications (exclude email notifications)
 	unreadCount := 0
 	for _, n := range notifications {
-		if n.Status != entities.NotificationStatusRead {
+		if n.Channel == entities.NotificationChannelInApp && n.Status != entities.NotificationStatusRead {
 			unreadCount++
 		}
 	}
