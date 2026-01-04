@@ -70,9 +70,9 @@ services:
       FRONTEND_URL: https://awad-bus-project.vercel.app/
       # Email Configuration
       # Set USE_SENDGRID=true to use SendGrid, false to use SMTP
-      USE_SENDGRID: "false"
+      USE_SENDGRID: "true"
       # SendGrid Configuration (if USE_SENDGRID=true)
-      SENDGRID_API_KEY: ""
+      SENDGRID_API_KEY: "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"
       # SMTP Configuration (if USE_SENDGRID=false)
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
