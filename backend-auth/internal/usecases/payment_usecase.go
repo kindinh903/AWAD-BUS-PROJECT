@@ -26,7 +26,7 @@ type PaymentUsecase struct {
 	ticketRepo    repositories.TicketRepository
 	tripRepo      repositories.TripRepository
 	ticketService *services.TicketService
-	emailService  *services.EmailService
+	emailService  services.EmailProvider
 }
 
 func NewPaymentUsecase(
@@ -41,7 +41,7 @@ func NewPaymentUsecase(
 	ticketRepo repositories.TicketRepository,
 	tripRepo repositories.TripRepository,
 	ticketService *services.TicketService,
-	emailService *services.EmailService,
+	emailService services.EmailProvider,
 ) *PaymentUsecase {
 	return &PaymentUsecase{
 		paymentRepo:       paymentRepo,

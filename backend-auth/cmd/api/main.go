@@ -209,7 +209,7 @@ type Container struct {
 	// Services
 	CacheService            *services.CacheService
 	PaymentProvider         services.PaymentProvider
-	EmailService            *services.EmailService
+	EmailService            services.EmailProvider
 	NotificationTemplateEng *services.NotificationTemplateEngine
 	NotificationQueue       *services.NotificationQueue
 	BackgroundJobScheduler  *services.BackgroundJobScheduler
@@ -279,8 +279,10 @@ func initDependencies(db *gorm.DB) *Container {
 	// Payment provider (mock or real based on env)
 	paymentProvider := getPaymentProvider()
 
-	// Email and notification services
-	emailService := services.NewEmailService()
+	// Email provider (SMTP or SendGrid based on env)
+	emailService := getEmailProvider()
+
+	// Notification services
 	notificationTemplateEng := services.NewNotificationTemplateEngine(emailService)
 	notificationQueue := services.NewNotificationQueue(
 		3,   // workers
@@ -308,7 +310,7 @@ func initDependencies(db *gorm.DB) *Container {
 		ticketRepo,
 		tripRepo,
 		services.NewTicketService(),
-		services.NewEmailService(),
+		emailService,
 	)
 	analyticsUsecase := usecases.NewAnalyticsUsecase(
 		bookingRepo,
@@ -344,7 +346,6 @@ func initDependencies(db *gorm.DB) *Container {
 		seatReservationRepo,
 		notificationQueue,
 		notificationTemplateEng,
-		emailService,
 	)
 
 	return &Container{
@@ -400,6 +401,24 @@ func getPaymentProvider() services.PaymentProvider {
 		os.Getenv("PAYOS_API_KEY"),
 		os.Getenv("PAYOS_CHECKSUM_KEY"),
 	)
+}
+
+// getEmailProvider returns the appropriate email provider based on environment
+func getEmailProvider() services.EmailProvider {
+	useSendGrid := os.Getenv("USE_SENDGRID") == "true"
+
+	if useSendGrid {
+		sendgridAPIKey := os.Getenv("SENDGRID_API_KEY")
+		if sendgridAPIKey == "" {
+			log.Println("Warning: USE_SENDGRID=true but SENDGRID_API_KEY is empty. Falling back to SMTP.")
+			return services.NewEmailService()
+		}
+		log.Println("Using SendGrid email provider")
+		return services.NewSendGridEmailService()
+	}
+
+	log.Println("Using SMTP email provider")
+	return services.NewEmailService()
 }
 
 func setupRouter(container *Container) *gin.Engine {

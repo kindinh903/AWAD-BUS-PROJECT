@@ -25,7 +25,7 @@ type NotificationQueue struct {
 
 	// Dependencies
 	notifRepo      repositories.NotificationRepository
-	emailService   *EmailService
+	emailService   EmailProvider
 	templateEngine *NotificationTemplateEngine
 }
 
@@ -36,7 +36,7 @@ func NewNotificationQueue(
 	workers int,
 	queueSize int,
 	notifRepo repositories.NotificationRepository,
-	emailService *EmailService,
+	emailService EmailProvider,
 	templateEngine *NotificationTemplateEngine,
 ) *NotificationQueue {
 	ctx, cancel := context.WithCancel(context.Background())
