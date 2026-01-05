@@ -45,25 +45,25 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
     const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Write a Review</h3>
+                <h3 className="text-lg font-semibold dark:text-white">Write a Review</h3>
                 {onCancel && (
-                    <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
                         <CloseIcon sx={{ fontSize: 20 }} />
                     </button>
                 )}
             </div>
 
             {error && (
-                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm">
                     {error}
                 </div>
             )}
 
             {/* Star Rating */}
             <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Your Rating *
                 </label>
                 <div className="flex items-center gap-1">
@@ -80,12 +80,12 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                                 sx={{ fontSize: 32 }}
                                 className={`${star <= (hoverRating || rating)
                                         ? 'fill-yellow-400 text-yellow-400'
-                                        : 'text-gray-300'
+                                        : 'text-gray-300 dark:text-gray-600'
                                     }`}
                             />
                         </button>
                     ))}
-                    <span className="ml-3 text-sm text-gray-600">
+                    <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
                         {ratingLabels[hoverRating || rating] || 'Select rating'}
                     </span>
                 </div>
@@ -93,7 +93,7 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
 
             {/* Title */}
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Title (optional)
                 </label>
                 <input
@@ -102,13 +102,13 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Summarize your experience"
                     maxLength={100}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 />
             </div>
 
             {/* Comment */}
             <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Your Review (optional)
                 </label>
                 <textarea
@@ -117,9 +117,9 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                     placeholder="Tell us about your trip experience..."
                     rows={4}
                     maxLength={1000}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                 />
-                <div className="text-xs text-gray-400 mt-1 text-right">
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1 text-right">
                     {comment.length}/1000
                 </div>
             </div>
@@ -129,7 +129,7 @@ export default function ReviewForm({ tripId, bookingId, onSuccess, onCancel }: R
                 {onCancel && (
                     <button
                         onClick={onCancel}
-                        className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                        className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                     >
                         Cancel
                     </button>
